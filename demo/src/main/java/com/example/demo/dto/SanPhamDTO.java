@@ -1,0 +1,16 @@
+package com.example.demo.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class SanPhamDTO {
+    private int id;
+    private String tenSP; 
+    private double giaSP; 
+    private String moTa;
+    private String loaiSP;
+}
