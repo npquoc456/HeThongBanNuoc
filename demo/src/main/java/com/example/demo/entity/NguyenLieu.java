@@ -30,6 +30,7 @@ public class NguyenLieu {
     @Column(name = "don_vi")
     private String donVi;
 
+    @Enumerated(EnumType.STRING)
     @Column(name ="trang_thai")
     private TrangThaiVatLieu trangThai;
 

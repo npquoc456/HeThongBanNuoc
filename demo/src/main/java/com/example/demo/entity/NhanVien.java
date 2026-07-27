@@ -26,6 +26,7 @@ public class NhanVien {
     private String matkhau;
     
     @NotNull
+    @Enumerated(EnumType.STRING)
     private VaiTro vaiTro;
 
     @NotNull
