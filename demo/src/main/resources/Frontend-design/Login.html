@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập - CAFE</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #f0ede7;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-container {
+            display: flex;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+            max-width: 900px;
+            width: 100%;
+            min-height: 500px;
+        }
+
+        .login-image {
+            flex: 1;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            position: relative;
+            border-radius: 20px 0 0 20px;
+        }
+
+        .login-image img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: cover;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .login-form-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 50px 40px;
+            position: relative;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .logo-section {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .logo-section img {
+            height: 70px;
+            width: auto;
+            margin-bottom: 10px;
+        }
+
+        .form-header {
+            margin-bottom: 30px;
+        }
+
+        .form-header h2 {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .form-header p {
+            font-size: 14px;
+            color: #999;
+            margin-bottom: 20px;
+        }
+
+        .welcome-text {
+            font-size: 18px;
+            color: #333;
+            font-style: italic;
+            margin-bottom: 35px;
+            line-height: 1.6;
+            font-family: 'Comic Sans MS', 'Trebuchet MS', cursive;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 15px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #d9d9d9;
+            border-radius: 10px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            background-color: #fafafa;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #999;
+            box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .form-group input::placeholder {
+            color: #ccc;
+        }
+
+        .login-btn {
+            width: auto;
+            padding: 12px 40px;
+            background: #555555;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 15px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .login-btn:hover {
+            background: #444444;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .login-btn:active {
+            transform: translateY(0);
+        }
+
+        @media (max-width: 768px) {
+            .login-container {
+                flex-direction: column;
+                min-height: auto;
+            }
+
+            .login-image {
+                min-height: 300px;
+                border-radius: 20px 20px 0 0;
+            }
+
+            .login-form-section {
+                padding: 40px 30px;
+                min-height: auto;
+            }
+
+            .logo-section {
+                position: static;
+                text-align: center;
+                margin-bottom: 20px;
+            }
+
+            .form-header {
+                margin-top: 0;
+            }
+
+            .welcome-text {
+                font-size: 14px;
+                margin-bottom: 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <!-- Left Side - Image -->
+        <div class="login-image">
+            <img id="coffee-image" src="anhminhhoa.jpg" alt="Iced Coffee">
+        </div>
+
+        <!-- Right Side - Form -->
+        <div class="login-form-section">
+            <!-- Logo -->
+            <div class="logo-section">
+                <img id="cafe-logo" src="LOGO.png" alt="CAFE Logo">
+            </div>
+
+            <!-- Form Content -->
+            <div class="form-header">
+                <p class="welcome-text">Welcome back, Please login your account !!</p>
+            </div>
+
+            <form id="login-form">
+                <!-- User ID Input -->
+                <div class="form-group">
+                    <label for="user-id-input">ID của bạn:</label>
+                    <input 
+                        type="text" 
+                        id="user-id-input" 
+                        name="user-id" 
+                        placeholder="Nhập id của bạn"
+                        required
+                    >
+                </div>
+
+                <!-- Password Input -->
+                <div class="form-group">
+                    <label for="password-input">Mật khẩu của bạn:</label>
+                    <input 
+                        type="password" 
+                        id="password-input" 
+                        name="password" 
+                        placeholder="Nhập mật khẩu của bạn"
+                        required
+                    >
+                </div>
+
+                <!-- Login Button -->
+                <button type="submit" id="login-btn" class="login-btn">ĐĂNG NHẬP</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('login-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const userId = document.getElementById('user-id-input').value;
+            const password = document.getElementById('password-input').value;
+            
+            console.log('Login attempt:', {
+                userId: userId,
+                password: password
+            });
+        });
+    </script>
+</body>
+</html>
