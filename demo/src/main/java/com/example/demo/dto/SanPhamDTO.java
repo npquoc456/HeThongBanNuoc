@@ -3,6 +3,7 @@ package com.example.demo.dto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -13,4 +14,6 @@ public class SanPhamDTO {
     private double giaSP; 
     private String moTa;
     private String loaiSP;
+
+    List<CTHDDTO> cthdList;
 }

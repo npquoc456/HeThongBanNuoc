@@ -21,4 +21,5 @@ public class TKTrungThanh {
 
     @Column(name = "ngay_tao")
     private LocalDate ngayTao;
+
 }

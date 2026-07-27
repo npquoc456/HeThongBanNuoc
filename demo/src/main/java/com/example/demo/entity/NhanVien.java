@@ -1,5 +1,6 @@
 package com.example.demo.entity;
 
+import com.example.demo.constant.TrangThaiLamViec;
 import com.example.demo.constant.VaiTro;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -35,6 +36,10 @@ public class NhanVien {
     private String ngaySinh;
 
     private String ngayLamviec;
+
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    private TrangThaiLamViec trangThaiLamViec;
 
     @OneToMany(mappedBy = "nhanVien", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<CTCa> ctCa = new LinkedHashSet<>();

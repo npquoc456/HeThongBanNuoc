@@ -20,4 +20,5 @@ public class CTCa {
     @MapsId("nhanVien")
     @JoinColumn(name = "nhan_vien_id", referencedColumnName = "id")
     private NhanVien nhanVien;
+ 
 }

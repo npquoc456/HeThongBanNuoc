@@ -14,5 +14,4 @@ public class NguyenLieuDTO {
     private String donViTinh;
     private double soLuong;
     private TrangThaiVatLieu trangThai;
-
 }

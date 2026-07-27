@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import com.example.demo.constant.VaiTro;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -16,4 +17,5 @@ public class NhanVienDTO {
 
     private VaiTro vaiTro;
 
+    private List<CTCaDTO> ctCaList;
 }
