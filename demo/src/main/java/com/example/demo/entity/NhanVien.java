@@ -4,6 +4,8 @@ import com.example.demo.constant.VaiTro;
 import jakarta.persistence.*;
 import lombok.Data;
 import jakarta.validation.constraints.NotNull;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 @Data
 @Entity
@@ -34,7 +36,6 @@ public class NhanVien {
 
     private String ngayLamviec;
 
-    @ManyToOne
-    @JoinColumn(name = "ca_lam_id", referencedColumnName = "id")
-    private CaLam caLamviec;
+    @OneToMany(mappedBy = "nhanVien", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<CTCa> ctCa = new LinkedHashSet<>();
 }

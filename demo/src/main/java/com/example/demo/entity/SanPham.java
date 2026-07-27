@@ -26,6 +26,9 @@ public class SanPham {
     private String loaiSP;
 
     @OneToMany(mappedBy = "sanPham", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<CTHD> CTHDs = new LinkedHashSet<>();
+    
+    @OneToMany(mappedBy = "sanPham", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<CTNL> CTNLs = new LinkedHashSet<>();
 
 }
