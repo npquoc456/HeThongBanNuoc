@@ -14,9 +14,12 @@
 
         body {
             font-family: 'Arial', sans-serif;
-            background: #f0ede7 url('Backgroundimage.jpg') no-repeat bottom right;
-            background-size: 400px 400px;
+            background-color: #f0ede7;
+            background-image: url('Backgroundimage.jpg');
+            background-repeat: no-repeat;
             background-attachment: fixed;
+            background-size: 100% 100vh;
+            background-position: center center;
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -28,13 +31,14 @@
         body::before {
             content: '';
             position: fixed;
-            bottom: 0;
+            top: 0;
+            left: 0;
             right: 0;
-            width: 400px;
-            height: 400px;
-            background: url('Backgroundimage.jpg') no-repeat;
+            bottom: 0;
+            background: url('Backgroundimage.jpg') no-repeat center center;
             background-size: cover;
-            opacity: 0.15;
+            background-attachment: fixed;
+            opacity: 0.12;
             pointer-events: none;
             z-index: 0;
         }
@@ -78,26 +82,35 @@
             flex-direction: column;
             justify-content: flex-start;
             align-items: center;
-            padding: 50px 40px;
+            padding: 30px 40px 60px 40px;
             position: relative;
             width: 577px;
             height: 777px;
-            padding-top: 40px;
+            overflow-y: auto;
         }
 
         .logo-section {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 15px;
+            flex-shrink: 0;
         }
 
         .logo-section img {
-            height: 221px;
-            width: 221px;
-            margin-bottom: 20px;
+            height: 160px;
+            width: 160px;
+            margin-bottom: 15px;
+        }
+
+        .form-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            width: 100%;
         }
 
         .form-header {
-            margin-bottom: 40px;
+            margin-bottom: 50px;
             width: 100%;
         }
 
@@ -115,11 +128,11 @@
         }
 
         .welcome-text {
-            font-size: 32px;
+            font-size: 40px;
             color: #333;
             font-style: normal;
-            margin-bottom: 40px;
-            line-height: 1.4;
+            margin-bottom: 50px;
+            line-height: 1.3;
             font-family: 'Architects Daughter', cursive;
             font-weight: 400;
             text-align: center;
@@ -127,13 +140,13 @@
         }
 
         .form-group {
-            margin-bottom: 30px;
+            margin-bottom: 35px;
             width: 100%;
         }
 
         .form-group label {
             display: block;
-            font-size: 24px;
+            font-size: 22px;
             font-weight: 700;
             color: #333;
             margin-bottom: 12px;
@@ -145,7 +158,7 @@
             padding: 14px 16px;
             border: 2px solid #d9d9d9;
             border-radius: 10px;
-            font-size: 18px;
+            font-size: 16px;
             transition: all 0.3s ease;
             font-family: 'Arima', sans-serif;
             background-color: #fafafa;
@@ -160,6 +173,7 @@
         .form-group input::placeholder {
             color: #ccc;
             font-family: 'Arima', sans-serif;
+            font-size: 16px;
         }
 
         .login-btn {
@@ -173,13 +187,14 @@
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
-            margin-top: 20px;
+            margin-top: 40px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             display: block;
             margin-left: auto;
             margin-right: auto;
             font-family: 'Arima', sans-serif;
+            flex-shrink: 0;
         }
 
         .login-btn:hover {
@@ -240,38 +255,40 @@
             </div>
 
             <!-- Form Content -->
-            <div class="form-header">
-                <p class="welcome-text">Welcome back, Please login<br>your account !!</p>
+            <div class="form-content">
+                <div class="form-header">
+                    <p class="welcome-text">Welcome back, Please login<br>your account !!</p>
+                </div>
+
+                <form id="login-form">
+                    <!-- User ID Input -->
+                    <div class="form-group">
+                        <label for="user-id-input">ID của bạn:</label>
+                        <input 
+                            type="text" 
+                            id="user-id-input" 
+                            name="user-id" 
+                            placeholder="Nhập id của bạn"
+                            required
+                        >
+                    </div>
+
+                    <!-- Password Input -->
+                    <div class="form-group">
+                        <label for="password-input">Mật khẩu của bạn:</label>
+                        <input 
+                            type="password" 
+                            id="password-input" 
+                            name="password" 
+                            placeholder="Nhập mật khẩu của bạn"
+                            required
+                        >
+                    </div>
+
+                    <!-- Login Button -->
+                    <button type="submit" id="login-btn" class="login-btn">ĐĂNG NHẬP</button>
+                </form>
             </div>
-
-            <form id="login-form">
-                <!-- User ID Input -->
-                <div class="form-group">
-                    <label for="user-id-input">ID của bạn:</label>
-                    <input 
-                        type="text" 
-                        id="user-id-input" 
-                        name="user-id" 
-                        placeholder="Nhập id của bạn"
-                        required
-                    >
-                </div>
-
-                <!-- Password Input -->
-                <div class="form-group">
-                    <label for="password-input">Mật khẩu của bạn:</label>
-                    <input 
-                        type="password" 
-                        id="password-input" 
-                        name="password" 
-                        placeholder="Nhập mật khẩu của bạn"
-                        required
-                    >
-                </div>
-
-                <!-- Login Button -->
-                <button type="submit" id="login-btn" class="login-btn">ĐĂNG NHẬP</button>
-            </form>
         </div>
     </div>
 
