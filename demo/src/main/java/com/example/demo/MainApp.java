@@ -32,10 +32,10 @@ public class MainApp extends Application {
     public void init() throws Exception {
         if (isPortAvailable(Integer.parseInt(DEFAULT_PORT))) {
             selectedPort = DEFAULT_PORT;
-            System.out.println("✅ Cổng 8080 trống! Hệ thống sẽ chạy trên: 8080");
+            System.out.println("Cổng 8080 trống! Hệ thống sẽ chạy trên cổng: 8080");
         } else {
             selectedPort = BACKUP_PORT;
-            System.out.println("⚠️ Cổng 8080 đã bị chiếm dụng! Tự động chuyển sang cổng dự phòng: 8082");
+            System.out.println("Cổng 8080 đã được sử dụng! Tự động chuyển sang cổng dự phòng: 8082");
         }
     }
 
@@ -52,7 +52,7 @@ public class MainApp extends Application {
     @Override
     public void start(Stage primaryStage) {
         // Bật ngay cửa sổ Loading giao diện
-        openNewWindow(primaryStage, "Hệ Thống POS - Đăng Nhập", true);
+        openNewWindow(primaryStage, "Hệ Thống Bán Hàng - Đăng Nhập", true);
 
         // Chạy Spring Boot ở luồng riêng (ngầm) để không làm đơ giao diện
         Thread springThread = new Thread(() -> {
@@ -89,7 +89,7 @@ public class MainApp extends Application {
             // Hiển thị thông báo Alert của JS thành Popup của Windows
             webEngine.setOnAlert(event -> {
                 Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                alert.setTitle("Thông báo POS");
+                alert.setTitle("Thông báo");
                 alert.setHeaderText(null);
                 alert.setContentText(event.getData());
                 alert.showAndWait();
@@ -108,8 +108,8 @@ public class MainApp extends Application {
                 // Hiển thị màn hình Loading trong lúc chờ Spring Boot + MySQL
                 webEngine.loadContent(
                     "<html><body style='background:#ffffff; color:#000; font-family:Arial; text-align:center; padding-top:200px;'>" +
-                    "<h2>ĐANG KHỞI ĐỘNG HỆ THỐNG MÁY CHỦ...</h2>" +
-                    "<p style='color:#000;'>Đang thiết lập cơ sở dữ liệu</p>" +
+                    "<h2> XIN CHÀO! HỆ THỐNG MÁY CHỦ ĐANG KHỞI ĐỘNG...</h2>" +
+                    "<p style='color:#000;'>Đang thiết lập hệ thống</p>" +
                     "<div style='margin:20px auto; width:50px; height:50px; border:5px solid #ddd; border-top:5px solid #000; border-radius:50%; animation:spin 1s linear infinite;'></div>" +
                     "<style>@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</style>" +
                     "</body></html>"

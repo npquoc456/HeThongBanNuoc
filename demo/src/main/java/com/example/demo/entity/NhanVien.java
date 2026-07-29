@@ -47,7 +47,7 @@ public class NhanVien {
     @NotNull
     @Enumerated(EnumType.STRING)
 
-    @Column(name = "trangThai") //chua them
+    @Column(name = "trangThai") 
     private TrangThaiLamViec trangThaiLamViec;
 
     @OneToMany(mappedBy = "nhanVien", cascade = CascadeType.ALL, orphanRemoval = true)
