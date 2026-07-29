@@ -1,6 +1,5 @@
 package com.example.demo;
 
-import com.example.demo.MainApp.JavaBridge;
 import com.example.demo.service.NhanVienService;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -14,12 +13,7 @@ import netscape.javascript.JSObject;
 import org.springframework.boot.SpringApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
 import java.net.ServerSocket;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -115,7 +109,7 @@ public class MainApp extends Application {
                 webEngine.loadContent(
                     "<html><body style='background:#ffffff; color:#000; font-family:Arial; text-align:center; padding-top:200px;'>" +
                     "<h2>ĐANG KHỞI ĐỘNG HỆ THỐNG MÁY CHỦ...</h2>" +
-                    "<p style='color:#000;'>Đang thiết lập cơ sở dữ liệu (Cổng " + selectedPort + ")</p>" +
+                    "<p style='color:#000;'>Đang thiết lập cơ sở dữ liệu</p>" +
                     "<div style='margin:20px auto; width:50px; height:50px; border:5px solid #ddd; border-top:5px solid #000; border-radius:50%; animation:spin 1s linear infinite;'></div>" +
                     "<style>@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</style>" +
                     "</body></html>"
