@@ -1,28 +1,27 @@
 package com.example.demo.entity;
 
-
 import jakarta.persistence.*;
 import lombok.Data;
 
+@Data
 @Entity
 @Table(name = "ctnl")
-@Data
 public class CTNL {
 
-    @Id
     @EmbeddedId
     private CTNLId id;
 
-    @MapsId("sanPham")
-    @ManyToOne
-    @JoinColumn(name = "sp_id", referencedColumnName = "id")
+    @MapsId("sanPhamId")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "sp_id")
     private SanPham sanPham;
 
-    @MapsId("nguyenLieu")
-    @ManyToOne
-    @JoinColumn(name = "nl_id", referencedColumnName = "id")
+    @MapsId("nguyenLieuId")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "nl_id")
     private NguyenLieu nguyenLieu;
 
-    @Column(name = "soLuongCan")
+    @Column(name = "so_luong_can")
     private Double soLuong;
+
 }

@@ -300,17 +300,77 @@
         </div>
     </div>
 
-    <script>
-        document.getElementById('login-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const userId = document.getElementById('user-id-input').value;
-            const password = document.getElementById('password-input').value;
-            
-            console.log('Login attempt:', {
-                userId: userId,
-                password: password
-            });
-        });
-    </script>
+<script>
+
+const loginForm = document.getElementById("login-form");
+const userIdInput = document.getElementById("user-id-input");
+const passwordInput = document.getElementById("password-input");
+const loginButton = document.getElementById("login-btn");
+
+loginForm.addEventListener("submit", function (e) {
+
+    e.preventDefault();
+
+    const userId = userIdInput.value.trim();
+    const password = passwordInput.value;
+
+    if (userId === "") {
+        hienThiLoi("Vui lòng nhập ID.");
+        return;
+    }
+
+    if (password === "") {
+        hienThiLoi("Vui lòng nhập mật khẩu.");
+        return;
+    }
+
+    loginButton.disabled = true;
+    loginButton.innerText = "ĐANG ĐĂNG NHẬP...";
+
+    if (window.javaBackend) {
+
+        try {
+
+            window.javaBackend.xuLyDangNhap(userId, password);
+
+        } catch (e) {
+
+            console.error(e);
+
+            hienThiLoi("Không thể kết nối tới Java.");
+
+        }
+
+    } else {
+
+        hienThiLoi("Không tìm thấy JavaFX Backend.");
+
+    }
+
+    loginButton.disabled = false;
+    loginButton.innerText = "ĐĂNG NHẬP";
+
+});
+
+function hienThiLoi(thongBao) {
+
+    alert(thongBao);
+
+    passwordInput.value = "";
+
+    passwordInput.focus();
+
+}
+
+function dangNhapThanhCong() {
+
+    alert("Đăng nhập thành công!");
+
+    // Sau này chuyển trang tại đây
+    // window.location.href = "BanHang.html";
+
+}
+
+</script>
 </body>
 </html>

@@ -12,9 +12,9 @@ public interface NhanVienRepository extends JpaRepository<NhanVien, Integer> {
     @Query(""" 
         SELECT n 
         FROM NhanVien n 
-        WHERE n.id = :id AND n.matkhau = :matkhau 
+        WHERE n.id = :id AND n.matKhau = :matKhau 
     """)
-    Optional<NhanVien> TimNhanVienTheoIDvaMK(@Param("id") int id, @Param("matkhau") String matkhau);
+    Optional<NhanVien> TimNhanVienTheoIDvaMK(@Param("id") int id, @Param("matKhau") String matKhau);
 
     @Query("""
         SELECT n 
