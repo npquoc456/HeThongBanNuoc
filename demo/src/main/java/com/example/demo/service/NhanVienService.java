@@ -11,8 +11,7 @@ import com.example.demo.repository.NhanVienRepository;
 
 @Service
 public class NhanVienService {
-    @Autowired 
-    private NhanVienRepository nhanVienRepository;
+    @Autowired private NhanVienRepository nhanVienRepository;
     
     public NhanVien DangNhap(Integer id, String matkhau){
         Optional<NhanVien> nhanVien = nhanVienRepository.TimNhanVienTheoIDvaMK(id, matkhau);
