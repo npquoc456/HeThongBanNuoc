@@ -144,9 +144,6 @@ public class MainApp extends Application {
         System.exit(0);
     }
 
-    // ==========================================
-    // CLASS CẦU NỐI (JAVA BRIDGE)
-    // ==========================================
     public class JavaBridge {
 
         // --- 1. HÀM XỬ LÝ ĐĂNG NHẬP (Của dự án bạn) ---
