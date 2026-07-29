@@ -6,15 +6,20 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 @Entity
-@Table(name = "ca_lam")
+@Table(name = "calam")
 @Data
 public class CaLam {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Integer id;
 
+    @Column(name = "tenCa")
     private String tenCa;
+
+    @Column(name = "thoiGianBD")
     private String thoiGianBD;
+
+    @Column(name = "thoiGianKT")
     private String thoiGianKT;
 
     @OneToMany(mappedBy = "caLam", cascade = CascadeType.ALL, orphanRemoval = true)

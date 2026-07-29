@@ -1,0 +1,12 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Run POS",
+            "request": "launch",
+            "mainClass": "com.example.demo.DemoApplication",
+            "projectName": "demo"
+        }
+    ]
+}

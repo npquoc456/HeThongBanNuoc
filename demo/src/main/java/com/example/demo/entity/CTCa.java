@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 
 @Entity
-@Table(name = "ct_ca")
+@Table(name = "ctca")
 @Data
 public class CTCa {
     @Id
@@ -13,12 +13,12 @@ public class CTCa {
 
     @ManyToOne
     @MapsId("caLam")
-    @JoinColumn(name = "ca_lam_id", referencedColumnName = "id")
+    @JoinColumn(name = "cl_id", referencedColumnName = "id")
     private CaLam caLam;
 
     @ManyToOne
     @MapsId("nhanVien")
-    @JoinColumn(name = "nhan_vien_id", referencedColumnName = "id")
+    @JoinColumn(name = "nv_id", referencedColumnName = "id")
     private NhanVien nhanVien;
  
 }

@@ -19,19 +19,17 @@ public class NguyenLieu {
     private Integer id;
 
     @Column(name = "ten_nguyen_lieu")
-    private String tenNguyenLieu;
+    private String tenNL;
 
-    @Column(name = "don_vi_tinh")
-    private String donViTinh;
 
-    @Column(name = "so_luong")
+    @Column(name = "soLuong")
     private Double soLuong;
 
-    @Column(name = "don_vi")
+    @Column(name = "donvi")
     private String donVi;
 
     @Enumerated(EnumType.STRING)
-    @Column(name ="trang_thai")
+    @Column(name ="trangthai")
     private TrangThaiVatLieu trangThai;
 
     @OneToMany(mappedBy = "nguyenLieu")

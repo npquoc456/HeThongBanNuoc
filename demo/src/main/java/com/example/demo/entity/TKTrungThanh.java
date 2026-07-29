@@ -6,20 +6,20 @@ import jakarta.persistence.*;
 import lombok.Data;
 
 @Entity
-@Table(name = "tk_trung_thanh")
+@Table(name = "tktrungthanh")
 @Data
 public class TKTrungThanh {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Integer id;
 
-    @Column(name = "ten_kh")
+    @Column(name = "tenKH")
     private String tenKH;
 
-    @Column(name = "so_luong_mua")
-    private int soLuongMua;
+    @Column(name = "soLuongMua")
+    private Integer soLuongMua;
 
-    @Column(name = "ngay_tao")
+    @Column(name = "ngayTao")
     private LocalDate ngayTao;
 
 }

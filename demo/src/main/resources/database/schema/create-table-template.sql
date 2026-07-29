@@ -20,6 +20,13 @@ CREATE TABLE calam (
     thoiGianKT VARCHAR(50) NOT NULL
 );
 
+CREATE TABLE ctca (
+    nv_id INT, 
+    cl_id INT, 
+
+    PRIMARY KEY (nv_id, cl_id)
+);
+
 CREATE TABLE nhanvien (
     id INT AUTO_INCREMENT PRIMARY KEY,
     ten VARCHAR(100) NOT NULL,
@@ -34,11 +41,14 @@ CREATE TABLE nhanvien (
     FOREIGN KEY (ca_id) REFERENCES calam(id)
 );
 
+alter table nhanvien add trangThaiLamViec Varchar(20);
+
 CREATE TABLE tktrungthanh (
     id INT AUTO_INCREMENT PRIMARY KEY,
     tenKH VARCHAR(100) NOT NULL,
     soLuongMua INT DEFAULT 0
 );
+alter table tktrungthanh add ngayTao date;
 
 CREATE TABLE sanpham (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -55,17 +65,17 @@ CREATE TABLE nguyenlieu (
     donvi VARCHAR(20) NOT NULL,
     trangthai VARCHAR(20) NOT NULL
 );
-
+ 
 CREATE TABLE ctnl (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    sp_id INT NOT NULL,
-    nl_id INT NOT NULL,
+    sp_id INT ,
+    nl_id INT ,
     soLuongCan DECIMAL(10,2) NOT NULL,
-
+    
+    PRIMARY KEY (sp_id, nl_id),
     FOREIGN KEY (sp_id) REFERENCES sanpham(id),
     FOREIGN KEY (nl_id) REFERENCES nguyenlieu(id)
 );
-
+drop table ctnl;
 CREATE TABLE hoadon (
     id INT AUTO_INCREMENT PRIMARY KEY,
     kh_id INT,
@@ -80,12 +90,12 @@ CREATE TABLE hoadon (
 );
 
 CREATE TABLE cthd (
-    id INT AUTO_INCREMENT PRIMARY KEY,
     hd_id INT NOT NULL,
     sp_id INT NOT NULL,
     sl INT NOT NULL,
     donGia DECIMAL(10,2) NOT NULL,
 
+    PRIMARY KEY (hd_id, sp_id),
     FOREIGN KEY (hd_id) REFERENCES hoadon(id),
     FOREIGN KEY (sp_id) REFERENCES sanpham(id)
 );

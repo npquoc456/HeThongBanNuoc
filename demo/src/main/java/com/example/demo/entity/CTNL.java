@@ -9,18 +9,20 @@ import lombok.Data;
 @Data
 public class CTNL {
 
+    @Id
     @EmbeddedId
     private CTNLId id;
 
     @MapsId("sanPham")
     @ManyToOne
-    @JoinColumn(name = "san_pham_id", referencedColumnName = "id")
+    @JoinColumn(name = "sp_id", referencedColumnName = "id")
     private SanPham sanPham;
 
     @MapsId("nguyenLieu")
     @ManyToOne
-    @JoinColumn(name = "nguyen_lieu_id", referencedColumnName = "id")
+    @JoinColumn(name = "nl_id", referencedColumnName = "id")
     private NguyenLieu nguyenLieu;
 
+    @Column(name = "soLuongCan")
     private Double soLuong;
 }

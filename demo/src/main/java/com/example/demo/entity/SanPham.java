@@ -6,23 +6,23 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 @Entity
-@Table(name = "san_pham")
+@Table(name = "sanpham")
 @Data   
 public class SanPham {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Integer id;
 
-    @Column(name = "ten_sp")
+    @Column(name = "tensp")
     private String tenSP;
 
-    @Column(name = "gia_SP")
-    private double giaSP;
+    @Column(name = "gia")
+    private Double giaSP;
 
-    @Column(name = "mo_ta")
+    @Column(name = "moTa")
     private String moTa;
 
-    @Column(name = "loai_sp")
+    @Column(name = "loai")
     private String loaiSP;
 
     @OneToMany(mappedBy = "sanPham", cascade = CascadeType.ALL, orphanRemoval = true)
