@@ -157,33 +157,33 @@ public class MainApp extends Application {
     }
     
     public class JavaBridge {
-        public void xuLyDangNhap(String id, String password) {
+        public boolean xuLyDangNhap(String id, String password) {
             if (nhanVienService == null) {
                 Platform.runLater(() ->
                         showError("Thông báo","Hệ thống vẫn đang khởi động.")
                 );
-                return;
+                return false;
             }
             try {
                 int employeeId = Integer.parseInt(id);
 
                 nhanVienService.DangNhap(employeeId, password);
 
-                Platform.runLater(() -> {
-                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                    alert.setHeaderText(null);
-                    alert.setTitle("Đăng nhập");
-                    alert.setContentText("Đăng nhập thành công!");
-                    alert.showAndWait();
-                });
+                return true;
+
             } catch (NumberFormatException e) {
                 Platform.runLater(() -> showError("Lỗi","ID phải là số.")
                 );
-
+                return false;
             } catch (Exception e) {
                 Platform.runLater(() -> showError( "Đăng nhập thất bại", e.getMessage())
                 );
+                return false;
             }
+        }
+
+        public void loadTrang(String trang) {
+            Platform.runLater(() -> webEngine.load(baseUrl + trang));
         }
     }
 }

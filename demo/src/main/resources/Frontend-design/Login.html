@@ -327,45 +327,35 @@ loginForm.addEventListener("submit", function (e) {
     loginButton.disabled = true;
     loginButton.innerText = "ĐANG ĐĂNG NHẬP...";
 
-    if (window.javaBackend) {
-
+    // ... (phần trên giữ nguyên)
+if (window.javaBackend) {
         try {
-
-            window.javaBackend.xuLyDangNhap(userId, password);
-
+            // Nhận kết quả từ Java (true/false)
+            let dangNhapDung = window.javaBackend.xuLyDangNhap(userId, password);
+            
+            if (dangNhapDung) {
+                // XÓA DÒNG NÀY: window.location.href = "ThanhToan.html";
+                // THAY BẰNG DÒNG NÀY: Gọi hàm Java để load file
+                window.javaBackend.loadTrang("ThanhToan.html"); 
+            }
         } catch (e) {
-
             console.error(e);
-
             hienThiLoi("Không thể kết nối tới Java.");
-
         }
     } else {
         hienThiLoi("Không tìm thấy JavaFX Backend.");
     }
+    
     loginButton.disabled = false;
     loginButton.innerText = "ĐĂNG NHẬP";
-
 });
 
 function hienThiLoi(thongBao) {
-
     alert(thongBao);
-
     passwordInput.value = "";
-
     passwordInput.focus();
-
 }
 
-function dangNhapThanhCong() {
-
-    alert("Đăng nhập thành công!");
-
-    // Sau này chuyển trang tại đây
-    // window.location.href = "BanHang.html";
-
-}
 </script>
 </body>
 </html>

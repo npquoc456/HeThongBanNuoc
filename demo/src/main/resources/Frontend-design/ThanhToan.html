@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POS System - Giao Diện Bán Hàng</title>
+    <style>
+        /* RESET & CƠ BẢN */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: url('anhnen.png') no-repeat center center / cover;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden; 
+        }
+
+        /* WRAPPER ĐỂ SCALE TỈ LỆ - Kích thước gốc 1440 x 1080 */
+        #app-wrapper {
+            width: 1440px;
+            height: 1080px;
+            transform-origin: center;
+            position: relative;
+        }
+
+        /* BỐ CỤC CHÍNH BẰNG CSS GRID */
+        .grid-container {
+            width: 100%;
+            height: 100%;
+            display: grid;
+            grid-template-columns: 292px 675px 404px; 
+            grid-template-rows: 95px 874px; 
+            gap: 14px 20px; 
+            justify-content: center; 
+            align-content: center; 
+            grid-template-areas:
+                "sidebar topbar topbar"
+                "sidebar middle right";
+        }
+
+        /* ĐỊNH DẠNG CHUNG CHO CÁC BẢNG MỜ */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.45); 
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 4px solid rgba(255, 255, 255, 0.7); 
+            border-radius: 20px;
+        }
+
+        /* 1. THANH BÊN TRÁI (SIDEBAR) */
+        .sidebar {
+            grid-area: sidebar;
+            width: 292px;
+            height: 983px;
+            padding: 40px 0 30px 0; 
+            display: flex;
+            flex-direction: column;
+            align-items: center; 
+        }
+        
+        .sidebar-logo {
+            margin-bottom: 25px;
+        }
+        .sidebar-logo img { width: 140px; }
+
+        .nav-item-dashboad, .nav-item-thanh-toan, .nav-item-tich-diem, .nav-item-nguyenlieu, .nav-item-dangxuat {
+            display: flex;
+            align-items: center;
+            width: 85%; 
+            padding: 0 20px;
+            height: 60px;
+            margin: 8px 0;
+            border-radius: 15px;
+            font-weight: bold;
+            font-size: 18px;
+            cursor: pointer;
+            color: #000;
+        }
+        .nav-item-dangxuat img, .nav-item-dashboad img, .nav-item-thanh-toan img, .nav-item-tich-diem img, .nav-item-nguyenlieu img { width: 30px; margin-right: 15px; }
+        .nav-active { background: white; }
+        .spacer { flex-grow: 1; }
+
+        /* 2. THANH TRÊN CÙNG (TOP BAR) */
+        .topbar {
+            grid-area: topbar;
+            width: 1099px; 
+            height: 95px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 11px;
+        }
+
+        .user-info {
+            width: 343px;
+            height: 73px;
+            background: white;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding-left: 20px;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .btn-other {
+            width: 73px;
+            height: 73px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        /* 3. BẢNG GIỮA (HÓA ĐƠN) */
+        .middle-panel {
+            grid-area: middle;
+            width: 675px;
+            height: 874px;
+            padding: 22px;
+            position: relative;
+        }
+
+        /* CẬP NHẬT CỘT: Dùng 1fr cho cột cuối để bung ra sát mép */
+        .cart-header-bar {
+            width: 631px;
+            height: 48px;
+            background: white;
+            border-radius: 12px;
+            display: grid;
+            grid-template-columns: 70px 190px 90px 120px 1fr;
+            align-items: center;
+            padding: 0 20px;
+            font-weight: bold;
+            font-size: 15px;
+            margin-bottom: 12px;
+        }
+        /* Căn phải cho chữ TTiền */
+        .cart-header-bar span:last-child {
+            text-align: right;
+        }
+
+        .cart-list-container {
+            width: 631px;
+            height: 504px;
+            background: white;
+            border-radius: 12px;
+            overflow-y: auto;
+            padding: 10px 20px;
+        }
+
+        .cart-item {
+            display: grid;
+            grid-template-columns: 70px 190px 90px 120px 1fr;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #ddd;
+            font-size: 15px;
+        }
+        /* Căn phải cho số tiền để sát lề ngoài cùng */
+        .cart-item span:last-child {
+            text-align: right;
+        }
+
+        /* CỤM TĂNG GIẢM SỐ LƯỢNG */
+        .qty-control {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .qty-control button {
+            width: 26px;
+            height: 26px;
+            border: 1px solid #ccc;
+            background: #fff;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: 0.1s;
+        }
+        .qty-control button:active { background: #eee; transform: scale(0.9); }
+        .qty-control input {
+            width: 36px;
+            height: 26px;
+            text-align: center;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: bold;
+            outline: none;
+        }
+        .qty-control input::-webkit-outer-spin-button,
+        .qty-control input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .qty-control input[type=number] {
+            -moz-appearance: textfield;
+        }
+
+        .totals-area {
+            position: absolute;
+            right: 40px;
+            top: 610px;
+            width: 300px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .totals-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .totals-row.main { font-size: 20px; }
+        .text-green { color: #008A5A; }
+        .text-olive { color: #8A9A00; }
+        .text-red { color: #8B0000; }
+        
+        .divider { height: 2px; background: #999; margin: 10px 0; }
+
+        .action-buttons {
+            position: absolute;
+            bottom: 22px;
+            width: 631px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+        
+        .btn-bill { width: 70px; height: 70px; cursor: pointer; }
+        .btn-bill:hover { transform: scale(1.05); transition: 0.2s; }
+        
+        .right-actions { display: flex; gap: 15px; }
+        .btn-action {
+            width: 140px;
+            height: 50px;
+            border-radius: 25px;
+            border: none;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .btn-action:hover { transform: scale(1.05); transition: 0.2s; }
+
+        .btn-cancel { background: #8B0000; }
+        .btn-cancel:hover { background: #A00000; }
+        .btn-pay { background: #008A5A; }
+        .btn-pay:hover { background: #00A86B; }
+
+        /* 4. THANH BÊN PHẢI (SẢN PHẨM) */
+        .right-panel {
+            grid-area: right;
+            width: 404px;
+            height: 874px;
+            padding: 20px;
+        }
+
+        .search-bar {
+            width: 100%;
+            height: 50px;
+            background: white;
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            padding: 0 15px;
+            margin-bottom: 15px;
+        }
+        .search-bar img { width: 20px; margin-right: 10px; }
+        .search-bar input { border: none; outline: none; font-size: 15px; width: 100%; }
+
+        .category-filters {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .cat-btn {
+            padding: 8px 15px;
+            border-radius: 20px;
+            border: none;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 14px;
+        }
+        .cat-btn small { font-size: 10px; font-weight: normal; }
+        .cat-all { background: #A0B2A6; }
+        .cat-coffee { background: #5C5C5C; }
+        .cat-tea { background: #008A5A; }
+
+        .product-grid {
+            display: grid;
+            grid-template-columns: 172px 172px;
+            gap: 16px;
+        }
+
+        .product-card {
+            width: 172px;
+            height: 172px;
+            background: white;
+            border-radius: 20px;
+            position: relative;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        .product-card h4 { font-size: 16px; margin-bottom: 5px; }
+        .product-card .img-placeholder { width: 80px; height: 80px; background: #eee; border-radius: 50%; margin-bottom: 10px; }
+
+        .btn-add {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        .btn-add:active { transform: scale(0.9); }
+    </style>
+</head>
+<body>
+
+    <div id="app-wrapper">
+        <div class="grid-container">
+
+            <div class="sidebar glass-panel">
+                <div class="sidebar-logo">
+                    <img src="ICONS/Logoicon.png" alt="Logo">
+                </div>
+                <div class="nav-item-dashboad" onclick="chuyentrang('Dashboard.html')"><img src="ICONS/Dashboardicon.png" alt="icon"> DASHBOARD</div>
+                <div class="nav-item-thanh-toan nav-active" onclick="chuyentrang('ThanhToan.html')"><img src="ICONS/ThanhToanicon.png" alt="icon"> THANH TOÁN</div>
+                <div class="nav-item-tich-diem" onclick="chuyentrang('TichDiem.html')"><img src="ICONS/TichDiemicon.png" alt="icon"> TÍCH ĐIỂM</div>
+                <div class="nav-item-nguyenlieu" onclick="chuyentrang('NguyenLieu.html')"><img src="ICONS/viewicon.png" alt="icon"> NGUYÊN LIỆU</div>
+
+                <div class="spacer"></div>
+                
+                <div class="nav-item-dangxuat" onclick="chuyentrang('KetCa.html')"><img src="ICONS/DangXuaticon.png" alt="icon"> KẾT CA</div>
+            </div>
+
+            <div class="topbar glass-panel">
+                <div class="user-info">
+                    <div style="font-weight: lighter;font-size: 18px">ID: 24521487</div>
+                    <div style="font-weight: bold; font-size: 22px;">Tên: Nguyễn Phú Quốc</div>
+                </div>
+                <div class="btn-other">Khác</div>
+            </div>
+
+            <div class="middle-panel glass-panel">
+                <div class="cart-header-bar">
+                    <span>ID</span>
+                    <span>Tên SP</span>
+                    <span>ĐGiá</span>
+                    <span>SLượng</span>
+                    <span>TTiền</span>
+                </div>
+                
+                <div class="cart-list-container" id="cart-list"></div>
+
+                <div class="totals-area">
+                    <div class="totals-row main text-green">
+                        <span>TỔNG TIỀN:</span>
+                        <span id="total-price">0</span>
+                    </div>
+                    <div class="totals-row text-olive">
+                        <span>GIẢM GIÁ:</span>
+                        <span>0</span>
+                    </div>
+                    <div class="divider"></div>
+                    <div class="totals-row main text-red">
+                        <span>THÀNH TIỀN:</span>
+                        <span id="final-price">0</span>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <img src="ICONS/BillListicon.png" class="btn-bill" alt="Bill List">
+                    <div class="right-actions">
+                        <button class="btn-action btn-cancel" onclick="clearCart()">HỦY</button>
+                        <button class="btn-action btn-pay">THANH TOÁN</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="right-panel glass-panel">
+                <div class="search-bar">
+                    <img src="ICONS/searchicon.png" alt="Search">
+                    <input type="text" id="search-input" placeholder="Nhập id hoặc tên sản phẩm" oninput="renderProducts()">
+                </div>
+                
+                <div class="category-filters">
+                    <button class="cat-btn cat-all" onclick="filterProducts('all')">All <small>30 items</small></button>
+                    <button class="cat-btn cat-coffee" onclick="filterProducts('coffee')">Coffee <small>10 items</small></button>
+                    <button class="cat-btn cat-tea" onclick="filterProducts('tea')">Tea <small>15 items</small></button>
+                </div>
+
+                <div class="product-grid" id="product-grid"></div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        function scaleApp() {
+            const wrapper = document.getElementById('app-wrapper');
+            const targetWidth = 1440;
+            const targetHeight = 1080;
+            const windowWidth = window.innerWidth;
+            const windowHeight = window.innerHeight;
+            const scale = Math.min(windowWidth / targetWidth, windowHeight / targetHeight);
+            wrapper.style.transform = `scale(${scale})`;
+        }
+        window.addEventListener('resize', scaleApp);
+        scaleApp();
+
+        const productsDB = [
+            { id: "A123", name: "Tea", price: 10000, category: "tea" },
+            { id: "A124", name: "Coffee", price: 15000, category: "coffee" },
+            { id: "A125", name: "Milk Coffee", price: 20000, category: "coffee" },
+            { id: "A126", name: "Milk", price: 12000, category: "all" },
+            { id: "A127", name: "Matcha", price: 25000, category: "tea" }
+        ];
+
+        let cart = [];
+        let currentCategory = 'all'; 
+
+        const formatMoney = (amount) => amount.toLocaleString('vi-VN') + "";
+
+        function filterProducts(category) {
+            currentCategory = category;
+            renderProducts();
+        }
+
+        function renderProducts() {
+            const grid = document.getElementById('product-grid');
+            const searchKeyword = document.getElementById('search-input').value.trim().toLowerCase();
+            grid.innerHTML = '';
+            
+            const filtered = productsDB.filter(p => {
+                const matchCategory = currentCategory === 'all' || p.category === currentCategory;
+                const matchSearch = p.name.toLowerCase().includes(searchKeyword) || 
+                                    p.id.toLowerCase().includes(searchKeyword);
+                return matchCategory && matchSearch;
+            });
+
+            filtered.forEach(p => {
+                grid.innerHTML += `
+                    <div class="product-card">
+                        <h4>${p.name}</h4>
+                        <div class="img-placeholder"></div>
+                        <img src="ICONS/Addicon.png" class="btn-add" onclick="addToCart('${p.id}')" alt="Thêm">
+                    </div>
+                `;
+            });
+        }
+
+        function addToCart(productId) {
+            const product = productsDB.find(p => p.id === productId);
+            const existingItem = cart.find(item => item.id === productId);
+
+            if (existingItem) {
+                existingItem.qty += 1;
+            } else {
+                cart.push({ ...product, qty: 1 });
+            }
+            renderCart();
+        }
+
+        function updateQty(productId, change) {
+            const item = cart.find(i => i.id === productId);
+            if (item) {
+                item.qty += change;
+                if (item.qty <= 0) {
+                    cart = cart.filter(i => i.id !== productId);
+                }
+                renderCart();
+            }
+        }
+
+        function setQty(productId, newValue) {
+            const item = cart.find(i => i.id === productId);
+            if (item) {
+                let qty = parseInt(newValue);
+                if (isNaN(qty) || qty <= 0) {
+                    qty = 1;
+                }
+                item.qty = qty;
+                renderCart();
+            }
+        }
+
+        function renderCart() {
+            const list = document.getElementById('cart-list');
+            list.innerHTML = '';
+            let total = 0;
+
+            cart.forEach(item => {
+                const itemTotal = item.price * item.qty;
+                total += itemTotal;
+                list.innerHTML += `
+                    <div class="cart-item">
+                        <span>${item.id}</span>
+                        <span>${item.name}</span>
+                        <span>${formatMoney(item.price)}</span>
+                        
+                        <div class="qty-control">
+                            <button onclick="updateQty('${item.id}', -1)">-</button>
+                            <input type="number" value="${item.qty}" min="1" onchange="setQty('${item.id}', this.value)">
+                            <button onclick="updateQty('${item.id}', 1)">+</button>
+                        </div>
+                        
+                        <span>${formatMoney(itemTotal)}</span>
+                    </div>
+                `;
+            });
+
+            document.getElementById('total-price').innerText = formatMoney(total);
+            document.getElementById('final-price').innerText = formatMoney(total);
+        }
+
+        function clearCart() {
+            cart = [];
+            renderCart();
+        }
+
+        function chuyentrang(trang) {
+            window.javaBackend.loadTrang(trang);
+        }
+
+        filterProducts('all');
+    </script>
+</body>
+</html>

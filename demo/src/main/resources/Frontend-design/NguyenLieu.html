@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POS System - Nguyên Liệu</title>
+    <style>
+        /* RESET & CƠ BẢN */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: url('anhnen.png') no-repeat center center / cover;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden; 
+        }
+
+        /* WRAPPER ĐỂ SCALE TỈ LỆ - Kích thước gốc 1440 x 1080 */
+        #app-wrapper {
+            width: 1440px;
+            height: 1080px;
+            transform-origin: center;
+            position: relative;
+        }
+
+        /* BỐ CỤC CHÍNH BẰNG CSS GRID */
+        .grid-container {
+            width: 100%;
+            height: 100%;
+            display: grid;
+            grid-template-columns: 292px 1099px;
+            grid-template-rows: 95px 874px;
+            gap: 14px 20px;
+            justify-content: center;
+            align-content: center;
+            grid-template-areas:
+                "sidebar topbar"
+                "sidebar main";
+        }
+
+        /* ĐỊNH DẠNG CHUNG CHO CÁC BẢNG MỜ (FROSTED GLASS) */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.45);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 4px solid rgba(255, 255, 255, 0.7); 
+            border-radius: 20px;
+        }
+
+        /* 1. THANH BÊN TRÁI (SIDEBAR) */
+        .sidebar {
+            grid-area: sidebar;
+            width: 292px;
+            height: 983px;
+            padding: 40px 0 30px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .sidebar-logo {
+            margin-bottom: 25px;
+        }
+        .sidebar-logo img { width: 140px; }
+
+        .nav-item-dashboad, .nav-item-thanh-toan, .nav-item-tich-diem, .nav-item-nguyenlieu, .nav-item-dangxuat {
+            display: flex;
+            align-items: center;
+            width: 85%;
+            padding: 0 20px;
+            height: 60px;
+            margin: 8px 0;
+            border-radius: 15px;
+            font-weight: bold;
+            font-size: 18px;
+            cursor: pointer;
+            color: #000;
+        }
+        .nav-item-dashboad img, .nav-item-thanh-toan img, .nav-item-tich-diem img, .nav-item-nguyenlieu img, .nav-item-dangxuat img {
+            width: 30px;
+            margin-right: 15px;
+        }
+
+        /* Menu đang chọn: NGUYÊN LIỆU */
+        .nav-active { background: white; }
+        .spacer { flex-grow: 1; }
+
+        /* 2. THANH TRÊN CÙNG (TOP BAR) */
+        .topbar {
+            grid-area: topbar;
+            width: 1099px;
+            height: 95px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 11px;
+        }
+
+        .user-info {
+            width: 343px;
+            height: 73px;
+            background: white;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding-left: 20px;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .btn-other {
+            width: 73px;
+            height: 73px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        /* 3. VÙNG NỘI DUNG CHÍNH (NGUYÊN LIỆU) */
+        .main-panel {
+            grid-area: main;
+            width: 1099px;
+            height: 874px;
+            padding: 22px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px; 
+        }
+
+        /* LƯỚI 6 CỘT CHO BẢNG NGUYÊN LIỆU */
+        .row-grid {
+            display: grid;
+            grid-template-columns: 140px 300px 120px 120px 150px 1fr; 
+            align-items: center;
+            width: 100%;
+        }
+
+        /* Thanh tiêu đề chứa ô tìm kiếm */
+        .data-header-bar {
+            width: 100%;
+            height: 55px;
+            background: white;
+            border-radius: 20px;
+            padding: 0 20px;
+            font-weight: bold;
+            font-size: 16px;
+            border: 1px solid #ccc;
+        }
+
+        .header-search {
+            display: flex;
+            align-items: center;
+            background: white;
+            border: 1px solid #aaa;
+            border-radius: 20px;
+            padding: 5px 15px;
+            height: 40px;
+            width: 260px;
+        }
+        .header-search img { width: 18px; margin-right: 10px; }
+        .header-search input { border: none; outline: none; width: 100%; font-size: 15px; background: transparent; }
+
+        /* Bảng danh sách trắng mờ */
+        .data-list-container {
+            width: 100%;
+            flex-grow: 1; 
+            background: white;
+            border-radius: 20px;
+            padding: 20px 20px; 
+            position: relative;
+            border: 1px solid #ddd;
+        }
+
+        .data-list {
+            height: 720px; /* Tăng chiều cao danh sách vì đã bỏ phần ghi chú footer */
+            overflow-y: auto;
+            overflow-x: hidden; 
+        }
+
+        .data-item {
+            padding: 25px 0 15px 0;
+            border-bottom: 2px solid #000; 
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .data-item .name { font-weight: bold; }
+        
+        .action-icons {
+            display: flex;
+            gap: 20px;
+            justify-content: flex-end;
+            padding-right: 10px;
+        }
+        .action-icons img, .action-icons svg {
+            width: 26px;
+            height: 26px;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        .action-icons img:active, .action-icons svg:active {
+            transform: scale(0.9);
+        }
+
+        /* Nút Add lớn góc phải dưới */
+        .btn-fab {
+            position: absolute;
+            bottom: 25px;
+            right: 25px;
+            width: 70px;
+            height: 70px;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        .btn-fab:active { transform: scale(0.95); }
+    </style>
+</head>
+<body>
+
+    <div id="app-wrapper">
+        <div class="grid-container">
+
+            <!-- SIDEBAR -->
+            <div class="sidebar glass-panel">
+                <div class="sidebar-logo">
+                    <img src="ICONS/Logoicon.png" alt="Logo">
+                </div>
+                <div class="nav-item-dashboad" onclick="chuyentrang('Dashboard.html')" "><img src="ICONS/Dashboardicon.png" alt="icon""> DASHBOARD</div>
+                <div class="nav-item-thanh-toan" onclick="chuyentrang('ThanhToan.html')"><img src="ICONS/ThanhToanicon.png" alt="icon"> THANH TOÁN</div>
+                <div class="nav-item-tich-diem" onclick="chuyentrang('TichDiem.html')"><img src="ICONS/TichDiemicon.png" alt="icon"> TÍCH ĐIỂM</div>
+
+                <!-- Menu NGUYÊN LIỆU Đang Chọn -->
+                <div class="nav-item-nguyenlieu nav-active" onclick="chuyentrang('NguyenLieu.html')"><img src="ICONS/viewicon.png" alt="icon"> NGUYÊN LIỆU</div>
+                
+                <div class="spacer"></div>
+                <div class="nav-item-dangxuat" onclick="chuyentrang('KetCa.html')"><img src="ICONS/DangXuaticon.png" alt="icon"> KẾT CA</div>
+            </div>
+
+            <!-- TOPBAR -->
+            <div class="topbar glass-panel">
+                <div class="user-info">
+                    <div style="font-weight: lighter; font-size: 18px;">ID: 24521487</div>
+                    <div style="font-weight: bold; font-size: 22px;">Tên: Nguyễn Phú Quốc</div>
+                </div>
+                <div class="btn-other" onclick="chuyentrang('Khac.html')">Khác</div>
+            </div>
+
+            <!-- MAIN PANEL -->
+            <div class="main-panel glass-panel">
+                
+                <div class="data-header-bar row-grid">
+                    <span>ID / SĐT</span>
+                    <div class="header-search">
+                        <img src="ICONS/searchicon.png" alt="Search">
+                        <input type="text" id="search-input" placeholder="Nhập ID hoặc tên NLieu" oninput="renderIngredients()">
+                    </div>
+                    <span>SLượng</span>
+                    <span>ĐVị</span>
+                    <span>Trạng Thái</span>
+                    <span></span> 
+                </div>
+
+                <div class="data-list-container">
+                    <div class="data-list" id="data-container">
+                        <!-- Danh sách nguyên liệu đổ bằng JS -->
+                    </div>
+                    
+                    <img src="ICONS/Addicon.png" class="btn-fab" alt="Add">
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function scaleApp() {
+            const wrapper = document.getElementById('app-wrapper');
+            const targetWidth = 1440;
+            const targetHeight = 1080;
+            
+            const windowWidth = window.innerWidth;
+            const windowHeight = window.innerHeight;
+            
+            const scale = Math.min(windowWidth / targetWidth, windowHeight / targetHeight);
+            wrapper.style.transform = `scale(${scale})`;
+        }
+        window.addEventListener('resize', scaleApp);
+        scaleApp();
+
+        // Dữ liệu mẫu nguyên liệu
+        const ingredientsDB = [
+            { id: "001", name: "Gói trà", qty: 10, unit: "Hộp", status: "Còn Hàng" },
+            { id: "002", name: "Hạt Caffee", qty: 5, unit: "Kg", status: "Còn Hàng" }
+        ];
+
+        // Mã SVG Icon Edit
+        const editIconSVG = `
+            <svg viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>`;
+
+        function renderIngredients() {
+            const container = document.getElementById('data-container');
+            const keyword = document.getElementById('search-input').value.trim().toLowerCase();
+            container.innerHTML = '';
+            
+            const filtered = ingredientsDB.filter(item => 
+                item.id.toLowerCase().includes(keyword) || item.name.toLowerCase().includes(keyword)
+            );
+
+            filtered.forEach(item => {
+                container.innerHTML += `
+                    <div class="data-item row-grid">
+                        <span>${item.id}</span>
+                        <span class="name">${item.name}</span>
+                        <span>${item.qty}</span>
+                        <span>${item.unit}</span>
+                        <span>${item.status}</span>
+                        <div class="action-icons">
+                            <img src="ICONS/viewicon.png" alt="View">
+                            ${editIconSVG}
+                            <img src="ICONS/Deleteicon.png" alt="Delete">
+                        </div>
+                    </div>
+                `;
+            });
+        }
+        function chuyentrang(trang) {
+            window.javaBackend.loadTrang(trang);
+        }
+
+        renderIngredients();
+    </script>
+</body>
+</html>
