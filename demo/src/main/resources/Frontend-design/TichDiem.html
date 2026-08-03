@@ -14,7 +14,7 @@
         }
 
         body {
-            background: url('anhnen.png') no-repeat center center / cover;
+            background: url('anhnen/anhnen.png') no-repeat center center / cover;
             height: 100vh;
             width: 100vw;
             display: flex;
@@ -142,7 +142,7 @@
         .row-grid {
             display: grid;
             /* Phân chia: SĐT (150px) - Tên (250px) - Ngày (150px) - Điểm (100px) - Actions (Phần dư) */
-            grid-template-columns: 150px 250px 150px 100px 1fr;
+            grid-template-columns: 150px 250px 200px 190px 0.8fr;
             align-items: center;
             width: 100%;
         }
@@ -303,61 +303,8 @@
         </div>
     </div>
 
-    <script>
-        function scaleApp() {
-            const wrapper = document.getElementById('app-wrapper');
-            const targetWidth = 1440;
-            const targetHeight = 1080;
-            const windowWidth = window.innerWidth;
-            const windowHeight = window.innerHeight;
-            const scale = Math.min(windowWidth / targetWidth, windowHeight / targetHeight);
-            wrapper.style.transform = `scale(${scale})`;
-        }
-        window.addEventListener('resize', scaleApp);
-        scaleApp();
-
-        let customersDB = [];
-
-        async function loadcustomberfromapi() {
-            //chua update =))) 
-        }
-
-        // Mã SVG Icon Edit
-        const editIconSVG = `
-            <svg viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-            </svg>`;
-
-        function renderCustomers() {
-            const container = document.getElementById('customer-container');
-            const keyword = document.getElementById('search-input').value.trim().toLowerCase();
-            container.innerHTML = '';
-            
-            const filtered = customersDB.filter(c => 
-                c.phone.includes(keyword) || c.name.toLowerCase().includes(keyword)
-            );
-
-            filtered.forEach(c => {
-                container.innerHTML += `
-                    <div class="customer-item row-grid">
-                        <span>${c.phone}</span>
-                        <span class="name">${c.name}</span>
-                        <span>${c.date}</span>
-                        <span>${c.points}</span>
-                        <div class="action-icons">
-                            <img src="ICONS/viewicon.png" alt="View">
-                            ${editIconSVG}
-                            <img src="ICONS/Deleteicon.png" alt="Delete">
-                        </div>
-                    </div>
-                `;
-            });
-        }
-       function chuyentrang(trang) {
-            window.javaBackend.loadTrang(trang);
-        }
-        renderCustomers();
+    <script src="javascript/TichDiem.js">
+        
     </script>
 </body>
 </html>

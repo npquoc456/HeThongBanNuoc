@@ -18,12 +18,20 @@ VALUES
 (2,2),
 (3,3);
 
-INSERT INTO tktrungthanh
-(id,ten_kh,so_luong_mua,ngay_tao)
-VALUES
-(1,'Nguyen Van Nam',20,'2026-01-01'),
-(2,'Tran Thi Hoa',15,'2026-02-10'),
-(3,'Pham Minh',8,'2026-03-01');
+INSERT INTO tktrungthanh (id, ten_kh, so_luong_mua, ngay_tao) VALUES
+-- Dữ liệu cũ đã cập nhật ID thành SĐT
+('0901234567', 'Nguyen Van Nam', 20, '2026-01-01'),
+('0912345678', 'Tran Thi Hoa', 15, '2026-02-10'),
+('0987654321', 'Pham Minh', 8, '2026-03-01'),
+
+-- Dữ liệu bổ sung thêm
+('0933456789', 'Le Thi Lan', 45, '2026-03-15'),
+('0977112233', 'Hoang Quan', 12, '2026-04-05'),
+('0888999111', 'Doan Tuan Anh', 30, '2026-04-20'),
+('0945666777', 'Vuong Ngoc Mai', 5, '2026-05-12'),
+('0909111222', 'Ly Hai', 50, '2026-06-01'),
+('0922334455', 'Bui Thi Xuan', 18, '2026-06-15'),
+('0966778899', 'Ngo Thanh Van', 3, '2026-07-02');
 
 INSERT INTO sanpham
 (id,ten_sp,gia,mo_ta,loai,hinh_anh)

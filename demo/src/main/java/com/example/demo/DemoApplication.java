@@ -2,7 +2,7 @@ package com.example.demo;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import javafx.application.Application; // <-- Dòng này đã được thêm vào
+import javafx.application.Application; 
 
 @SpringBootApplication
 public class DemoApplication {
