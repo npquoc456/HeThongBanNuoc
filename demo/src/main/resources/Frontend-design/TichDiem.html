@@ -111,10 +111,23 @@
             font-weight: 600;
             font-size: 16px;
         }
+        .time-info {
+            margin-left: 35%;
+            width: 260px;
+            height: 73px;
+            background: white;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-weight: 600;
+            font-size: 16px;
+        }
 
         .btn-other {
-            width: 73px;
-            height: 73px;
+            width: 60px;
+            height: 60px;
             background: white;
             border-radius: 50%;
             display: flex;
@@ -124,6 +137,12 @@
             font-size: 16px;
             cursor: pointer;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .btn-other:hover {
+            background: #f0f0f0;
+            transform: scale(1.05);
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
         }
 
         /* 3. VÙNG NỘI DUNG CHÍNH (TÍCH ĐIỂM) */
@@ -266,7 +285,11 @@
                     <div style="font-weight: lighter; font-size: 18px;">ID: 24521487</div>
                     <div style="font-weight: bold; font-size: 22px;">Tên: Nguyễn Phú Quốc</div>
                 </div>
-                <div class="btn-other" onclick="chuyentrang('Khac.html')">Khác</div>
+                <div class="time-info">
+                    <div style="font-weight: lighter; font-size: 18px;" id="current-date"></div>
+                    <div style="font-weight: bold; font-size: 22px; margin-left: 40%;" id="current-time"></div>
+                </div>
+                <div class="btn-other" style="font-size: 32px;">⚙️</div>
             </div>
 
             <!-- BẢNG CHÍNH BÊN PHẢI (QUẢN LÝ TÍCH ĐIỂM) -->

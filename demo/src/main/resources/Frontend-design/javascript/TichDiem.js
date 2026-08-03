@@ -71,7 +71,18 @@
             });
         }
 
+        function updateCurrentTime() {
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('vi-VN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            const timeStr = now.toLocaleTimeString('vi-VN');
+            document.getElementById('current-date').textContent = dateStr;
+            document.getElementById('current-time').textContent = timeStr;
+        }
 
+        setInterval(updateCurrentTime, 1000);
+        updateCurrentTime(); // Gọi ngay khi tải trang
+
+        
        function chuyentrang(trang) {
             window.javaBackend.loadTrang(trang);
         }
