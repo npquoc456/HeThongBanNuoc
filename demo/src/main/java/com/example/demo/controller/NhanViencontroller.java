@@ -12,7 +12,7 @@ import com.example.demo.entity.NhanVien;
 import com.example.demo.service.NhanVienService;
 
 @RestController
-@RequestMapping("/apt/nhanvien")
+@RequestMapping("/api/nhanvien")
 @CrossOrigin("*")
 public class NhanViencontroller {
 

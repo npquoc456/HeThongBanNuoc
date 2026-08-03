@@ -27,6 +27,9 @@ public class SanPham {
     @Column(name = "loai")
     private String loai;
 
+    @Column(name = "hinh_anh")
+    private String hinhAnh;
+
     @OneToMany(mappedBy = "sanPham", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<CTHD> cthds = new LinkedHashSet<>();
 

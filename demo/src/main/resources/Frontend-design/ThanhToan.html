@@ -163,6 +163,11 @@
             padding: 10px 20px;
         }
 
+        /* Làm đẹp thanh cuộn cho danh sách hóa đơn */
+        .cart-list-container::-webkit-scrollbar { width: 6px; }
+        .cart-list-container::-webkit-scrollbar-track { background: transparent; }
+        .cart-list-container::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.15); border-radius: 10px; }
+
         .cart-item {
             display: grid;
             grid-template-columns: 70px 190px 90px 120px 1fr;
@@ -272,6 +277,9 @@
             width: 404px;
             height: 874px;
             padding: 20px;
+            /* ĐÃ SỬA: Biến panel thành flexbox dọc để lưới tự động co giãn */
+            display: flex;
+            flex-direction: column;
         }
 
         .search-bar {
@@ -283,6 +291,7 @@
             align-items: center;
             padding: 0 15px;
             margin-bottom: 15px;
+            flex-shrink: 0; /* Tránh bị bóp méo khi màn hình nhỏ */
         }
         .search-bar img { width: 20px; margin-right: 10px; }
         .search-bar input { border: none; outline: none; font-size: 15px; width: 100%; }
@@ -291,6 +300,7 @@
             display: flex;
             gap: 10px;
             margin-bottom: 20px;
+            flex-shrink: 0;
         }
         .cat-btn {
             padding: 8px 15px;
@@ -308,12 +318,24 @@
         .cat-all { background: #A0B2A6; }
         .cat-coffee { background: #5C5C5C; }
         .cat-tea { background: #008A5A; }
+        .cat-matcha {background-color: rgb(7, 108, 7);}
 
+        /* ĐÃ SỬA: Cho phép lưới chiếm hết khoảng trống, bật cuộn dọc */
         .product-grid {
             display: grid;
             grid-template-columns: 172px 172px;
             gap: 16px;
+            flex-grow: 1; /* Tự động điền đầy chiều cao còn lại */
+            overflow-y: auto; /* Bật thanh cuộn dọc */
+            overflow-x: hidden; 
+            align-content: start; /* Đẩy các thẻ card lên sát trên cùng */
+            padding-bottom: 10px;
         }
+
+        /* Làm đẹp thanh cuộn cho thẻ sản phẩm */
+        .product-grid::-webkit-scrollbar { width: 6px; }
+        .product-grid::-webkit-scrollbar-track { background: transparent; }
+        .product-grid::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.15); border-radius: 10px; }
 
         .product-card {
             width: 172px;
@@ -413,10 +435,11 @@
                 
                 <div class="category-filters">
                     <button class="cat-btn cat-all" onclick="filterProducts('all')">All <small>30 items</small></button>
-                    <button class="cat-btn cat-coffee" onclick="filterProducts('coffee')">Coffee <small>10 items</small></button>
-                    <button class="cat-btn cat-tea" onclick="filterProducts('tea')">Tea <small>15 items</small></button>
+                    <button class="cat-btn cat-coffee" onclick="filterProducts('CA_PHE')">Coffee <small>10 items</small></button>
+                    <button class="cat-btn cat-tea" onclick="filterProducts('TRA')">Tea <small>15 items</small></button>
+                    <button class="cat-btn cat-matcha" onclick="filterProducts('MATCHA')">Matcha <small>15 items</small></button>
                 </div>
-
+                    
                 <div class="product-grid" id="product-grid"></div>
             </div>
 
@@ -436,19 +459,41 @@
         window.addEventListener('resize', scaleApp);
         scaleApp();
 
-        const productsDB = [
-            { id: "A123", name: "Tea", price: 10000, category: "tea" },
-            { id: "A124", name: "Coffee", price: 15000, category: "coffee" },
-            { id: "A125", name: "Milk Coffee", price: 20000, category: "coffee" },
-            { id: "A126", name: "Milk", price: 12000, category: "all" },
-            { id: "A127", name: "Matcha", price: 25000, category: "tea" }
-        ];
-
+        //them san pham vao card 
+        let productsDB = [];
         let cart = [];
         let currentCategory = 'all'; 
 
+        //goi api
+        async function loadproductfromapi() {
+            try{
+                const response = await fetch('http://localhost:8080/api/sanpham')
+
+                if(!response.ok){
+                   throw new Error("loi may chu" + response.status)
+                }
+                const data = await response.json();
+                productsDB = data.map( sp => {
+                    return {
+                        id: sp.id.toString(),
+                        name: sp.tenSP,
+                        price: sp.gia,
+                        category: sp.loai || 'all', 
+                        image: sp.hinhAnh || 'ICONS/Logoicon.png'
+                    };
+                });
+                filterProducts('all')
+            }
+            catch (error){
+                console.error("Không thể tải dữ liệu sản phẩm:", error);
+                document.getElementById('product-grid').innerHTML = 
+                `<p style="color:red; grid-column: 1/-1; padding-top: 20px;">Lỗi tải dữ liệu. Vui lòng kiểm tra xem Backend (Spring Boot) đã chạy chưa.</p>`;
+            }
+        } 
+
         const formatMoney = (amount) => amount.toLocaleString('vi-VN') + "";
 
+        //loc sp
         function filterProducts(category) {
             currentCategory = category;
             renderProducts();
@@ -470,16 +515,20 @@
                 grid.innerHTML += `
                     <div class="product-card">
                         <h4>${p.name}</h4>
-                        <div class="img-placeholder"></div>
+                        <img src="${p.image}" class="product-image" alt="${p.name}" style="width: 80%; height: 100px; object-fit: cover; border-radius: 8px;">
                         <img src="ICONS/Addicon.png" class="btn-add" onclick="addToCart('${p.id}')" alt="Thêm">
                     </div>
                 `;
             });
         }
+        // Khởi chạy
+        loadproductfromapi();
 
+
+        //thêm hàng vào giỏ
         function addToCart(productId) {
-            const product = productsDB.find(p => p.id === productId);
-            const existingItem = cart.find(item => item.id === productId);
+            const product = productsDB.find(p => p.id === productId); //tìm thông tin dựa vào id
+            const existingItem = cart.find(item => item.id === productId); //có nằm trong dỏ hay k
 
             if (existingItem) {
                 existingItem.qty += 1;
@@ -488,18 +537,19 @@
             }
             renderCart();
         }
-
+        //tang giam
         function updateQty(productId, change) {
-            const item = cart.find(i => i.id === productId);
+            const item = cart.find(i => i.id === productId); //ktra xem co nam trong ds k
             if (item) {
                 item.qty += change;
                 if (item.qty <= 0) {
-                    cart = cart.filter(i => i.id !== productId);
+                    cart = cart.filter(i => i.id !== productId); //loai bo don hang
                 }
                 renderCart();
             }
         }
 
+        //nhap truc tiep so luong
         function setQty(productId, newValue) {
             const item = cart.find(i => i.id === productId);
             if (item) {
@@ -512,14 +562,16 @@
             }
         }
 
+        //ve lai gio hang va tinh tien 
         function renderCart() {
-            const list = document.getElementById('cart-list');
+            const list = document.getElementById('cart-list'); //xoa trang do hang
             list.innerHTML = '';
             let total = 0;
 
             cart.forEach(item => {
                 const itemTotal = item.price * item.qty;
                 total += itemTotal;
+
                 list.innerHTML += `
                     <div class="cart-item">
                         <span>${item.id}</span>
@@ -527,9 +579,11 @@
                         <span>${formatMoney(item.price)}</span>
                         
                         <div class="qty-control">
-                            <button onclick="updateQty('${item.id}', -1)">-</button>
+                            <button onclick="updateQty('${item.id}', -1)">-</button> <!-- ham tru -->
+
                             <input type="number" value="${item.qty}" min="1" onchange="setQty('${item.id}', this.value)">
-                            <button onclick="updateQty('${item.id}', 1)">+</button>
+
+                            <button onclick="updateQty('${item.id}', 1)">+</button> <!-- ham cong -->
                         </div>
                         
                         <span>${formatMoney(itemTotal)}</span>
@@ -541,6 +595,7 @@
             document.getElementById('final-price').innerText = formatMoney(total);
         }
 
+        //xoa tat ca
         function clearCart() {
             cart = [];
             renderCart();

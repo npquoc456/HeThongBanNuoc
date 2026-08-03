@@ -82,7 +82,7 @@ CREATE TABLE sanpham (
     mo_ta TEXT,
     loai VARCHAR(50)
 );
-
+alter table sanpham add column hinh_anh VARCHAR(255);
 -- =========================
 -- NGUYÊN LIỆU
 -- =========================

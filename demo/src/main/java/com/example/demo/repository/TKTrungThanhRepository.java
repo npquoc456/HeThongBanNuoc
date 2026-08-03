@@ -16,7 +16,6 @@ public interface TKTrungThanhRepository extends JpaRepository<TKTrungThanh, Inte
     List<TKTrungThanh> TimKiemKhachHangTheoTen(@Param("tenKH") String tenKH);
 
 
-
     @Query("""
              SELECT t FROM TKTrungThanh t
              WHERE t.id = :id

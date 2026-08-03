@@ -316,10 +316,11 @@
         window.addEventListener('resize', scaleApp);
         scaleApp();
 
-        const customersDB = [
-            { phone: "07535726547", name: "Thịnh Suy", date: "25/05/2015", points: 10 },
-            { phone: "03263874626", name: "Đức Lọ", date: "34/06/2024", points: 5 } 
-        ];
+        let customersDB = [];
+
+        async function loadcustomberfromapi() {
+            //chua update =))) 
+        }
 
         // Mã SVG Icon Edit
         const editIconSVG = `

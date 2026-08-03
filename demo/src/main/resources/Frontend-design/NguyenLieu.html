@@ -140,6 +140,7 @@
             display: flex;
             flex-direction: column;
             gap: 15px; 
+            overflow: hidden; /* Cố định panel chính */
         }
 
         /* LƯỚI 6 CỘT CHO BẢNG NGUYÊN LIỆU */
@@ -160,6 +161,7 @@
             font-weight: bold;
             font-size: 16px;
             border: 1px solid #ccc;
+            flex-shrink: 0; /* Đảm bảo thanh tiêu đề không bị bóp méo */
         }
 
         .header-search {
@@ -175,22 +177,35 @@
         .header-search img { width: 18px; margin-right: 10px; }
         .header-search input { border: none; outline: none; width: 100%; font-size: 15px; background: transparent; }
 
-        /* Bảng danh sách trắng mờ */
+        /* ĐÃ FIX: Khống chế kích thước tối đa của khung bảng */
         .data-list-container {
             width: 100%;
-            flex-grow: 1; 
+            flex: 1; /* Chiếm khoảng trống còn lại */
+            min-height: 0; /* CHÌA KHÓA FIX TRÀN: Không cho phép nở to hơn cha */
             background: white;
             border-radius: 20px;
-            padding: 20px 20px; 
+            padding: 20px; 
             position: relative;
             border: 1px solid #ddd;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden; /* Cắt phần bị lồi ra khỏi viền bo góc */
         }
 
+        /* ĐÃ FIX: Khu vực danh sách có thể cuộn độc lập bên trong container */
         .data-list {
-            height: 720px; /* Tăng chiều cao danh sách vì đã bỏ phần ghi chú footer */
+            flex: 1;
+            min-height: 0; /* Bắt buộc để thanh cuộn hoạt động mượt trong WebView */
             overflow-y: auto;
             overflow-x: hidden; 
+            padding-bottom: 70px; /* Tránh bị che bởi nút Add */
+            padding-right: 5px; /* Để scrollbar không dính sát viền */
         }
+        
+        /* Làm đẹp thanh cuộn */
+        .data-list::-webkit-scrollbar { width: 6px; }
+        .data-list::-webkit-scrollbar-track { background: transparent; }
+        .data-list::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.15); border-radius: 10px; }
 
         .data-item {
             padding: 25px 0 15px 0;
@@ -240,13 +255,11 @@
                 <div class="sidebar-logo">
                     <img src="ICONS/Logoicon.png" alt="Logo">
                 </div>
-                <div class="nav-item-dashboad" onclick="chuyentrang('Dashboard.html')" "><img src="ICONS/Dashboardicon.png" alt="icon""> DASHBOARD</div>
+                <div class="nav-item-dashboad" onclick="chuyentrang('Dashboard.html')"><img src="ICONS/Dashboardicon.png" alt="icon"> DASHBOARD</div>
                 <div class="nav-item-thanh-toan" onclick="chuyentrang('ThanhToan.html')"><img src="ICONS/ThanhToanicon.png" alt="icon"> THANH TOÁN</div>
                 <div class="nav-item-tich-diem" onclick="chuyentrang('TichDiem.html')"><img src="ICONS/TichDiemicon.png" alt="icon"> TÍCH ĐIỂM</div>
-
                 <!-- Menu NGUYÊN LIỆU Đang Chọn -->
                 <div class="nav-item-nguyenlieu nav-active" onclick="chuyentrang('NguyenLieu.html')"><img src="ICONS/ingredientsicon.png" alt="icon"> NGUYÊN LIỆU</div>
-                
                 <div class="spacer"></div>
                 <div class="nav-item-dangxuat" onclick="chuyentrang('KetCa.html')"><img src="ICONS/DangXuaticon.png" alt="icon"> KẾT CA</div>
             </div>
@@ -279,7 +292,6 @@
                     <div class="data-list" id="data-container">
                         <!-- Danh sách nguyên liệu đổ bằng JS -->
                     </div>
-                    
                     <img src="ICONS/Addicon.png" class="btn-fab" alt="Add">
                 </div>
 
@@ -302,11 +314,38 @@
         window.addEventListener('resize', scaleApp);
         scaleApp();
 
-        // Dữ liệu mẫu nguyên liệu
-        const ingredientsDB = [
-            { id: "001", name: "Gói trà", qty: 10, unit: "Hộp", status: "Còn Hàng" },
-            { id: "002", name: "Hạt Caffee", qty: 5, unit: "Kg", status: "Còn Hàng" }
-        ];
+        let ingredientsDB = [];
+
+        async function loadnguyenlieufromapi(){
+            try{
+                const response = await fetch('http://localhost:8080/api/nguyenlieu')
+
+                if(!response.ok){
+                    throw new Error("Lỗi máy chủ: " + response.status)
+                }
+
+                const data = await response.json(); 
+                
+                ingredientsDB = data.map( nl => {
+                    return {
+                        id: nl.id.toString(),
+                        name: nl.tenNL, 
+                        qty: nl.soLuong, 
+                        unit: nl.donVi, 
+                        status: nl.trangThai
+                    };
+                });
+
+                renderIngredients(); 
+            }
+            catch(error){
+                console.error("Không thể tải dữ liệu nguyên liệu: ", error);
+                document.getElementById('data-container').innerHTML = 
+                `<p style="color:red; text-align:center; padding-top:20px;">Lỗi kết nối Backend. Vui lòng kiểm tra lại Spring Boot.</p>`;
+            }
+        }
+        
+        loadnguyenlieufromapi();
 
         // Mã SVG Icon Edit
         const editIconSVG = `
@@ -325,13 +364,16 @@
             );
 
             filtered.forEach(item => {
+                let textTrangThai = item.status === 'CON_HANG' ? 'Còn Hàng' : 'Hết Hàng';
+                let colorTrangThai = item.status === 'HET_HANG' ? 'red' : 'green';
+
                 container.innerHTML += `
                     <div class="data-item row-grid">
                         <span>${item.id}</span>
                         <span class="name">${item.name}</span>
                         <span>${item.qty}</span>
                         <span>${item.unit}</span>
-                        <span>${item.status}</span>
+                        <span style="color: ${colorTrangThai}; font-weight: bold;">${textTrangThai}</span>
                         <div class="action-icons">
                             <img src="ICONS/viewicon.png" alt="View">
                             ${editIconSVG}
@@ -341,11 +383,10 @@
                 `;
             });
         }
+
         function chuyentrang(trang) {
             window.javaBackend.loadTrang(trang);
         }
-
-        renderIngredients();
     </script>
 </body>
 </html>

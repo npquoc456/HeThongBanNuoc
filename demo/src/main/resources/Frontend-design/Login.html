@@ -325,19 +325,19 @@ loginForm.addEventListener("submit", function (e) {
     }
 
     loginButton.disabled = true;
+    //change nut dang nhap
     loginButton.innerText = "ĐANG ĐĂNG NHẬP...";
 
-    // ... (phần trên giữ nguyên)
+
 if (window.javaBackend) {
         try {
-            // Nhận kết quả từ Java (true/false)
             let dangNhapDung = window.javaBackend.xuLyDangNhap(userId, password);
             
             if (dangNhapDung) {
-                // XÓA DÒNG NÀY: window.location.href = "ThanhToan.html";
-                // THAY BẰNG DÒNG NÀY: Gọi hàm Java để load file
+                //dk dung
                 window.javaBackend.loadTrang("ThanhToan.html"); 
             }
+
         } catch (e) {
             console.error(e);
             hienThiLoi("Không thể kết nối tới Java.");
