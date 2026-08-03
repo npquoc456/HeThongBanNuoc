@@ -15,6 +15,7 @@ public class TKTrungThanhService {
     @Autowired 
     private TKTrungThanhRepository tkTrungThanhRepository; 
 
+    //lay danh sach tat ca
     public List<TKTrungThanhDTO> getAllTkTrungThanh(){
         return tkTrungThanhRepository.findAll()
                 .stream()
@@ -22,6 +23,9 @@ public class TKTrungThanhService {
                 .collect(Collectors.toList());
     }
 
+
+
+    //chuyen doi
     private TKTrungThanhDTO mapToDTO(TKTrungThanh entity){
         TKTrungThanhDTO dto = new TKTrungThanhDTO(); 
         dto.setId(entity.getId());
