@@ -28,8 +28,8 @@
                     return {
                         id: sp.id.toString(),
                         name: sp.tenSP,
-                        price: sp.gia,
-                        category: sp.loai || 'all', 
+                        price: sp.giaSP,
+                        category: sp.loaiSP || 'all', 
                         image: sp.hinhAnh || 'ICONS/Logoicon.png'
                     };
                 });

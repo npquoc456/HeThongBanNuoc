@@ -14,6 +14,7 @@ public class SanPhamDTO {
     private double giaSP; 
     private String moTa;
     private String loaiSP;
+    private String hinhAnh;
 
     List<CTHDDTO> cthdList;
 }
