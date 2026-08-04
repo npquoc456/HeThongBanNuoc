@@ -138,12 +138,7 @@
             cursor: pointer;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
-        .btn-other:hover {
-            background: #f0f0f0;
-            transform: scale(1.05);
-            cursor: pointer;
-            transition: all 0.2s ease-in-out;
-        }
+        .btn-other:hover { background: #f0f0f0; transform: scale(1.05); transition: all 0.2s ease-in-out; }
 
         /* 3. BẢNG GIỮA (HÓA ĐƠN) */
         .middle-panel {
@@ -154,7 +149,6 @@
             position: relative;
         }
 
-        /* CẬP NHẬT CỘT: Dùng 1fr cho cột cuối để bung ra sát mép */
         .cart-header-bar {
             width: 631px;
             height: 48px;
@@ -168,10 +162,7 @@
             font-size: 15px;
             margin-bottom: 12px;
         }
-        /* Căn phải cho chữ TTiền */
-        .cart-header-bar span:last-child {
-            text-align: right;
-        }
+        .cart-header-bar span:last-child { text-align: right; }
 
         .cart-list-container {
             width: 631px;
@@ -181,12 +172,9 @@
             overflow-y: auto;
             padding: 10px 20px;
             text-align: center;
-            color: #787878;
+            color: #3e3e3e;
             font-size: large;
-
         }
-
-        /* Làm đẹp thanh cuộn cho danh sách hóa đơn */
         .cart-list-container::-webkit-scrollbar { width: 6px; }
         .cart-list-container::-webkit-scrollbar-track { background: transparent; }
         .cart-list-container::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.15); border-radius: 10px; }
@@ -199,96 +187,47 @@
             border-bottom: 1px solid #ddd;
             font-size: 15px;
         }
-        /* Căn phải cho số tiền để sát lề ngoài cùng */
-        .cart-item span:last-child {
-            text-align: right;
-        }
+        .cart-item span:last-child { text-align: right; }
 
         /* CỤM TĂNG GIẢM SỐ LƯỢNG */
-        .qty-control {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
+        .qty-control { display: flex; align-items: center; gap: 5px; }
         .qty-control button {
-            width: 26px;
-            height: 26px;
-            border: 1px solid #ccc;
-            background: #fff;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            transition: 0.1s;
+            width: 26px; height: 26px; border: 1px solid #ccc; background: #fff;
+            border-radius: 6px; cursor: pointer; font-weight: bold;
+            display: flex; justify-content: center; align-items: center; transition: 0.1s;
         }
         .qty-control button:active { background: #eee; transform: scale(0.9); }
         .qty-control input {
-            width: 36px;
-            height: 26px;
-            text-align: center;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: bold;
-            outline: none;
+            width: 36px; height: 26px; text-align: center; border: 1px solid #ccc;
+            border-radius: 6px; font-size: 14px; font-weight: bold; outline: none;
         }
-        .qty-control input::-webkit-outer-spin-button,
-        .qty-control input::-webkit-inner-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-        .qty-control input[type=number] {
-            -moz-appearance: textfield;
-        }
+        .qty-control input::-webkit-outer-spin-button, .qty-control input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .qty-control input[type=number] { -moz-appearance: textfield; }
 
         .totals-area {
-            position: absolute;
-            right: 40px;
-            top: 610px;
-            width: 300px;
-            font-size: 18px;
-            font-weight: bold;
+            position: absolute; right: 40px; top: 610px; width: 300px;
+            font-size: 18px; font-weight: bold;
         }
-        
-        .totals-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-        }
+        .totals-row { display: flex; justify-content: space-between; margin-bottom: 10px; }
         .totals-row.main { font-size: 20px; }
         .text-green { color: #008A5A; }
         .text-olive { color: #8A9A00; }
         .text-red { color: #8B0000; }
-        
         .divider { height: 2px; background: #999; margin: 10px 0; }
 
         .action-buttons {
-            position: absolute;
-            bottom: 22px;
-            width: 631px;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
+            position: absolute; bottom: 22px; width: 631px;
+            display: flex; justify-content: space-between; align-items: flex-end;
         }
-        
         .btn-bill { width: 70px; height: 70px; cursor: pointer; }
         .btn-bill:hover { transform: scale(1.05); transition: 0.2s; }
         
         .right-actions { display: flex; gap: 15px; }
         .btn-action {
-            width: 140px;
-            height: 50px;
-            border-radius: 25px;
-            border: none;
-            color: white;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
+            width: 140px; height: 50px; border-radius: 25px; border: none;
+            color: white; font-size: 16px; font-weight: bold; cursor: pointer;
         }
         .btn-action:hover { transform: scale(1.05); transition: 0.2s; }
-
         .btn-cancel { background: #8B0000; }
         .btn-cancel:hover { background: #A00000; }
         .btn-pay { background: #008A5A; }
@@ -296,46 +235,21 @@
 
         /* 4. THANH BÊN PHẢI (SẢN PHẨM) */
         .right-panel {
-            grid-area: right;
-            width: 404px;
-            height: 874px;
-            padding: 20px;
-            /* ĐÃ SỬA: Biến panel thành flexbox dọc để lưới tự động co giãn */
-            display: flex;
-            flex-direction: column;
+            grid-area: right; width: 404px; height: 874px; padding: 20px;
+            display: flex; flex-direction: column;
         }
-
         .search-bar {
-            width: 100%;
-            height: 50px;
-            background: white;
-            border-radius: 25px;
-            display: flex;
-            align-items: center;
-            padding: 0 15px;
-            margin-bottom: 15px;
-            flex-shrink: 0; /* Tránh bị bóp méo khi màn hình nhỏ */
+            width: 100%; height: 50px; background: white; border-radius: 25px;
+            display: flex; align-items: center; padding: 0 15px; margin-bottom: 15px; flex-shrink: 0; 
         }
         .search-bar img { width: 20px; margin-right: 10px; }
         .search-bar input { border: none; outline: none; font-size: 15px; width: 100%; }
 
-        .category-filters {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            flex-shrink: 0;
-        }
+        .category-filters { display: flex; gap: 10px; margin-bottom: 20px; flex-shrink: 0; }
         .cat-btn {
-            padding: 8px 15px;
-            border-radius: 20px;
-            border: none;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            font-size: 14px;
+            padding: 8px 15px; border-radius: 20px; border: none; color: white;
+            font-weight: bold; cursor: pointer; display: flex; flex-direction: column;
+            align-items: center; font-size: 14px;
         }
         .cat-btn small { font-size: 10px; font-weight: normal; }
         .cat-all { background: #A0B2A6; }
@@ -343,48 +257,187 @@
         .cat-tea { background: #008A5A; }
         .cat-matcha {background-color: rgb(7, 108, 7);}
 
-        /* ĐÃ SỬA: Cho phép lưới chiếm hết khoảng trống, bật cuộn dọc */
         .product-grid {
-            display: grid;
-            grid-template-columns: 172px 172px;
-            gap: 16px;
-            flex-grow: 1; /* Tự động điền đầy chiều cao còn lại */
-            overflow-y: auto; /* Bật thanh cuộn dọc */
-            overflow-x: hidden; 
-            align-content: start; /* Đẩy các thẻ card lên sát trên cùng */
-            padding-bottom: 10px;
+            display: grid; grid-template-columns: 172px 172px; gap: 16px;
+            flex-grow: 1; overflow-y: auto; overflow-x: hidden; 
+            align-content: start; padding-bottom: 10px;
         }
-
-        /* Làm đẹp thanh cuộn cho thẻ sản phẩm */
         .product-grid::-webkit-scrollbar { width: 6px; }
         .product-grid::-webkit-scrollbar-track { background: transparent; }
         .product-grid::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.15); border-radius: 10px; }
 
         .product-card {
-            width: 172px;
-            height: 172px;
-            background: white;
-            border-radius: 20px;
-            position: relative;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            width: 172px; height: 172px; background: white; border-radius: 20px;
+            position: relative; padding: 15px; display: flex; flex-direction: column;
+            align-items: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05);
         }
-        .product-card h4 { font-size: 16px; margin-bottom: 5px; }
-        .product-card .img-placeholder { width: 80px; height: 80px; background: #eee; border-radius: 50%; margin-bottom: 10px; }
-
+        .product-card h4 { font-size: 16px; margin-bottom: 5px; text-align: center; }
         .btn-add {
-            position: absolute;
-            bottom: 10px;
-            right: 10px;
-            width: 40px;
-            height: 40px;
-            cursor: pointer;
-            transition: transform 0.1s;
+            position: absolute; bottom: 10px; right: 10px; width: 40px; height: 40px;
+            cursor: pointer; transition: transform 0.1s;
         }
         .btn-add:active { transform: scale(0.9); }
+
+        /* ================= CSS MODALS ================= */
+        
+        .modal-overlay {
+            position: absolute; 
+            top: 50%; left: 50%; 
+            width: 200vw; height: 200vh; 
+            transform: translate(-50%, -50%); 
+            background: rgba(0, 0, 0, 0.75); 
+            z-index: 1000;
+            display: none; justify-content: center; align-items: center;
+        }
+
+        .modal-box {
+            background: white; border-radius: 25px; padding: 30px 40px;
+            position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            display: none; text-align: center; color: #000;
+        }
+
+        .modal-close-btn {
+            position: absolute; top: 20px; right: 20px;
+            width: 25px; height: 25px; background: #ff0000;
+            border-radius: 50%; cursor: pointer; box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        /* --- Modal Tích Điểm --- */
+       /* --- Modal Tích Điểm --- */
+        #modal-tichdiem { 
+            width: 520px; 
+            min-height: 360px; /* SỬA Ở ĐÂY: Chiều cao tối thiểu 360px */
+            height: auto;      /* SỬA Ở ĐÂY: Tự động kéo dài khi có thông tin KH */
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            align-items: center;
+            padding: 40px;
+        }
+
+        #modal-tichdiem h2 { 
+            text-align: center;
+            font-size: 20px; 
+            margin-bottom: 15px; 
+        }
+
+        .input-group { 
+            margin: 15px 0 25px 0; 
+            width: 100%; 
+            text-align: center;
+        }
+
+        .input-group input {
+            width: 80%; 
+            padding: 12px 20px; 
+            border-radius: 20px;
+            border: 1px solid #ccc; 
+            font-size: 16px; 
+            text-align: center; 
+            outline: none;
+        }
+        
+        .btn-group { display: flex; justify-content: center; gap: 20px; }
+        .btn-modal {
+            padding: 10px 40px; border-radius: 20px; border: none;
+            color: white; font-weight: bold; font-size: 16px; cursor: pointer;
+            height: 45px; display: flex; justify-content: center; align-items: center;
+            width: 150px; transition: transform 0.1s;
+        }
+        .btn-boqua { background: #800000; } 
+        .btn-timtao { background: #000080; } 
+        
+        .info-customer-box {
+            background: #f0f0f0; border-radius: 15px; padding: 15px;
+            text-align: left; margin-top: 20px; display: none;
+            flex-direction: column; gap: 5px; font-size: 14px; font-weight: 500;
+            width: 100%;
+        }
+        .info-customer-box .row-info { display: grid; grid-template-columns: 120px 1fr; }
+        
+        /* --- Modal Tạo Tài Khoản (ĐÃ ĐƯỢC CHỈNH SỬA) --- */
+        #modal-taotk { 
+            width: 600px; 
+            padding: 40px; 
+        }
+        
+        #modal-taotk h2 { 
+            font-size: 24px; 
+            margin-bottom: 25px; 
+            text-align: center;
+        }
+
+        /* Khung viền bo tròn bao bọc các input nhập liệu */
+        .form-container {
+            border: 2px solid #e0e0e0;
+            border-radius: 20px;
+            padding: 30px 20px;
+            margin-bottom: 25px;
+        }
+
+        .form-row {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 20px; font-weight: bold; font-size: 16px;
+        }
+        
+        .form-row:last-child { margin-bottom: 0; }
+
+        .form-row label {
+            flex: 1; text-align: left; padding-left: 10px;
+        }
+
+        .form-row input {
+            flex: 2; padding: 12px 15px; border-radius: 20px;
+            border: 1px solid #ccc; outline: none; font-size: 15px;
+        }
+        
+        .btn-xacnhan-green {
+            background: #008A5A; padding: 10px 30px; border-radius: 20px;
+            border: none; color: white; font-weight: bold; cursor: pointer;
+            font-size: 18px; width: 180px; height: 45px; 
+            margin: 0 auto; display: block; /* Canh giữa nút */
+            transition: transform 0.1s;
+        }
+        .btn-xacnhan-green:active { transform: scale(0.95); }
+
+        /* --- Modal Thông Tin Hóa Đơn (GIỮ NGUYÊN) --- */
+        #modal-hoadon { width: 900px; display: none; flex-direction: row; gap: 40px; text-align: left; padding: 40px;}
+        .invoice-left { width: 55%; background: #e6e6e6; border-radius: 20px; padding: 25px; margin-top: 30px;}
+        
+        .invoice-header { display: flex; align-items: center; margin-bottom: 25px; gap: 20px; }
+        .invoice-header img { width: 90px; height: 90px; object-fit: contain; }
+        
+        .invoice-info p { margin: 4px 0; font-size: 14px; font-weight: 500; }
+        
+        .invoice-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
+        .invoice-table th, .invoice-table td { padding: 8px 5px; text-align: center; border-bottom: 1px solid #ccc; }
+        .invoice-table th { border-top: 1px solid #ccc; border-bottom: 2px solid #ccc; }
+        
+        .payment-right { width: 45%; display: flex; flex-direction: column; margin-top: 60px; }
+        .payment-right h3 { text-align: center; margin-bottom: 25px; text-transform: uppercase;}
+        
+        .payment-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+        
+        .pay-btn {
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            border-radius: 25px; height: 207px; width: 100%; padding: 10px; color: white; 
+            font-weight: bold; cursor: pointer; border: none; font-size: 18px; transition: transform 0.1s; gap: 12px;
+        }
+        .pay-btn:active { transform: scale(0.95); }
+        .pay-btn img { width: 100px; height: 100px; object-fit: contain; }
+        
+        .btn-bank { background: #093491; }
+        .btn-cash { background: #02770f; }
+        .btn-cancel-bill { background: #7e0101; }
+        .btn-momo { background: #950068; }
+        
+        .invoice-totals {
+            margin-top: auto; padding-top: 20px; border-top: 2px solid #ddd;
+            font-size: 18px; font-weight: bold; text-align: right;
+        }
+        .invoice-totals .total-row { display: flex; justify-content: space-between; margin-bottom: 10px; padding-left: 20%;}
+        .invoice-totals .main-total { font-size: 22px; color: #FF0000; }
+
     </style>
 </head>
 <body>
@@ -449,7 +502,7 @@
                     <img src="ICONS/BillListicon.png" class="btn-bill" alt="Bill List">
                     <div class="right-actions">
                         <button class="btn-action btn-cancel" onclick="clearCart()">HỦY</button>
-                        <button class="btn-action btn-pay">THANH TOÁN</button>
+                        <button class="btn-action btn-pay" onclick="openTichDiemModal()">THANH TOÁN</button>
                     </div>
                 </div>
             </div>
@@ -471,10 +524,129 @@
             </div>
 
         </div>
+
+        <!-- ================= VÙNG MODAL ================= -->
+        <div id="modal-overlay" class="modal-overlay" onclick="closeModalOnOutsideClick(event)">
+            
+            <!-- Modal 1: Nhập Số Điện Thoại Tích Điểm -->
+            <div id="modal-tichdiem" class="modal-box">
+                <div class="modal-close-btn" onclick="closeAllModals()"></div>
+                <h2>Quý khách có muốn tích điểm không?<br>Nhập SĐT tích điểm:</h2>
+                
+                <div class="input-group">
+                    <input type="text" id="sdt-tichdiem-input" placeholder="Nhập SĐT Khách Hàng" oninput="handlePhoneInput()">
+                </div>
+                
+                <div class="btn-group">
+                    <button class="btn-modal btn-boqua" onclick="skipTichDiem()">BỎ QUA</button>
+                    <button class="btn-modal btn-timtao" id="btn-action-tichdiem" onclick="actionTaoTkOrTim()">TẠO</button>
+                </div>
+
+                <!-- Info Box (Chỉ hiện khi Tìm thấy) -->
+                <div class="info-customer-box" id="info-customer-box">
+                    <div style="text-align: center; margin-bottom: 10px;"><b>Thông tin khách hàng</b></div>
+                    <div class="row-info"><span>SĐT:</span> <span id="info-sdt"></span></div>
+                    <div class="row-info"><span>Họ tên KH:</span> <span id="info-ten"></span></div>
+                    <div class="row-info"><span>Ngày tạo:</span> <span id="info-ngay"></span></div>
+                    <div class="row-info"><span>Điểm:</span> <span id="info-diem"></span></div>
+                    <div style="text-align: center;">
+                        <button class="btn-xacnhan-green" onclick="confirmTichDiem()">XÁC NHẬN</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal 2: Form Tạo Tài Khoản (ĐÃ SỬA CẤU TRÚC GIAO DIỆN) -->
+            <div id="modal-taotk" class="modal-box">
+                <div class="modal-close-btn" onclick="closeAllModals()"></div>
+                <h2>Tạo Tài Khoản Tích Điểm</h2>
+                
+                <div class="form-container">
+                    <div class="form-row">
+                        <label>Số điện thoại:</label>
+                        <input type="text" id="new-sdt" placeholder="Nhập số điện thoại khách hàng">
+                    </div>
+                    <div class="form-row">
+                        <label>Họ tên khách hàng:</label>
+                        <input type="text" id="new-ten" placeholder="Nhập họ tên khách hàng">
+                    </div>
+                </div>
+
+                <button class="btn-xacnhan-green" onclick="submitTaoTaiKhoan()">XÁC NHẬN</button>
+            </div>
+
+            <!-- Modal 3: Thông tin hóa đơn & Phương thức thanh toán -->
+            <div id="modal-hoadon" class="modal-box">
+                <div class="modal-close-btn" onclick="closeAllModals()"></div>
+                <h2 style="position: absolute; top: 15px; left: 50%; transform: translateX(-50%); font-size: 24px; margin-bottom: 20px; margin-top: 20px;">THÔNG TIN HÓA ĐƠN</h2>
+                
+                <div class="invoice-left">
+                    <div class="invoice-header">
+                        <img src="ICONS/Logoicon.png" alt="Logo">
+                        <div class="invoice-info">
+                            <p>Mã hóa đơn: <span id="receipt-id">1</span></p>
+                            <p>Nhân viên: <span>Nguyễn Phú Quốc</span></p>
+                            <p>Ngày tạo: <span id="receipt-date"></span></p>
+                            <p>Khách hàng: <span id="receipt-customer">null</span></p>
+                        </div>
+                    </div>
+                    
+                    <table class="invoice-table">
+                        <thead>
+                            <tr>
+                                <th>Mã Sp</th>
+                                <th>Tên Sp</th>
+                                <th>ĐGia</th>
+                                <th>Sluong</th>
+                                <th>TTiền</th>
+                            </tr>
+                        </thead>
+                        <tbody id="receipt-body">
+                            <!-- JS tự động đổ dữ liệu -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="payment-right">
+                    <h3>PHƯƠNG THỨC THANH TOÁN</h3>
+                    <div class="payment-grid">
+                        <button class="pay-btn btn-bank" onclick="finishPayment()">
+                            <img src="ICONS/nganhangicon.png" alt="Ngân hàng"> 
+                            Ngân hàng
+                        </button>
+                        <button class="pay-btn btn-cash" onclick="finishPayment()">
+                            <img src="ICONS/tienmat.png" alt="Tiền mặt">
+                            Tiền mặt
+                        </button>
+                        <button class="pay-btn btn-cancel-bill" onclick="closeAllModals()">
+                            <img src="ICONS/huydon.png" alt="Hủy đơn">
+                            Hủy đơn
+                        </button>
+                        <button class="pay-btn btn-momo" onclick="finishPayment()">
+                            <img src="ICONS/momo.png" alt="Momo">
+                            Momo
+                        </button>
+                    </div>
+
+                    <div class="invoice-totals">
+                        <div class="total-row">
+                            <span>Tổng tiền:</span>
+                            <span id="receipt-total">0</span>
+                        </div>
+                        <div class="total-row">
+                            <span>Giảm:</span>
+                            <span>0</span>
+                        </div>
+                        <div class="total-row main-total">
+                            <span>THÀNH TIỀN:</span>
+                            <span id="receipt-final">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
     </div>
 
-    <script src="javascript/ThanhToan.js">
-   
-    </script>
+    <script src="javascript/ThanhToan.js"></script>
 </body>
 </html>
