@@ -193,9 +193,26 @@ filterProducts('all');
    ======================================================================= */
 
 // Mảng Array Fake Khách Hàng (Tạm thời để test, sau này bạn đấu Backend vào đây)
-let customersArray = [
-    { phone: '08738938287', name: 'Alo vũ à vũ', date: '24/6/2026', points: 9 }
-];
+let customersArray = [];
+
+async function loadCustomersFromAPI() {
+    try {
+        const response = await fetch('http://localhost:8080/api/tktrungthanh');
+        if (!response.ok) {
+            throw new Error("Lỗi máy chủ " + response.status);
+        }
+        const data = await response.json();
+        customersArray = data.map(c => ({
+            id: c.id.toString(),
+            name: c.tenKH,
+            date: c.ngayTao,
+            points: c.soLuongMua
+        }));
+    } catch (error) {
+        console.error("Không thể tải dữ liệu khách hàng:", error);
+    }
+}
+loadCustomersFromAPI();
 
 let currentCustomerName = "null"; // Biến lưu Tên khách hàng hiện tại
 let foundCustomerTemp = null; // Biến tạm lưu Khách Hàng tìm thấy
@@ -244,12 +261,12 @@ function actionTaoTkOrTim() {
         document.getElementById('new-ten').value = '';
     } else {
         // TRƯỜNG HỢP 2: BẤM NÚT "TÌM" -> Tìm kiếm trong Array
-        foundCustomerTemp = customersArray.find(c => c.phone === val);
+        foundCustomerTemp = customersArray.find(c => c.id === val);
         
         if (foundCustomerTemp) {
             // Show thông tin khách hàng ra hộp
             document.getElementById('info-customer-box').style.display = 'flex';
-            document.getElementById('info-sdt').innerText = foundCustomerTemp.phone;
+            document.getElementById('info-sdt').innerText = foundCustomerTemp.id;
             document.getElementById('info-ten').innerText = foundCustomerTemp.name;
             document.getElementById('info-ngay').innerText = foundCustomerTemp.date;
             document.getElementById('info-diem').innerText = foundCustomerTemp.points;
@@ -271,10 +288,10 @@ function submitTaoTaiKhoan() {
     
     // Tạo khách hàng mới push vào array
     const newCust = { 
-        phone: phone, 
+        id: phone, 
         name: name, 
         date: new Date().toLocaleDateString('vi-VN'), 
-        points: 0 
+        points: 0
     };
     customersArray.push(newCust);
     
