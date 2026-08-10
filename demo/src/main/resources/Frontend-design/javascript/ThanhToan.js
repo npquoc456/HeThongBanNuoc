@@ -14,7 +14,7 @@ scaleApp();
 let productsDB = [];
 let cart = [];
 let currentCategory = 'all'; 
-let totalCartPrice = 0; // Đã thêm biến này để lưu tổng tiền giỏ hàng dùng cho lúc xuất bill
+let totalCartPrice = 0; 
 
 // Gọi API lấy dữ liệu sản phẩm
 async function loadproductfromapi() {
@@ -45,7 +45,6 @@ async function loadproductfromapi() {
 
 const formatMoney = (amount) => amount.toLocaleString('vi-VN') + "";
 
-// Lọc sản phẩm
 function filterProducts(category) {
     currentCategory = category;
     renderProducts();
@@ -73,10 +72,8 @@ function renderProducts() {
         `;
     });
 }
-// Khởi chạy lấy sản phẩm
 loadproductfromapi();
 
-// Thêm hàng vào giỏ
 function addToCart(productId) {
     const product = productsDB.find(p => p.id === productId); 
     const existingItem = cart.find(item => item.id === productId); 
@@ -89,7 +86,6 @@ function addToCart(productId) {
     renderCart();
 }
 
-// Tăng giảm số lượng
 function updateQty(productId, change) {
     const item = cart.find(i => i.id === productId); 
     if (item) {
@@ -101,7 +97,6 @@ function updateQty(productId, change) {
     }
 }
 
-// Nhập trực tiếp số lượng
 function setQty(productId, newValue) {
     const item = cart.find(i => i.id === productId);
     if (item) {
@@ -114,12 +109,10 @@ function setQty(productId, newValue) {
     }
 }
 
-// Vẽ lại giỏ hàng và tính tiền 
 function renderCart() {
     const list = document.getElementById('cart-list'); 
     list.innerHTML = '';
     
-    // Reset tổng tiền mỗi lần render
     totalCartPrice = 0;
 
     if(cart.length === 0) {
@@ -128,7 +121,7 @@ function renderCart() {
 
     cart.forEach(item => {
         const itemTotal = item.price * item.qty;
-        totalCartPrice += itemTotal; // Cộng dồn tiền để lưu trữ
+        totalCartPrice += itemTotal; 
 
         list.innerHTML += `
             <div class="cart-item">
@@ -151,13 +144,11 @@ function renderCart() {
     document.getElementById('final-price').innerText = formatMoney(totalCartPrice);
 }
 
-// Xóa tất cả giỏ hàng
 function clearCart() {
     cart = [];
     renderCart();
 }
 
-// Cập nhật thời gian hiện tại
 function updateCurrentTime() {
     const now = new Date();
     const dateStr = now.toLocaleDateString('vi-VN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
@@ -166,7 +157,6 @@ function updateCurrentTime() {
     document.getElementById('current-date').textContent = dateStr;
     document.getElementById('current-time').textContent = timeStr;
     
-    // Cập nhật luôn thời gian cho màn hình hóa đơn
     const receiptDateEl = document.getElementById('receipt-date');
     if (receiptDateEl) {
         receiptDateEl.textContent = now.toLocaleDateString('vi-VN');
@@ -174,9 +164,8 @@ function updateCurrentTime() {
 }
 
 setInterval(updateCurrentTime, 1000);
-updateCurrentTime(); // Gọi ngay khi tải trang
+updateCurrentTime(); 
 
-// Hàm chuyển cảnh của hệ thống
 function chuyentrang(trang) {
     if(window.javaBackend){
         window.javaBackend.loadTrang(trang);
@@ -192,7 +181,6 @@ filterProducts('all');
    ================= PHẦN XỬ LÝ LOGIC MODALS THANH TOÁN ==================
    ======================================================================= */
 
-// Mảng Array Fake Khách Hàng (Tạm thời để test, sau này bạn đấu Backend vào đây)
 let customersArray = [];
 
 async function loadCustomersFromAPI() {
@@ -214,57 +202,40 @@ async function loadCustomersFromAPI() {
 }
 loadCustomersFromAPI();
 
-let currentCustomerName = "null"; // Biến lưu Tên khách hàng hiện tại
-let foundCustomerTemp = null; // Biến tạm lưu Khách Hàng tìm thấy
+let currentCustomerName = "null"; 
+let foundCustomerTemp = null; 
 
-// 1. Mở màn hình nhập số điện thoại tích điểm
 function openTichDiemModal() {
     if (cart.length === 0) { 
         alert("Giỏ hàng đang trống! Vui lòng chọn món trước khi thanh toán."); 
         return; 
     }
     
-    // Reset lại giao diện của các form khi mở lên
+    closeAllModals();
     document.getElementById('modal-overlay').style.display = 'flex';
     document.getElementById('modal-tichdiem').style.display = 'flex';
-    document.getElementById('modal-taotk').style.display = 'none';
-    document.getElementById('modal-hoadon').style.display = 'none';
     document.getElementById('sdt-tichdiem-input').value = '';
     document.getElementById('info-customer-box').style.display = 'none';
     handlePhoneInput(); 
 }
 
-// 2. Lắng nghe ô nhập sđt (Đổi chữ TẠO <-> TÌM)
 function handlePhoneInput() {
     const val = document.getElementById('sdt-tichdiem-input').value.trim();
     const btn = document.getElementById('btn-action-tichdiem');
-    
-    // Ẩn bảng thông tin nếu người dùng thay đổi số đang nhập
     document.getElementById('info-customer-box').style.display = 'none'; 
-    
-    if (val === '') {
-        btn.textContent = 'TẠO';
-    } else {
-        btn.textContent = 'TÌM';
-    }
+    if (val === '') { btn.textContent = 'TẠO'; } else { btn.textContent = 'TÌM'; }
 }
 
-// 3. Xử lý nút màu xanh dương (Tạo hoặc Tìm)
 function actionTaoTkOrTim() {
     const val = document.getElementById('sdt-tichdiem-input').value.trim();
-    
     if (val === '') {
-        // TRƯỜNG HỢP 1: BẤM NÚT "TẠO" -> Chuyển sang form nhập thông tin KH
         document.getElementById('modal-tichdiem').style.display = 'none';
         document.getElementById('modal-taotk').style.display = 'block';
         document.getElementById('new-sdt').value = '';
         document.getElementById('new-ten').value = '';
     } else {
-        // TRƯỜNG HỢP 2: BẤM NÚT "TÌM" -> Tìm kiếm trong Array
         foundCustomerTemp = customersArray.find(c => c.id === val);
-        
         if (foundCustomerTemp) {
-            // Show thông tin khách hàng ra hộp
             document.getElementById('info-customer-box').style.display = 'flex';
             document.getElementById('info-sdt').innerText = foundCustomerTemp.id;
             document.getElementById('info-ten').innerText = foundCustomerTemp.name;
@@ -276,90 +247,175 @@ function actionTaoTkOrTim() {
     }
 }
 
-// 4. Xử lý Nút Xác Nhận của Form "Tạo Tài Khoản Mới"
 function submitTaoTaiKhoan() {
     const phone = document.getElementById('new-sdt').value.trim();
     const name = document.getElementById('new-ten').value.trim();
-    
-    if(phone === '' || name === '') { 
-        alert("Vui lòng nhập đủ thông tin SĐT và Họ Tên!"); 
-        return; 
-    }
-    
-    // Tạo khách hàng mới push vào array
-    const newCust = { 
-        id: phone, 
-        name: name, 
-        date: new Date().toLocaleDateString('vi-VN'), 
-        points: 0
-    };
+    if(phone === '' || name === '') { alert("Vui lòng nhập đủ thông tin SĐT và Họ Tên!"); return; }
+    const newCust = { id: phone, name: name, date: new Date().toLocaleDateString('vi-VN'), points: 0 };
     customersArray.push(newCust);
     
     alert("Tạo tài khoản tích điểm thành công!");
-    currentCustomerName = newCust.name; // Lưu lại tên cho hóa đơn
-    openHoaDonModal(); // Mở hóa đơn
+    currentCustomerName = newCust.name; 
+    openHoaDonModal(); 
 }
 
-// 5. Xử lý Nút Xác Nhận Xanh Lá khi "TÌM" thấy thông tin cũ
 function confirmTichDiem() {
     if(foundCustomerTemp) {
-        currentCustomerName = foundCustomerTemp.name; // Lưu lại tên
+        currentCustomerName = foundCustomerTemp.name; 
         openHoaDonModal();
     }
 }
 
-// 6. Xử lý Nút "BỎ QUA" Tích điểm
 function skipTichDiem() {
-    currentCustomerName = "null"; // Gán khách hàng rỗng
+    currentCustomerName = "null"; 
     openHoaDonModal();
 }
 
-// 7. Hàm Chuyển Cảnh mở màn hình Thông tin Hóa Đơn cuối cùng
 function openHoaDonModal() {
-    document.getElementById('modal-tichdiem').style.display = 'none';
-    document.getElementById('modal-taotk').style.display = 'none';
+    closeAllModals();
+    document.getElementById('modal-overlay').style.display = 'flex';
     document.getElementById('modal-hoadon').style.display = 'flex';
 
-    // Đổ dữ liệu Tên Khách Hàng vào Bill
+    document.getElementById('receipt-id').innerText = Math.floor(Math.random() * 1000);
     document.getElementById('receipt-customer').innerText = currentCustomerName;
     
-    // Render danh sách sản phẩm từ Cart sang hóa đơn mini
     const tbody = document.getElementById('receipt-body');
     tbody.innerHTML = '';
     
     cart.forEach(item => {
         const itemTotal = item.price * item.qty;
         tbody.innerHTML += `
-            <tr>
-                <td>${item.id}</td>
-                <td>${item.name}</td>
-                <td>${formatMoney(item.price)}</td>
-                <td>${item.qty}</td>
-                <td>${formatMoney(itemTotal)}</td>
-            </tr>
+            <tr><td>${item.id}</td><td>${item.name}</td><td>${formatMoney(item.price)}</td><td>${item.qty}</td><td>${formatMoney(itemTotal)}</td></tr>
         `;
     });
 
-    // Đổ tổng tiền
     document.getElementById('receipt-total').innerText = formatMoney(totalCartPrice);
     document.getElementById('receipt-final').innerText = formatMoney(totalCartPrice);
 }
 
-// 8. Đóng toàn bộ Modals
-function closeAllModals() {
-    document.getElementById('modal-overlay').style.display = 'none';
+function finishPayment() {
+    alert("Thanh toán thành công! In hóa đơn hoàn tất.");
+    clearCart(); 
+    closeAllModals(); 
 }
 
-// Kích hoạt đóng Modals nếu click vào vùng đen bên ngoài khung
+/* =======================================================================
+   ================= PHẦN XỬ LÝ DANH SÁCH & CHI TIẾT HÓA ĐƠN =============
+   ======================================================================= */
+
+let mockBillsArray = [
+    { id: "1", date: "27/7/2026", total: 50000, status: "Đã thanh toán", customer: "Alo vũ à vũ", items: [{id: "A123", name: "Coffee", price: 15000, qty: 1}, {id: "A124", name: "Tea", price: 10000, qty: 2}] },
+    { id: "2", date: "27/7/2026", total: 20000, status: "Đã hủy", customer: "Alo vũ à vũ", items: [{id: "A123", name: "Coffee", price: 15000, qty: 1}, {id: "A126", name: "Milk", price: 5000, qty: 1}] },
+    { id: "3", date: "27/7/2026", total: 60000, status: "Chờ xác nhận", customer: "Trần Văn B", items: [{id: "A125", name: "Milk Coffee", price: 20000, qty: 3}] }
+];
+
+const editIconSvg = `<svg class="edit-icon" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`;
+
+function openBillListModal() {
+    closeAllModals();
+    document.getElementById('modal-overlay').style.display = 'flex';
+    document.getElementById('modal-bill-list').style.display = 'block';
+    document.getElementById('bill-search-input').value = ''; 
+    renderBillList();
+}
+
+function renderBillList() {
+    const tbody = document.getElementById('bill-list-body');
+    const keyword = document.getElementById('bill-search-input').value.trim().toLowerCase();
+    tbody.innerHTML = '';
+
+    const filteredBills = mockBillsArray.filter(bill => 
+        bill.id.toLowerCase().includes(keyword)
+    );
+
+    filteredBills.forEach(bill => {
+        let color = '';
+        if (bill.status === 'Đã thanh toán') color = '#008A5A';
+        else if (bill.status === 'Đã hủy') color = '#CC0000';
+        else if (bill.status === 'Chờ xác nhận') color = '#0000CC';
+
+        // Đổ dữ liệu vào đúng theo khung Grid CSS
+        tbody.innerHTML += `
+            <div class="bill-row-grid bill-data-row">
+                <span>${bill.id}</span>
+                <span>Nguyễn Phú Quốc</span> <!-- Trống cho khoảng trống của ô Search -->
+                <span>${bill.date}</span>
+                <span>${formatMoney(bill.total)}</span>
+                <span style="color: ${color}; font-weight: bold;">${bill.status}</span>
+                <span style="text-align: right; padding-right: 15px;" onclick="showBillDetail('${bill.id}')">${editIconSvg}</span>
+            </div>
+        `;
+    });
+}
+
+function showBillDetail(billId) {
+    const bill = mockBillsArray.find(b => b.id === billId);
+    if(!bill) return;
+
+    closeAllModals();
+    document.getElementById('modal-overlay').style.display = 'flex';
+    document.getElementById('modal-bill-detail').style.display = 'flex';
+
+    document.getElementById('detail-id').innerText = bill.id;
+    document.getElementById('detail-date').innerText = bill.date;
+    document.getElementById('detail-customer').innerText = bill.customer;
+    document.getElementById('detail-total').innerText = formatMoney(bill.total);
+
+    const tbody = document.getElementById('detail-body');
+    tbody.innerHTML = '';
+    bill.items.forEach(item => {
+        tbody.innerHTML += `<tr><td>${item.id}</td><td>${item.name}</td><td>${formatMoney(item.price)}</td><td>${item.qty}</td><td>${formatMoney(item.price * item.qty)}</td></tr>`;
+    });
+
+    const statusBtn = document.getElementById('detail-status-btn');
+    
+    if (bill.status === 'Đã thanh toán') {
+        statusBtn.className = 'btn-status btn-status-paid';
+        statusBtn.textContent = 'ĐÃ THANH TOÁN';
+        statusBtn.onclick = function() { alert('Hóa đơn này đã được thanh toán!'); };
+    } 
+    else if (bill.status === 'Đã hủy') {
+        statusBtn.className = 'btn-status btn-status-cancelled';
+        statusBtn.textContent = 'ĐÃ HỦY';
+        statusBtn.onclick = function() { openPaymentForOldBill(billId); };
+    } 
+    else if (bill.status === 'Chờ xác nhận') {
+        statusBtn.className = 'btn-status btn-status-pending';
+        statusBtn.textContent = 'CHỜ XÁC NHẬN';
+        statusBtn.onclick = function() { openPaymentForOldBill(billId); };
+    }
+}
+
+function openPaymentForOldBill(billId) {
+    const bill = mockBillsArray.find(b => b.id === billId);
+    if(!bill) return;
+
+    closeAllModals();
+    document.getElementById('modal-overlay').style.display = 'flex';
+    document.getElementById('modal-hoadon').style.display = 'flex';
+
+    document.getElementById('receipt-id').innerText = bill.id;
+    document.getElementById('receipt-date').innerText = bill.date;
+    document.getElementById('receipt-customer').innerText = bill.customer;
+    
+    const tbody = document.getElementById('receipt-body');
+    tbody.innerHTML = '';
+    bill.items.forEach(item => {
+        tbody.innerHTML += `<tr><td>${item.id}</td><td>${item.name}</td><td>${formatMoney(item.price)}</td><td>${item.qty}</td><td>${formatMoney(item.price * item.qty)}</td></tr>`;
+    });
+
+    document.getElementById('receipt-total').innerText = formatMoney(bill.total);
+    document.getElementById('receipt-final').innerText = formatMoney(bill.total);
+}
+
+function closeAllModals() {
+    document.getElementById('modal-overlay').style.display = 'none';
+    const modals = document.querySelectorAll('.modal-box');
+    modals.forEach(m => m.style.display = 'none');
+}
+
 function closeModalOnOutsideClick(event) {
     if (event.target.id === 'modal-overlay') {
         closeAllModals();
     }
-}
-
-// 9. Nút hoàn tất thanh toán
-function finishPayment() {
-    alert("Thanh toán thành công! In hóa đơn hoàn tất.");
-    clearCart(); // Xóa sạch giỏ hàng
-    closeAllModals(); // Tắt popup
 }

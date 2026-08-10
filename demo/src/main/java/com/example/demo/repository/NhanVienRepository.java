@@ -28,4 +28,4 @@ public interface NhanVienRepository extends JpaRepository<NhanVien, Integer> {
     """)
     List<NhanVien> TimNhanVienTheoTen(@Param("ten") String hoTen);
 
-}
+} 
