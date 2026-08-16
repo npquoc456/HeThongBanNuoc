@@ -296,8 +296,19 @@
         .btn-status-paid { background: #008A5A; }
         .btn-status-cancelled { background: #B30000; }
         .btn-status-pending { background: #0000CC; }
+        .pay-btn * {
+            pointer-events: none; /* Giúp cú click xuyên qua ảnh và chữ để ăn thẳng vào nút button */
+        }
 
     </style>
+</head>
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Thống Bán Hàng</title>
+    <link rel="stylesheet" href="css/ThanhToan.css">
 </head>
 <body>
 
@@ -340,7 +351,9 @@
                 <div class="action-buttons">
                     <img src="ICONS/BillListicon.png" class="btn-bill" alt="Bill List" onclick="openBillListModal()">
                     <div class="right-actions">
+                        <!-- NÚT BÊN NGOÀI: CHỈ XÓA GIỎ HÀNG (Gọi clearCart) -->
                         <button class="btn-action btn-cancel" onclick="clearCart()">HỦY</button>
+                        
                         <button class="btn-action btn-pay" onclick="openTichDiemModal()">THANH TOÁN</button>
                     </div>
                 </div>
@@ -377,7 +390,6 @@
                     <div style="text-align: center; margin-bottom: 10px;"><b>Thông tin khách hàng</b></div>
                     <div class="row-info"><span>SĐT:</span> <span id="info-sdt"></span></div>
                     <div class="row-info"><span>Họ tên KH:</span> <span id="info-ten"></span></div>
-                    <div class="row-info"><span>Ngày tạo:</span> <span id="info-ngay"></span></div>
                     <div class="row-info"><span>Điểm:</span> <span id="info-diem"></span></div>
                     <div style="text-align: center;"><button class="btn-xacnhan-green" onclick="confirmTichDiem()">XÁC NHẬN</button></div>
                 </div>
@@ -396,7 +408,7 @@
 
             <!-- Modal 3: Thông tin hóa đơn & Phương thức thanh toán -->
             <div id="modal-hoadon" class="modal-box">
-                <div class="modal-close-btn" onclick="closeAllModals()"></div>
+                <div class="modal-close-btn" onclick="forceCancelWhenClosing()"></div>
                 <h2 style="position: absolute; top: 15px; left: 50%; transform: translateX(-50%); font-size: 24px; margin-bottom: 20px; margin-top: 20px;">THÔNG TIN HÓA ĐƠN</h2>
                 <div class="invoice-left">
                     <div class="invoice-header">
@@ -416,10 +428,13 @@
                 <div class="payment-right">
                     <h3>PHƯƠNG THỨC THANH TOÁN</h3>
                     <div class="payment-grid">
-                        <button class="pay-btn btn-bank" onclick="finishPayment()"><img src="ICONS/nganhangicon.png" alt="Ngân hàng">Ngân hàng</button>
-                        <button class="pay-btn btn-cash" onclick="finishPayment()"><img src="ICONS/tienmat.png" alt="Tiền mặt">Tiền mặt</button>
-                        <button class="pay-btn btn-cancel-bill" onclick="closeAllModals()"><img src="ICONS/huydon.png" alt="Hủy đơn">Hủy đơn</button>
-                        <button class="pay-btn btn-momo" onclick="finishPayment()"><img src="ICONS/Logo-MoMo-Square.png" alt="Momo">Momo</button>
+                        <button class="pay-btn btn-bank" onclick="processPayment('CHUYEN_KHOAN')"><img src="ICONS/nganhangicon.png" alt="Ngân hàng">Ngân hàng</button>
+                        <button class="pay-btn btn-cash" onclick="processPayment('TIEN_MAT')"><img src="ICONS/tienmat.png" alt="Tiền mặt">Tiền mặt</button>
+                        
+                        <!-- NÚT BÊN TRONG MODAL: LƯU DATABASE THÀNH ĐÃ HỦY VÀ XÓA BẢNG (Gọi cancelCurrentBillAction) -->
+                        <button class="pay-btn btn-cancel-bill" onclick="cancelCurrentBillAction()"><img src="ICONS/huydon.png" alt="Hủy đơn">Hủy đơn</button>
+                        
+                        <button class="pay-btn btn-momo" onclick="processPayment('MOMO')"><img src="ICONS/momo.png" alt="Momo">Momo</button>
                     </div>
                     <div class="invoice-totals">
                         <div class="total-row"><span>Tổng tiền:</span><span id="receipt-total">0</span></div>
@@ -429,13 +444,12 @@
                 </div>
             </div>
 
-            <!-- MODAL MỚI: DANH SÁCH HÓA ĐƠN (CẤU TRÚC CHUẨN ẢNH 2) -->
+            <!-- MODAL MỚI: DANH SÁCH HÓA ĐƠN -->
             <div id="modal-bill-list" class="modal-box">
                 <div class="modal-close-btn" onclick="closeAllModals()"></div>
                 <h2>Danh sách hóa đơn</h2>
                 
                 <div class="bill-grid-container">
-                    <!-- Tiêu đề các cột -->
                     <div class="bill-row-grid bill-header-row">
                         <span>Mã HĐ</span>
                         <div class="bill-search-box">
@@ -448,7 +462,6 @@
                         <span></span>
                     </div>
                     
-                    <!-- Nội dung danh sách hóa đơn (có cuộn) -->
                     <div class="bill-body-scroll" id="bill-list-body">
                         <!-- JS đổ dữ liệu vào đây -->
                     </div>
@@ -496,4 +509,5 @@
 
     <script src="javascript/ThanhToan.js"></script>
 </body>
+</html>
 </html>

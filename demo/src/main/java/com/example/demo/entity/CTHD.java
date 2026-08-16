@@ -1,14 +1,14 @@
 package com.example.demo.entity;
 
 import java.math.BigDecimal;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter; // BỔ SUNG IMPORT
 
-@Data
+@Getter // THAY @Data BẰNG 2 ANNOTATION NÀY
+@Setter
 @Entity
 @Table(name = "cthd")
 public class CTHD {
@@ -33,5 +33,4 @@ public class CTHD {
     @NotNull
     @Column(name = "don_gia", precision = 10, scale = 2)
     private BigDecimal donGia;
-
 }

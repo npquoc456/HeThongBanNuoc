@@ -11,7 +11,7 @@ import com.example.demo.constant.TrangThaiVatLieu;
 public class NguyenLieuDTO {
     private int id;
     private String tenNL;
-    private String donViTinh;
+    private String donVi;
     private double soLuong;
     private TrangThaiVatLieu trangThai;
 }

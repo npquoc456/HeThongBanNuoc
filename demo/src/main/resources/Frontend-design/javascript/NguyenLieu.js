@@ -29,7 +29,7 @@
                         id: nl.id.toString(),
                         name: nl.tenNL, 
                         qty: nl.soLuong, 
-                        unit: nl.donVi, 
+                        unit: nl.donVi || nl.donvi || nl.unit || '',
                         status: nl.trangThai
                     };
                 });
@@ -70,7 +70,8 @@
                         <span>${item.id}</span>
                         <span class="name">${item.name}</span>
                         <span>${item.qty}</span>
-                        <span>${item.unit}</span>
+                        <!-- ĐÃ FIX: Thêm dòng hiển thị Đơn vị (unit) vào đây -->
+                        <span style="font-weight: 500; color: #333;">${item.unit}</span>
                         <span style="color: ${colorTrangThai}; font-weight: bold;">${textTrangThai}</span>
                         <div class="action-icons">
                             <img src="ICONS/viewicon.png" alt="View">

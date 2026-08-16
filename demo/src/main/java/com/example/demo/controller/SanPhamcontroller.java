@@ -48,9 +48,11 @@ public class SanPhamcontroller {
           return ResponseEntity.ok(sanPhamService.updateSanPhamDTO(id, sanPhamDTO));
      }
 
-     @DeleteMapping("/{id}")
+    @DeleteMapping("/{id}")
      public ResponseEntity<SanPhamDTO> deleteSanPham(@PathVariable Integer id){
-          return ResponseEntity.ok(sanPhamService.getSanPhamById(id));
+          SanPhamDTO deletedSanPham = sanPhamService.getSanPhamById(id);
+          sanPhamService.deleteSanPham(id);
+          return ResponseEntity.ok(deletedSanPham);
      }
 
      //tinh nang tim kiem san pham theo ten, theo loai, theo ten va loai

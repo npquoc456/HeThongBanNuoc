@@ -8,4 +8,5 @@ import java.util.List;
 
 public interface CTHDReponsitory extends JpaRepository<CTHD, CTHDid>{
     // List<CTHD> TimCTHDtheoID(String hoaDonID);
+    List<CTHD> findByHoaDonId(Integer hoaDonId);
 }

@@ -7,8 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.example.demo.dto.SanPhamDTO;
 import com.example.demo.repository.SanPhamRepository;
 import com.example.demo.entity.SanPham;
-
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 

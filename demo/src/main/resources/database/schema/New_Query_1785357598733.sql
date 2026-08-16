@@ -124,3 +124,18 @@ VALUES
 (1,1,1,30000),
 (1,2,1,25000),
 (2,3,2,35000);
+
+-- 1. Xóa sạch hóa đơn và chi tiết bị lỗi cũ để làm lại
+DELETE FROM cthd;
+DELETE FROM hoadon;
+
+-- 2. Thêm Hóa đơn chuẩn (kh_id phải khớp với SĐT trong bảng tktrungthanh, hoặc NULL nếu khách lẻ)
+INSERT INTO hoadon (id, kh_id, nv_id, tong_hd, trang_thai, ngay_hd, phuong_thuc) VALUES
+(1, '0901234567', 1, 55000, 'DA_XAC_NHAN', '2026-07-30 08:00:00', 'TIEN_MAT'),
+(2, NULL, 1, 70000, 'CHO_XAC_NHAN', '2026-07-30 09:30:00', 'CHUYEN_KHOAN');
+
+-- 3. Thêm Chi tiết hóa đơn (Phải chỉ định rõ tên cột để MySQL không bị nhầm)
+INSERT INTO cthd (hd_id, sp_id, so_luong, don_gia) VALUES
+(1, 1, 1, 30000), -- Hóa đơn 1: 1 Cafe sữa
+(1, 2, 1, 25000), -- Hóa đơn 1: 1 Cafe đen
+(2, 3, 2, 35000); -- Hóa đơn 2: 2 Bạc xỉu
