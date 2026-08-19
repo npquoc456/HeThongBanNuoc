@@ -54,6 +54,8 @@
                 c.id.includes(keyword) || c.name.toLowerCase().includes(keyword)
             );
 
+            filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
+
             filtered.forEach(c => {
                 container.innerHTML += `
                     <div class="customer-item row-grid">

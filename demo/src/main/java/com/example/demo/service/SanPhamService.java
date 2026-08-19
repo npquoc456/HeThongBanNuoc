@@ -6,6 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.example.demo.dto.SanPhamDTO;
 import com.example.demo.repository.SanPhamRepository;
+
+import jakarta.transaction.Transactional;
+
 import com.example.demo.entity.SanPham;
 import java.util.stream.Collectors;
 
@@ -27,12 +30,14 @@ public class SanPhamService {
         return mapToDTO(sanPham);
     }
 
+    @Transactional
     public SanPhamDTO createSanPham(SanPhamDTO dto){
         SanPham sanPham = mapToEntity(dto);
         SanPham savedSanPham = sanPhamRepository.save(sanPham);
         return mapToDTO(savedSanPham);
     }
 
+    @Transactional
     public SanPhamDTO updateSanPhamDTO(Integer id, SanPhamDTO dto){
         SanPham existingSanPham = sanPhamRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("khong tim thay san pham co id: " + id));
@@ -47,6 +52,7 @@ public class SanPhamService {
         return mapToDTO(updatedSanPham);
     }
 
+    @Transactional
     public void deleteSanPham(Integer id){
         SanPham existingSanPham = sanPhamRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("khong tim thay san pham co id: " + id));
