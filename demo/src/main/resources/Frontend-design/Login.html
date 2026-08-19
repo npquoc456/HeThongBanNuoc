@@ -307,7 +307,7 @@ const userIdInput = document.getElementById("user-id-input");
 const passwordInput = document.getElementById("password-input");
 const loginButton = document.getElementById("login-btn");
 
-loginForm.addEventListener("submit", function (e) {
+loginForm.addEventListener("submit", async function (e) {
 
     e.preventDefault();
 
@@ -325,29 +325,43 @@ loginForm.addEventListener("submit", function (e) {
     }
 
     loginButton.disabled = true;
-    //change nut dang nhap
     loginButton.innerText = "ĐANG ĐĂNG NHẬP...";
 
+    try {
+        // GỌI API SPRING BOOT
+        const response = await fetch('http://localhost:8080/api/nhanvien/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                id: parseInt(userId),
+                matKhau: password
+            })
+        });
 
-if (window.javaBackend) {
-        try {
-            let dangNhapDung = window.javaBackend.xuLyDangNhap(userId, password);
+        if (response.ok) {
+           
+            const userData = await response.json();
             
-            if (dangNhapDung) {
-                //dk dung
-                window.javaBackend.loadTrang("ThanhToan.html"); 
-            }
+            
+            localStorage.setItem('POS_STAFF_ID', userData.id);
+            localStorage.setItem('POS_STAFF_NAME', userData.tenNhanVien);
 
-        } catch (e) {
-            console.error(e);
-            hienThiLoi("Không thể kết nối tới Java.");
+            if (window.javaBackend) {
+                window.javaBackend.loadTrang("ThanhToan.html"); 
+            } else {
+                window.location.href = "ThanhToan.html";
+            }
+        } else {
+            const errorMsg = await response.text();
+            hienThiLoi(errorMsg);
         }
-    } else {
-        hienThiLoi("Không tìm thấy JavaFX Backend.");
+    } catch (e) {
+        console.error(e);
+        hienThiLoi("Không thể kết nối đến Máy chủ Backend.");
+    } finally {
+        loginButton.disabled = false;
+        loginButton.innerText = "ĐĂNG NHẬP";
     }
-    
-    loginButton.disabled = false;
-    loginButton.innerText = "ĐĂNG NHẬP";
 });
 
 function hienThiLoi(thongBao) {

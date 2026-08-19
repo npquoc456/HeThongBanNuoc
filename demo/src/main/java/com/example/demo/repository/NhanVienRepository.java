@@ -9,23 +9,28 @@ import java.util.Optional;
 import java.util.List;
 
 public interface NhanVienRepository extends JpaRepository<NhanVien, Integer> {
+    
     @Query(""" 
         SELECT n 
         FROM NhanVien n 
         WHERE n.id = :id AND n.matKhau = :matKhau 
     """)
-    Optional<NhanVien> TimNhanVienTheoIDvaMK(@Param("id") int id, @Param("matKhau") String matKhau);
+    Optional<NhanVien> TimNhanVienTheoIDvaMK(@Param("id") Integer id, @Param("matKhau") String matKhau);
 
+    // ĐÃ SỬA: Đổi :tenNV thành :ten cho khớp với @Param("ten")
     @Query("""
         SELECT n 
         FROM NhanVien n 
-        WHERE n.id = :id OR LOWER(n.hoTen) LIKE LOWER(CONCAT('%', :tenNV, '%')) 
+        WHERE n.id = :id OR LOWER(n.hoTen) LIKE LOWER(CONCAT('%', :ten, '%')) 
     """)
-    List<NhanVien> TimNhanVienTheoIDvaTen(@Param("id") int id,@Param("ten") String hoTen);
+    List<NhanVien> TimNhanVienTheoIDvaTen(@Param("id") int id, @Param("ten") String hoTen);
 
+    // ĐÃ SỬA: Đổi :tenNV thành :ten cho khớp với @Param("ten")
     @Query("""
-        SELECT n FROM NhanVien n WHERE LOWER(n.hoTen) LIKE LOWER(CONCAT('%', :tenNV, '%'))
+        SELECT n 
+        FROM NhanVien n 
+        WHERE LOWER(n.hoTen) LIKE LOWER(CONCAT('%', :ten, '%'))
     """)
     List<NhanVien> TimNhanVienTheoTen(@Param("ten") String hoTen);
 
-} 
+}

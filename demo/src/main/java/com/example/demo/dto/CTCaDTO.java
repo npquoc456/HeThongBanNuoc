@@ -10,4 +10,7 @@ import lombok.NoArgsConstructor;
 public class CTCaDTO {
     private int CaLamId;
     private int NhanVienId;
+    private String tenCa;
+    private String thoiGianBatDau;
+    private String thoiGianKetThuc;
 }

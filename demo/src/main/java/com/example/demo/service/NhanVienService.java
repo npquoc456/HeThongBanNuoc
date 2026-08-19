@@ -1,12 +1,15 @@
 package com.example.demo.service;
 
 import java.util.Optional;
-
+import java.util.stream.Collectors;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.example.demo.dto.CTCaDTO;
 import com.example.demo.dto.NhanVienDTO;
+import com.example.demo.entity.CTCa;
 import com.example.demo.entity.NhanVien;
 import com.example.demo.repository.NhanVienRepository;
 
@@ -17,10 +20,12 @@ public class NhanVienService {
     @Autowired 
     private NhanVienRepository nhanVienRepository;
     
-    public NhanVien DangNhap(Integer id, String matkhau){
+
+    public NhanVienDTO DangNhap(Integer id, String matkhau){
         Optional<NhanVien> nhanVien = nhanVienRepository.TimNhanVienTheoIDvaMK(id, matkhau);
         if(nhanVien.isPresent()){
-            return nhanVien.get();
+            
+            return mapToDTO(nhanVien.get());
         }
         else{
             throw new RuntimeException("Đăng Nhập Thất Bại: Sai ID hoặc Mật khẩu");
@@ -33,8 +38,6 @@ public class NhanVienService {
         return mapToDTO(nhanVien);
     }
 
-
-    //taoj 
     @Transactional
     public NhanVienDTO createNhanVien(NhanVienDTO dto){
         NhanVien nhanVien = mapToEntity(dto);
@@ -65,7 +68,6 @@ public class NhanVienService {
         nhanVienRepository.delete(existingNhanVien);
     }
 
-
     private NhanVienDTO mapToDTO(NhanVien entity){
         NhanVienDTO dto = new NhanVienDTO(); 
         dto.setId(entity.getId());
@@ -79,6 +81,7 @@ public class NhanVienService {
 
         return dto;
     }
+    
 
     private NhanVien mapToEntity(NhanVienDTO dto){
         NhanVien entity = new NhanVien(); 

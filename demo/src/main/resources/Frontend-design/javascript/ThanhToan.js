@@ -5,23 +5,47 @@ let productsDB = [];
 let cart = [];
 let currentCategory = 'all'; 
 let totalCartPrice = 0; 
-let finalCartPrice = 0; // Lưu giá cuối cùng sau khi giảm 30%
-let currentPayingBillId = null; // Biến xác định đang thanh toán bill MỚI hay CŨ
+let finalCartPrice = 0; 
+let currentPayingBillId = null; 
 let customersDB = [];
 let customersArray = [];
-let currentCustomerName = "null"; 
+// ĐÃ SỬA: Đổi mặc định từ "null" sang "Khách lẻ" để tránh hiển thị chữ null lên giao diện
+let currentCustomerName = "Khách lẻ"; 
 let foundCustomerTemp = null; 
 let mockBillsArray = [];
 
+let idnhanviendangnhap = localStorage.getItem('POS_STAFF_ID');
+let tennhanviendangnhap = localStorage.getItem('POS_STAFF_NAME') || 'Nhân Viên';
 
+document.addEventListener("DOMContentLoaded", function() {
+    
+    if (!idnhanviendangnhap) {
+        alert("Vui lòng đăng nhập trước khi sử dụng hệ thống!");
+        
+        if (window.javaBackend) {
+            window.javaBackend.loadTrang('Login.html');
+        } else {
+            window.location.href = "Login.html"; 
+        }
+        return;
+    }
+
+    const staffIdEl = document.getElementById('staffid');
+    const staffNameEl = document.getElementById('staffname');
+
+    if (staffIdEl) {
+        staffIdEl.innerText = idnhanviendangnhap; 
+    }
+    
+    if (staffNameEl) {
+        staffNameEl.innerText = tennhanviendangnhap;
+    }
+});
 
 /* ==========================================================================
    NHÓM 1: CẤU HÌNH GIAO DIỆN, THỜI GIAN & TIỆN ÍCH CHUNG (UTILS)
    ========================================================================== */
 
-/**
- * Tự động scale (phóng to/thu nhỏ) giao diện ứng dụng theo kích thước màn hình chuẩn 1440x1080.
- */
 function scaleApp() {
     const wrapper = document.getElementById('app-wrapper');
     const scale = Math.min(window.innerWidth / 1440, window.innerHeight / 1080);
@@ -30,9 +54,6 @@ function scaleApp() {
 window.addEventListener('resize', scaleApp);
 scaleApp();
 
-/**
- * Cập nhật thời gian và ngày tháng thực tế liên tục trên giao diện topbar.
- */
 function updateCurrentTime() {
     const now = new Date();
     const dateStr = now.toLocaleDateString('vi-VN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
@@ -46,24 +67,15 @@ function updateCurrentTime() {
 setInterval(updateCurrentTime, 1000);
 updateCurrentTime(); 
 
-/**
- * Lấy định dạng ngày giờ hiện tại dạng chuỗi 'YYYY-MM-DD HH:mm:ss' gửi lên backend.
- */
 function getFormattedDateTime() {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
 }
 
-/**
- * Định dạng số tiền thành chuỗi tiền tệ Việt Nam (VNĐ).
- */
 function formatMoney(amount) {
     return Number(amount || 0).toLocaleString('vi-VN') + " ₫";
 }
 
-/**
- * Chuyển đổi mã trạng thái tiếng Anh từ CSDL sang tiếng Việt hiển thị trên giao diện.
- */
 function mapStatus(status) {
     switch(status) {
         case 'DA_THANH_TOAN': return 'Đã thanh toán';
@@ -74,21 +86,14 @@ function mapStatus(status) {
     }
 }
 
-/**
- * Giao tiếp với ứng dụng Java bên ngoài để chuyển trang.
- */
 function chuyentrang(trang) {
      window.javaBackend.loadTrang(trang);
 }
-
 
 /* ==========================================================================
    NHÓM 2: QUẢN LÝ SẢN PHẨM & LỌC DANH MỤC
    ========================================================================== */
 
-/**
- * Tải danh sách sản phẩm từ API Backend Spring Boot.
- */
 async function loadproductfromapi() {
     try {
         const response = await fetch('http://localhost:8080/api/sanpham');
@@ -108,17 +113,11 @@ async function loadproductfromapi() {
 } 
 loadproductfromapi();
 
-/**
- * Lọc sản phẩm theo danh mục được chọn.
- */
 function filterProducts(category) {
     currentCategory = category;
     renderProducts();
 }
 
-/**
- * Hiển thị danh sách sản phẩm ra màn hình giao diện (kèm tìm kiếm).
- */
 function renderProducts() {
     const grid = document.getElementById('product-grid');
     if (!grid) return;
@@ -138,14 +137,10 @@ function renderProducts() {
         });
 }
 
-
 /* ==========================================================================
    NHÓM 3: QUẢN LÝ GIỎ HÀNG (SHOPPING CART)
    ========================================================================== */
 
-/**
- * Thêm sản phẩm vào giỏ hàng hoặc tăng số lượng nếu đã tồn tại.
- */
 function addToCart(productId) {
     const product = productsDB.find(p => p.id === productId); 
     const item = cart.find(i => i.id === productId); 
@@ -154,9 +149,6 @@ function addToCart(productId) {
     renderCart();
 }
 
-/**
- * Tăng hoặc giảm số lượng sản phẩm trong giỏ hàng.
- */
 function updateQty(productId, change) {
     const item = cart.find(i => i.id === productId); 
     if (item) {
@@ -166,9 +158,6 @@ function updateQty(productId, change) {
     }
 }
 
-/**
- * Gán trực tiếp số lượng sản phẩm từ ô nhập liệu input.
- */
 function setQty(productId, newValue) {
     const item = cart.find(i => i.id === productId);
     if (item) {
@@ -177,9 +166,6 @@ function setQty(productId, newValue) {
     }
 }
 
-/**
- * Hiển thị danh sách sản phẩm trong giỏ hàng ra giao diện và tính tổng tiền.
- */
 function renderCart() {
     const list = document.getElementById('cart-list'); 
     if (!list) return;
@@ -210,35 +196,25 @@ function renderCart() {
     document.getElementById('final-price').innerText = formatMoney(totalCartPrice);
 }
 
-/**
- * Xóa sạch toàn bộ giỏ hàng hiện tại.
- */
 function clearCart() { 
     cart = []; 
     renderCart(); 
 }
 
-
 /* ==========================================================================
    NHÓM 4: QUẢN LÝ KHÁCH HÀNG, TÍCH ĐIỂM & TẠO TÀI KHOẢN
    ========================================================================== */
 
-/**
- * Tải danh sách tài khoản tích điểm từ API.
- */
 async function loadCustomersFromAPI() {
     try {
         const res = await fetch('http://localhost:8080/api/tktrungthanh');
         const data = await res.json();
         customersArray = data.map(c => ({ id: c.id.toString(), name: c.tenKH, date: c.ngayTao, points: c.soLuongMua }));
-        customersDB = customersArray; // Đồng bộ dữ liệu
+        customersDB = customersArray; 
     } catch (e) {}
 }
 loadCustomersFromAPI();
 
-/**
- * Mở modal nhập/kiểm tra số điện thoại tích điểm.
- */
 function openTichDiemModal() {
     if (cart.length === 0) { alert("Giỏ hàng trống!"); return; }
     closeAllModals();
@@ -249,18 +225,12 @@ function openTichDiemModal() {
     document.getElementById('btn-action-tichdiem').textContent = 'TẠO';
 }
 
-/**
- * Xử lý sự kiện khi gõ số điện thoại vào ô tích điểm.
- */
 function handlePhoneInput() {
     const val = document.getElementById('sdt-tichdiem-input').value.trim();
     document.getElementById('info-customer-box').style.display = 'none'; 
     document.getElementById('btn-action-tichdiem').textContent = val === '' ? 'TẠO' : 'TÌM';
 }
 
-/**
- * Quyết định chuyển sang tạo tài khoản mới hoặc tìm kiếm thông tin khách hàng.
- */
 function actionTaoTkOrTim() {
     const val = document.getElementById('sdt-tichdiem-input').value.trim();
     if (val === '') {
@@ -277,9 +247,6 @@ function actionTaoTkOrTim() {
     }
 }
 
-/**
- * Gửi yêu cầu tạo tài khoản tích điểm mới lên server hoặc tự động nhận diện nếu đã tồn tại.
- */
 async function submitTaoTaiKhoan() {
     const sdt = document.getElementById('new-sdt').value.trim();
     const tenKH = document.getElementById('new-ten').value.trim();
@@ -322,8 +289,6 @@ async function submitTaoTaiKhoan() {
             currentCustomerName = tenKH;
 
             await loadCustomersFromAPI();
-
-            // Mặc định cho điểm bằng 0 khi vừa tạo
             foundCustomerTemp = customersDB.find(c => c.id === sdt) || { id: sdt, name: tenKH, points: 0 };
 
             document.getElementById('modal-taotk').style.display = 'none';
@@ -340,31 +305,21 @@ async function submitTaoTaiKhoan() {
     }
 }
 
-/**
- * Xác nhận chọn khách hàng đã tìm thấy để tiếp tục thanh toán.
- */
 function confirmTichDiem() { 
     currentCustomerName = foundCustomerTemp.name; 
     openHoaDonModal(null); 
 }
 
-/**
- * Bỏ qua bước tích điểm (chọn khách lẻ) để thanh toán.
- */
 function skipTichDiem() { 
     currentCustomerName = "Khách lẻ"; 
     foundCustomerTemp = null; 
     openHoaDonModal(null); 
 }
 
-
 /* ==========================================================================
    NHÓM 5: QUẢN LÝ HÓA ĐƠN, THANH TOÁN & GIAO TIẾP API HÓA ĐƠN
    ========================================================================== */
 
-/**
- * Tải danh sách hóa đơn từ API Backend.
- */
 async function loadhoadfromapi() {
     try {
         if (customersArray.length === 0) {
@@ -379,15 +334,12 @@ async function loadhoadfromapi() {
             const cthdList = bill.cthds || bill.CTHDs || bill.cthdList || [];
             let tenKhach = 'Khách lẻ';
 
-            // Lấy mã ID khách hàng mà Backend trả về
             let rawKhachId = bill.tkTrungThanhId || bill.khachHangId || (bill.tkTrungThanh ? bill.tkTrungThanh.id : null);
 
-            // Bước 1: Thử lấy tên trả về sẵn
-            if (bill.tenKhachHang) tenKhach = bill.tenKhachHang;
+            if (bill.tenKhachHang && bill.tenKhachHang !== 'null') tenKhach = bill.tenKhachHang;
             else if (bill.tkTrungThanh && bill.tkTrungThanh.tenKH) tenKhach = bill.tkTrungThanh.tenKH;
-            else if (bill.tenKH) tenKhach = bill.tenKH;
+            else if (bill.tenKH && bill.tenKH !== 'null') tenKhach = bill.tenKH;
             
-            // Bước 2: Tự đối chiếu ID thông minh (Dùng dấu == để ép kiểu tự động)
             if (tenKhach === 'Khách lẻ' && rawKhachId) {
                 const foundC = customersArray.find(c => c.id == rawKhachId);
                 if (foundC) {
@@ -395,10 +347,9 @@ async function loadhoadfromapi() {
                 }
             }
 
-            // Bước 3: Fallback lấy từ localStorage cho các đơn vừa tạo
             if (tenKhach === 'Khách lẻ') {
                 const savedName = localStorage.getItem('bill_cus_' + bill.id);
-                if (savedName) tenKhach = savedName;
+                if (savedName && savedName !== 'null') tenKhach = savedName;
             }
 
             return {
@@ -419,7 +370,6 @@ async function loadhoadfromapi() {
             }
         });
 
-        // Sắp xếp mới nhất lên đầu
         mockBillsArray.sort((a, b) => parseInt(b.id) - parseInt(a.id));
 
         if (document.getElementById('modal-bill-list')?.style.display === "block") {
@@ -429,9 +379,6 @@ async function loadhoadfromapi() {
 }
 loadhoadfromapi();
 
-/**
- * Mở modal form phương thức thanh toán (dùng chung cho tạo mới hoặc thanh toán lại hóa đơn cũ).
- */
 function openHoaDonModal(billIdToPay) {
     closeAllModals();
     currentPayingBillId = billIdToPay; 
@@ -443,10 +390,18 @@ function openHoaDonModal(billIdToPay) {
     tbody.innerHTML = '';
 
     if (!billIdToPay) {
-        // TẠO HÓA ĐƠN MỚI
         document.getElementById('receipt-id').innerText = "Tạo mới...";
-        document.getElementById('receipt-customer').innerText = currentCustomerName;
+        
+        // ĐÃ SỬA: Hiển thị Khách lẻ thay vì null
+        let displayCus = (currentCustomerName === "null" || !currentCustomerName) ? "Khách lẻ" : currentCustomerName;
+        document.getElementById('receipt-customer').innerText = displayCus;
         document.getElementById('receipt-date').innerText = getFormattedDateTime();
+
+        // ĐÃ SỬA: Gắn tên nhân viên vào Modal hóa đơn
+        const theNVTrongModal = document.getElementById('receipt-staff') || document.getElementById('detail-staff');
+        if(theNVTrongModal) {
+            theNVTrongModal.innerText = tennhanviendangnhap; 
+        }
 
         let soluongsanphammua = 0;
         cart.forEach(item =>{
@@ -454,15 +409,12 @@ function openHoaDonModal(billIdToPay) {
             tbody.innerHTML += `<tr><td>${item.id}</td><td>${item.name}</td><td>${formatMoney(item.price)}</td><td>${item.qty}</td><td>${formatMoney(item.price * item.qty)}</td></tr>`;
         });
 
-        // TÍNH ĐIỂM + GIẢM GIÁ (Bao quát cả Khách lẻ và Có tài khoản)
         let giamgia = 0;
-        let diemtruoc = 0; // Mặc định điểm trước đó = 0 (dành cho Khách lẻ)
-
+        let diemtruoc = 0; 
         if(foundCustomerTemp && foundCustomerTemp.id){
             diemtruoc = parseInt(foundCustomerTemp.points) || 0; 
         }
 
-        // Xét chung: Nếu (Điểm cũ + Số mua lần này) >= 10 thì giảm 30%
         if(diemtruoc + soluongsanphammua >= 10){
             giamgia = totalCartPrice * 0.3; 
         }
@@ -470,16 +422,20 @@ function openHoaDonModal(billIdToPay) {
         finalCartPrice = totalCartPrice - giamgia; 
 
         document.getElementById('receipt-total').innerText = formatMoney(totalCartPrice); 
-        
         const discountEl = document.getElementById('receipt-discount');
         if (discountEl) discountEl.innerText = formatMoney(giamgia);
-
         document.getElementById('receipt-final').innerText = formatMoney(finalCartPrice); 
 
     } else {
-        // THANH TOÁN LẠI HÓA ĐƠN CŨ
         const bill = mockBillsArray.find(b => b.id === billIdToPay);
         document.getElementById('receipt-id').innerText = bill.id;
+        
+        // ĐÃ SỬA: Gắn tên nhân viên (hóa đơn cũ)
+        const theNVTrongModal = document.getElementById('receipt-staff') || document.getElementById('detail-staff');
+        if(theNVTrongModal) {
+            theNVTrongModal.innerText = (bill.staff && bill.staff !== 'null' && bill.staff !== 'undefined') ? bill.staff : "Chưa cập nhật";
+        }
+        
         document.getElementById('receipt-customer').innerText = bill.customer;
         document.getElementById('receipt-date').innerText = bill.date;
 
@@ -488,17 +444,12 @@ function openHoaDonModal(billIdToPay) {
         });
         
         document.getElementById('receipt-total').innerText = formatMoney(bill.total);
-        
         const discountEl = document.getElementById('receipt-discount');
         if (discountEl) discountEl.innerText = formatMoney(0); 
-
         document.getElementById('receipt-final').innerText = formatMoney(bill.total);
     }
 }
 
-/**
- * Mở modal danh sách tổng hợp các hóa đơn.
- */
 function openBillListModal() {
     closeAllModals();
     document.getElementById('modal-overlay').style.display = 'flex';
@@ -506,9 +457,6 @@ function openBillListModal() {
     renderBillList();
 }
 
-/**
- * Render danh sách hóa đơn ra màn hình (hỗ trợ lọc từ khóa và sắp xếp ID giảm dần).
- */
 function renderBillList() {
     const tbody = document.getElementById('bill-list-body');
     if (!tbody) return;
@@ -530,10 +478,13 @@ function renderBillList() {
         if (bill.status === 'Đã xác nhận' || bill.status === 'Đã thanh toán') color = '#008A5A';
         else if (bill.status === 'Đã hủy') color = '#CC0000';
 
+        // ĐÃ SỬA: Xử lý hiển thị nhân viên an toàn
+        const staffName = (bill.staff && bill.staff !== 'null' && bill.staff !== 'undefined') ? bill.staff : 'Chưa cập nhật';
+        
         tbody.innerHTML += `
             <div class="bill-row-grid bill-data-row">
                 <span>${bill.id}</span>
-                <span>${bill.staff}</span> 
+                <span>${staffName}</span> <!-- Sửa staffname thành staffName -->
                 <span>${bill.date}</span>
                 <span>${formatMoney(bill.total)}</span>
                 <span style="color: ${color}; font-weight: bold;">${bill.status}</span>
@@ -543,9 +494,6 @@ function renderBillList() {
     });
 }
 
-/**
- * Hiển thị chi tiết một hóa đơn khi bấm vào icon chỉnh sửa.
- */
 function showBillDetail(billId) {
     const bill = mockBillsArray.find(b => b.id === billId);
     if(!bill) return;
@@ -554,17 +502,26 @@ function showBillDetail(billId) {
     document.getElementById('modal-overlay').style.display = 'flex';
     document.getElementById('modal-bill-detail').style.display = 'flex';
 
-    // Quét lại lần cuối ngay khi bấm vào icon chỉnh sửa
     let finalCustomerName = bill.customer;
     if (finalCustomerName === 'Khách lẻ' && bill.rawTkId) {
         let found = customersArray.find(c => c.id == bill.rawTkId);
         if(found) finalCustomerName = found.name;
     }
+    // ĐÃ SỬA: Khắc phục lỗi Khách Hàng null
+    if (!finalCustomerName || finalCustomerName === 'null') finalCustomerName = 'Khách lẻ';
 
+    // ĐÃ SỬA: Khắc phục lỗi Nhân viên null/trống
+    const staffName = (bill.staff && bill.staff !== 'null' && bill.staff !== 'undefined') ? bill.staff : 'Chưa cập nhật';
+            
     document.getElementById('detail-id').innerText = bill.id;
     document.getElementById('detail-date').innerText = bill.date;
     document.getElementById('detail-customer').innerText = finalCustomerName; 
     document.getElementById('detail-total').innerText = formatMoney(bill.total);
+
+    const detailStaffEl = document.getElementById('detail-staff');
+    if (detailStaffEl) {
+        detailStaffEl.innerText = staffName;
+    }
 
     const tbody = document.getElementById('detail-body');
     if (tbody) {
@@ -594,9 +551,6 @@ function showBillDetail(billId) {
     }
 }
 
-/**
- * Điều phối xử lý thanh toán (Tiền mặt / Chuyển khoản) cho đơn mới hoặc đơn cũ.
- */
 async function processPayment(phuongThuc) {
     if (currentPayingBillId) {
         await updateBillStatusOnBackend(currentPayingBillId, 'DA_XAC_NHAN', phuongThuc);
@@ -605,9 +559,6 @@ async function processPayment(phuongThuc) {
     }
 }
 
-/**
- * Gửi yêu cầu POST tạo mới hóa đơn lên Backend.
- */
 async function createNewBillOnBackend(trangThai, phuongThuc) {
     const cthdsPayload = cart.map(item => ({ 
         sanPhamId: parseInt(item.id), soLuong: item.qty, donGia: item.price }));
@@ -615,8 +566,12 @@ async function createNewBillOnBackend(trangThai, phuongThuc) {
     const khachId = (foundCustomerTemp && foundCustomerTemp.id) ? parseInt(foundCustomerTemp.id) : null;
     const customerName = (foundCustomerTemp && foundCustomerTemp.name) ? foundCustomerTemp.name : (currentCustomerName !== 'null' && currentCustomerName !== 'Khách lẻ' ? currentCustomerName : null);
 
+    // ĐÃ SỬA: Tự động lấy đúng ID Nhân Viên thay vì số 1
+    const savedStaffId = localStorage.getItem('POS_STAFF_ID'); 
+    const finalStaffId = savedStaffId ? parseInt(savedStaffId) : 1;
+
     const hoaDonDTO = {
-        nhanVienId: 1, 
+        nhanVienId: finalStaffId, 
         tkTrungThanhId: khachId, 
         tongTien: finalCartPrice, 
         trangThai: trangThai, 
@@ -638,7 +593,6 @@ async function createNewBillOnBackend(trangThai, phuongThuc) {
             let sodiemtruoc = parseInt(foundCustomerTemp.points) || 0;
             let diemmoi = sodiemtruoc + soluongsanphammua;
 
-            // Đã sửa: Chỉ trừ 10 điểm nếu đạt mốc >= 10
             if (diemmoi >= 10){
                 diemmoi = diemmoi - 10;
             }
@@ -648,8 +602,7 @@ async function createNewBillOnBackend(trangThai, phuongThuc) {
         alert("Tạo hóa đơn thành công!"); 
         await loadhoadfromapi(); 
 
-        // Ghi đè tên khách vào localStorage để xử lý lỗi Backend thiếu data
-        if (mockBillsArray.length > 0 && customerName !== 'Khách lẻ') {
+        if (mockBillsArray.length > 0 && customerName !== 'Khách lẻ' && customerName) {
             const latestBillId = mockBillsArray[0].id;
             localStorage.setItem('bill_cus_' + latestBillId, customerName);
             mockBillsArray[0].customer = customerName; 
@@ -666,9 +619,6 @@ async function createNewBillOnBackend(trangThai, phuongThuc) {
     }
 }
 
-/**
- * Cập nhật điểm tích lũy của khách hàng xuống Backend
- */
 async function capnhatdiemkhachhang(id, diemmoi, khachhang) {
     const dto = {
         id: id, 
@@ -689,9 +639,6 @@ async function capnhatdiemkhachhang(id, diemmoi, khachhang) {
     }
 }
 
-/**
- * Gửi yêu cầu PUT cập nhật trạng thái hóa đơn cũ lên Backend.
- */
 async function updateBillStatusOnBackend(billId, newStatus, phuongThuc) {
     const bill = mockBillsArray.find(b => b.id === billId);
     if (!bill) return;
@@ -732,15 +679,16 @@ async function updateBillStatusOnBackend(billId, newStatus, phuongThuc) {
     }
 }
 
-/**
- * Hàm hỗ trợ lưu hóa đơn hủy xuống CSDL.
- */
 async function createCancelledBillOnBackend(cartData, total) {
     const cthdsPayload = cartData.map(item => ({ sanPhamId: parseInt(item.id), soLuong: item.qty, donGia: item.price }));
     const khachId = (foundCustomerTemp && foundCustomerTemp.id) ? foundCustomerTemp.id : null;
 
+    // ĐÃ SỬA: Tự động lấy đúng ID Nhân Viên thay vì số 1
+    const savedStaffId = localStorage.getItem('POS_STAFF_ID'); 
+    const finalStaffId = savedStaffId ? parseInt(savedStaffId) : 1;
+
     const hoaDonDTO = {
-        nhanVienId: 1,
+        nhanVienId: finalStaffId,
         tkTrungThanhId: khachId,
         tongTien: total,
         trangThai: 'DA_HUY',
@@ -776,23 +724,16 @@ async function createCancelledBillOnBackend(cartData, total) {
     }
 }
 
-
 /* ==========================================================================
    NHÓM 6: QUẢN LÝ MODAL & HỦY ĐƠN HÀNG GIỮA CHỪNG
    ========================================================================== */
 
-/**
- * Đóng toàn bộ các modal đang hiển thị và reset trạng thái thanh toán.
- */
 function closeAllModals() {
     document.getElementById('modal-overlay').style.display = 'none';
     document.querySelectorAll('.modal-box').forEach(m => m.style.display = 'none');
     currentPayingBillId = null; 
 }
 
-/**
- * Tự động hỏi và lưu đơn hàng trạng thái HỦY nếu người dùng đóng form thanh toán giữa chừng.
- */
 async function forceCancelWhenClosing() {
     const modalHoaDon = document.getElementById('modal-hoadon');
     if (modalHoaDon && modalHoaDon.style.display === 'flex') {
@@ -804,9 +745,6 @@ async function forceCancelWhenClosing() {
     closeAllModals();
 }
 
-/**
- * Xử lý hành động hủy đơn hàng hiện tại và đẩy dữ liệu lên backend.
- */
 window.cancelCurrentBillAction = async function() {
     if (currentPayingBillId) {
         const bill = mockBillsArray.find(b => b.id === currentPayingBillId);
@@ -832,8 +770,12 @@ window.cancelCurrentBillAction = async function() {
 
     const khachId = (foundCustomerTemp && foundCustomerTemp.id) ? parseInt(foundCustomerTemp.id) : null;
 
+    // ĐÃ SỬA: Tự động lấy đúng ID Nhân Viên thay vì số 1
+    const savedStaffId = localStorage.getItem('POS_STAFF_ID'); 
+    const finalStaffId = savedStaffId ? parseInt(savedStaffId) : 1;
+
     const hoaDonDTO = {
-        nhanVienId: 1,
+        nhanVienId: finalStaffId,
         tkTrungThanhId: khachId,
         tongTien: totalToSave,
         trangThai: 'DA_HUY',
@@ -867,9 +809,6 @@ window.cancelCurrentBillAction = async function() {
     }
 };
 
-/**
- * Bắt sự kiện khi click ra ngoài vùng modal (vùng xám overlay) để thực hiện hủy/đóng.
- */
 function closeModalOnOutsideClick(event) {
     if (event.target.id === 'modal-overlay') {
         forceCancelWhenClosing(); 
