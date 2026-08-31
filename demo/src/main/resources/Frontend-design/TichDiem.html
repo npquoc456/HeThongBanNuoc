@@ -7,258 +7,124 @@
     <style>
         /* RESET & CƠ BẢN */
         * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+            margin: 0; padding: 0; box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
         body {
             background: url('anhnen/anhnen.png') no-repeat center center / cover;
-            height: 100vh;
-            width: 100vw;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden; 
+            height: 100vh; width: 100vw; display: flex; justify-content: center;
+            align-items: center; overflow: hidden; 
         }
 
-        /* WRAPPER ĐỂ SCALE TỈ LỆ - Kích thước gốc 1440 x 1080 */
-        #app-wrapper {
-            width: 1440px;
-            height: 1080px;
-            transform-origin: center;
-            position: relative;
-        }
+        #app-wrapper { width: 1440px; height: 1080px; transform-origin: center; position: relative; }
 
-        /* BỐ CỤC CHÍNH BẰNG CSS GRID */
         .grid-container {
-            width: 100%;
-            height: 100%;
-            display: grid;
-            grid-template-columns: 292px 1099px;
-            grid-template-rows: 95px 874px;
-            gap: 14px 20px;
-            justify-content: center;
-            align-content: center;
-            grid-template-areas:
-                "sidebar topbar"
-                "sidebar main";
+            width: 100%; height: 100%; display: grid;
+            grid-template-columns: 292px 1099px; grid-template-rows: 95px 874px;
+            gap: 14px 20px; justify-content: center; align-content: center;
+            grid-template-areas: "sidebar topbar" "sidebar main";
         }
 
-        /* ĐỊNH DẠNG CHUNG CHO CÁC BẢNG MỜ (FROSTED GLASS) */
         .glass-panel {
-            background: rgba(255, 255, 255, 0.45);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 4px solid rgba(255, 255, 255, 0.7);
-            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.45); backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px); border: 4px solid rgba(255, 255, 255, 0.7); border-radius: 20px;
         }
 
         /* 1. THANH BÊN TRÁI (SIDEBAR) */
-        .sidebar {
-            grid-area: sidebar;
-            width: 292px;
-            height: 983px;
-            padding: 40px 0 30px 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        
-        .sidebar-logo {
-            margin-bottom: 25px;
-        }
+        .sidebar { grid-area: sidebar; width: 292px; height: 983px; padding: 40px 0 30px 0; display: flex; flex-direction: column; align-items: center; }
+        .sidebar-logo { margin-bottom: 25px; }
         .sidebar-logo img { width: 140px; }
-
         .nav-item-dashboad, .nav-item-thanh-toan, .nav-item-tich-diem, .nav-item-nguyenlieu, .nav-item-dangxuat {
-            display: flex;
-            align-items: center;
-            width: 85%;
-            padding: 0 20px;
-            height: 60px;
-            margin: 8px 0;
-            border-radius: 15px;
-            font-weight: bold;
-            font-size: 18px;
-            cursor: pointer;
-            color: #000;
+            display: flex; align-items: center; width: 85%; padding: 0 20px; height: 60px; margin: 8px 0;
+            border-radius: 15px; font-weight: bold; font-size: 18px; cursor: pointer; color: #000;
         }
         .nav-item-dangxuat img, .nav-item-dashboad img, .nav-item-thanh-toan img, .nav-item-tich-diem img, .nav-item-nguyenlieu img { width: 30px; margin-right: 15px; }
         .nav-active { background: white; }
         .spacer { flex-grow: 1; }
 
         /* 2. THANH TRÊN CÙNG (TOP BAR) */
-        .topbar {
-            grid-area: topbar;
-            width: 1099px;
-            height: 95px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 11px;
-        }
-
+        .topbar { grid-area: topbar; width: 1099px; height: 95px; display: flex; justify-content: space-between; align-items: center; padding: 0 11px; }
         .user-info {
-            width: 343px;
-            height: 73px;
-            background: white;
-            border-radius: 20px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            padding-left: 20px;
-            font-weight: 600;
-            font-size: 16px;
+            width: 343px; height: 73px; background: white; border-radius: 20px; display: flex; flex-direction: column;
+            justify-content: center; padding-left: 20px; font-weight: 600; font-size: 16px;
         }
         .time-info {
-            margin-left: 35%;
-            width: 260px;
-            height: 73px;
-            background: white;
-            border-radius: 20px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            font-weight: 600;
-            font-size: 16px;
+            margin-left: 35%; width: 260px; height: 73px; background: white; border-radius: 20px; display: flex;
+            flex-direction: column; justify-content: center; align-items: center; font-weight: 600; font-size: 16px;
         }
-
-        .btn-other {
-            width: 60px;
-            height: 60px;
-            background: white;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-weight: bold;
-            font-size: 16px;
-            cursor: pointer;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        .btn-other:hover {
-            background: #f0f0f0;
-            transform: scale(1.05);
-            cursor: pointer;
-            transition: all 0.2s ease-in-out;
-        }
+        .btn-other { width: 60px; height: 60px; background: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 16px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .btn-other:hover { background: #f0f0f0; transform: scale(1.05); transition: all 0.2s ease-in-out; }
 
         /* 3. VÙNG NỘI DUNG CHÍNH (TÍCH ĐIỂM) */
-        .main-panel {
-            grid-area: main;
-            width: 1099px;
-            height: 874px;
-            padding: 22px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        /* --- ĐIỀU CHỈNH CHÍNH Ở ĐÂY --- */
-        /* Grid layout rút gọn khoảng cách giữa các cột để sát nhau hơn */
-        .row-grid {
-            display: grid;
-            /* Phân chia: SĐT (150px) - Tên (250px) - Ngày (150px) - Điểm (100px) - Actions (Phần dư) */
-            grid-template-columns: 150px 250px 200px 190px 0.8fr;
-            align-items: center;
-            width: 100%;
-        }
-
-        /* Thanh tiêu đề chứa ô tìm kiếm */
-        .customer-header-bar {
-            width: 100%;
-            height: 55px;
-            background: white;
-            border-radius: 20px;
-            padding: 0 25px;
-            font-weight: bold;
-            font-size: 16px;
-            border: 1px solid #ccc;
-        }
-
-        .header-search {
-            display: flex;
-            align-items: center;
-            background: white;
-            border: 1px solid #aaa;
-            border-radius: 20px;
-            padding: 5px 15px;
-            height: 40px;
-            width: 230px; /* Thu nhỏ thanh tìm kiếm lại một xíu */
-        }
+        .main-panel { grid-area: main; width: 1099px; height: 874px; padding: 22px; display: flex; flex-direction: column; gap: 15px; }
+        .row-grid { display: grid; grid-template-columns: 150px 250px 200px 190px 0.8fr; align-items: center; width: 100%; }
+        
+        .customer-header-bar { width: 100%; height: 55px; background: white; border-radius: 20px; padding: 0 25px; font-weight: bold; font-size: 16px; border: 1px solid #ccc; }
+        .header-search { display: flex; align-items: center; background: white; border: 1px solid #aaa; border-radius: 20px; padding: 5px 15px; height: 40px; width: 230px; }
         .header-search img { width: 18px; margin-right: 10px; }
         .header-search input { border: none; outline: none; width: 100%; font-size: 15px; background: transparent; }
 
-        /* Bảng danh sách */
-        .customer-list-container {
-            width: 100%;
-            flex-grow: 1;
-            background: white;
-            border-radius: 20px;
-            padding: 15px 25px;
-            position: relative;
-            border: 1px solid #ddd;
-            overflow: hidden; /* Ngăn chặn cuộn ngang phát sinh từ viền */
-        }
+        .customer-list-container { width: 100%; flex-grow: 1; background: white; border-radius: 20px; padding: 15px 25px; position: relative; border: 1px solid #ddd; overflow: hidden; }
+        .customer-list { height: 100%; max-height: 690px; overflow-y: auto; overflow-x: hidden; padding-right: 10px; }
+        .customer-list::-webkit-scrollbar { width: 6px; }
+        .customer-list::-webkit-scrollbar-track { background: transparent; }
+        .customer-list::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 10px; }
 
-        .customer-list {
-            height: 100%;
-            max-height: 690px;
-            overflow-y: auto;
-            overflow-x: hidden; /* Cấm tuyệt đối cuộn ngang */
-            padding-right: 10px; /* Chừa chỗ cho thanh cuộn dọc không lẹm vào nội dung */
-        }
-
-        /* Dòng hiển thị khách hàng */
-        .customer-item {
-            padding: 16px 0; /* Thu nhỏ khoảng cách trên dưới so với bản cũ */
-            border-bottom: 2px solid #000;
-            font-size: 16px;
-            font-weight: 500;
-        }
-
+        .customer-item { padding: 16px 0; border-bottom: 2px solid #000; font-size: 16px; font-weight: 500; }
         .customer-item .name { font-weight: bold; }
+        .action-icons { display: flex; gap: 15px; justify-content: flex-end; }
+        .action-icons img, .action-icons svg { width: 24px; height: 24px; cursor: pointer; transition: transform 0.1s; }
+        .action-icons img:active, .action-icons svg:active { transform: scale(0.9); }
         
-        .action-icons {
-            display: flex;
-            gap: 15px; /* Giảm gap giữa các icon cho gọn */
-            justify-content: flex-end; /* Đẩy các icon sát vào lề phải */
-        }
-        .action-icons img, .action-icons svg {
-            width: 24px;
-            height: 24px;
-            cursor: pointer;
-            transition: transform 0.1s;
-        }
-        .action-icons img:active, .action-icons svg:active {
-            transform: scale(0.9);
-        }
-
-        /* Nút Add lớn góc phải dưới */
-        .btn-fab {
-            position: absolute;
-            bottom: 25px;
-            right: 25px;
-            width: 70px;
-            height: 70px;
-            cursor: pointer;
-            transition: transform 0.1s;
-        }
+        .btn-fab { position: absolute; bottom: 25px; right: 25px; width: 70px; height: 70px; cursor: pointer; transition: transform 0.1s; }
         .btn-fab:active { transform: scale(0.95); }
 
-        /* Ghi chú chân trang */
-        .footer-note {
-            font-size: 18px;
-            font-weight: bold;
-            color: #8B0000;
-            padding-left: 10px;
+        .footer-note { font-size: 18px; font-weight: bold; color: #8B0000; padding-left: 10px; }
+        .footer-note span { color: #000; font-weight: bold; }
+
+        /* ================= CSS MODALS (TẠO, XÁC NHẬN, SỬA, XÓA, XEM) ================= */
+        .modal-overlay {
+            position: absolute; top: 50%; left: 50%; width: 200vw; height: 200vh; transform: translate(-50%, -50%); 
+            background: rgba(0, 0, 0, 0.75); z-index: 1000; display: none; justify-content: center; align-items: center;
         }
-        .footer-note span {
-            color: #000;
-            font-weight: bold;
+
+        .modal-box {
+
+            background: #F3F3F3; border-radius: 25px; padding: 40px; position: relative; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2); display: none; color: #000; width: 600px; text-align: center;
         }
+
+        .modal-close-btn {
+            position: absolute; top: 20px; right: 20px; width: 25px; height: 25px; background: #ff0000;
+            border-radius: 50%; cursor: pointer; box-shadow: inset 0 2px 4px rgba(0,0,0,0.2); z-index: 10;
+        }
+
+        .modal-box h2 { font-size: 24px; margin-bottom: 25px; }
+
+        /* Form Nhập Liệu Chung */
+        .form-container { margin-bottom: 30px; }
+        .form-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; font-weight: bold; font-size: 16px; }
+        .form-row label { flex: 1; text-align: left; padding-left: 20px; }
+        .form-row input { flex: 2; padding: 12px 20px; border-radius: 20px; border: 1px solid #ccc; outline: none; font-size: 15px; }
+        
+        .input-disabled { background-color: #e6e6e6; color: #555; cursor: not-allowed; } /* Ô xám ko nhập được */
+
+        /* Nút chức năng Modal */
+        .btn-group-modal { display: flex; justify-content: center; gap: 30px; }
+        .btn-modal { padding: 12px 30px; border-radius: 20px; border: none; color: white; font-weight: bold; font-size: 18px; cursor: pointer; width: 170px; transition: transform 0.1s; }
+        .btn-modal:active { transform: scale(0.95); }
+        .btn-cancel { background: #B30000; }
+        .btn-confirm { background: #008A5A; }
+        
+        /* Nút Xác nhận đơn ở Ảnh 2 */
+        .btn-xacnhan-green { background: #008A5A; padding: 10px 30px; border-radius: 20px; border: none; color: white; font-weight: bold; cursor: pointer; font-size: 18px; width: 180px; height: 45px; margin: 0 auto; display: block; transition: transform 0.1s; }
+        .btn-xacnhan-green:active { transform: scale(0.95); }
+
+        /* Box thông tin khi Xóa */
+        .delete-info-box { background: #c8c8c8; border-radius: 15px; padding: 25px; text-align: left; margin: 0 auto 30px auto; width: 85%; display: flex; flex-direction: column; gap: 10px; font-size: 15px; }
+        .delete-info-box .info-row { display: grid; grid-template-columns: 160px 1fr; font-weight: 500; }
+
     </style>
 </head>
 <body>
@@ -266,12 +132,10 @@
     <div id="app-wrapper">
         <div class="grid-container">
 
-            <!-- SIDEBAR TRÁI -->
+            <!-- SIDEBAR -->
             <div class="sidebar glass-panel">
-                <div class="sidebar-logo">
-                    <img src="ICONS/Logoicon.png" alt="Logo">
-                </div>
-                <div class="nav-item-dashboad" onclick="chuyentrang('Dashboard.html')" "><img src="ICONS/Dashboardicon.png" alt="icon""> DASHBOARD</div>
+                <div class="sidebar-logo"><img src="ICONS/Logoicon.png" alt="Logo"></div>
+                <div class="nav-item-dashboad" onclick="chuyentrang('Dashboard.html')"><img src="ICONS/Dashboardicon.png" alt="icon"> DASHBOARD</div>
                 <div class="nav-item-thanh-toan" onclick="chuyentrang('ThanhToan.html')"><img src="ICONS/ThanhToanicon.png" alt="icon"> THANH TOÁN</div>
                 <div class="nav-item-tich-diem nav-active" onclick="chuyentrang('TichDiem.html')"><img src="ICONS/TichDiemicon.png" alt="icon"> TÍCH ĐIỂM</div>
                 <div class="nav-item-nguyenlieu" onclick="chuyentrang('NguyenLieu.html')"><img src="ICONS/ingredientsicon.png" alt="icon"> NGUYÊN LIỆU</div>
@@ -279,7 +143,7 @@
                 <div class="nav-item-dangxuat" onclick="chuyentrang('KetCa.html')"><img src="ICONS/DangXuaticon.png" alt="icon"> KẾT CA</div>
             </div>
 
-            <!-- THANH TOP BAR -->
+            <!-- TOPBAR (Giữ chuẩn HTML gốc của bạn) -->
             <div class="topbar glass-panel">
                 <div class="user-info">
                     <div style="font-weight: lighter; font-size: 18px;">ID: 24521487</div>
@@ -292,10 +156,8 @@
                 <div class="btn-other" style="font-size: 32px;">⚙️</div>
             </div>
 
-            <!-- BẢNG CHÍNH BÊN PHẢI (QUẢN LÝ TÍCH ĐIỂM) -->
+            <!-- MAIN BẢNG TÍCH ĐIỂM -->
             <div class="main-panel glass-panel">
-                
-                <!-- Thanh Header Bảng -->
                 <div class="customer-header-bar row-grid">
                     <span>ID / SĐT</span>
                     <div class="header-search">
@@ -307,27 +169,160 @@
                     <span></span> 
                 </div>
 
-                <!-- Vùng chứa danh sách -->
                 <div class="customer-list-container">
                     <div class="customer-list" id="customer-container">
                         <!-- JS đổ dữ liệu -->
                     </div>
-                    
-                    <!-- Nút Thêm (FAB) -->
-                    <img src="ICONS/Addicon.png" class="btn-fab" alt="Add">
+                    <!-- NÚT MỞ BẢNG TẠO MỚI -->
+                    <img src="ICONS/Addicon.png" class="btn-fab" alt="Add" onclick="openCreateModal()">
                 </div>
 
-                <!-- Ghi chú cuối trang -->
                 <div class="footer-note">
                     * Ghi chú: <span>Mua đủ 10 lần sẽ được giảm 40% cho lần mua tiếp theo</span>
                 </div>
-
             </div>
+
+        </div>
+
+        <!-- ================= VÙNG MODAL OVERLAY ================= -->
+        <div id="modal-overlay" class="modal-overlay" onclick="closeModalOnOutsideClick(event)">
+            
+            <!-- MODAL 1: TẠO TÀI KHOẢN -->
+            <div id="modal-create" class="modal-box">
+                <div class="modal-close-btn" onclick="closeAllModals()"></div>
+                <h2>Tạo Tài Khoản Tích Điểm</h2>
+                <div class="form-container">
+                    <div class="form-row">
+                        <label>Số điện thoại:</label>
+                        <input type="text" id="create-phone" placeholder="Nhập số điện thoại khách hàng">
+                    </div>
+                    <div class="form-row">
+                        <label>Họ tên khách hàng:</label>
+                        <input type="text" id="create-name" placeholder="Nhập họ tên khách hàng">
+                    </div>
+                    <div class="form-row">
+                        <label>Điểm:</label>
+                        <!-- Ô điểm bị vô hiệu hóa (disabled) và tô xám -->
+                        <input type="number" id="create-points" value="0" disabled class="input-disabled">
+                    </div>
+                </div>
+                <button class="btn-xacnhan-green" onclick="submitCreateForm()">XÁC NHẬN</button>
+            </div>
+
+            <!-- MODAL 2: BẢNG CONFIRM TẠO TÀI KHOẢN -->
+            <div id="modal-confirm-create" class="modal-box" style="padding: 0; width: 600px; padding-bottom: 30px; overflow: hidden;">
+                <div class="modal-close-btn" onclick="closeAllModals()" style="top: 20px; right: 20px; z-index: 10;"></div>
+                <div style="padding: 25px 0 15px 0;">
+                    <h2 style="margin: 0; font-size: 24px;">Tạo Tài Khoản Tích Điểm</h2>
+                </div>
+                <div style="background: #e6e6e6; padding: 10px 0; font-weight: 500; font-size: 16px;">
+                    Xác nhận thông tin khách hàng
+                </div>
+                <div style="padding: 0 40px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 30px 0;">
+                        <!-- Box Trắng -->
+                        <div style="background: white; border-radius: 15px; padding: 25px 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;">
+                            <span style="font-size: 14px; font-weight: bold;">Ngày tạo:</span>
+                            <span id="confirm-date" style="font-size: 16px; font-weight: 500;"></span>
+                        </div>
+                        <div style="background: white; border-radius: 15px; padding: 25px 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;">
+                            <span style="font-size: 14px; font-weight: bold;">Số điện thoại:</span>
+                            <span id="confirm-phone" style="font-size: 16px; font-weight: 500;"></span>
+                        </div>
+                        <div style="background: white; border-radius: 15px; padding: 25px 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;">
+                            <span style="font-size: 14px; font-weight: bold;">Họ tên khách hàng:</span>
+                            <span id="confirm-name" style="font-size: 16px; font-weight: 500;"></span>
+                        </div>
+                        <!-- Box Xanh Lá Cây -->
+                        <div style="background: #008A5A; color: white; border-radius: 15px; padding: 25px 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;">
+                            <span style="font-size: 14px; font-weight: bold;">Điểm:</span>
+                            <span style="font-size: 18px; font-weight: bold;">0</span>
+                        </div>
+                    </div>
+                    
+                    <div class="btn-group-modal">
+                        <button class="btn-modal btn-cancel" onclick="closeAllModals()">HỦY</button>
+                        <button class="btn-modal btn-confirm" onclick="confirmAndSaveAccount()">TẠO</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MODAL 3: XEM TÀI KHOẢN (ICON MẮT) CHỈ CÓ THÔNG TIN, KHÔNG NÚT BẤM -->
+            <div id="modal-view" class="modal-box" style="padding: 0; width: 600px; padding-bottom: 30px; overflow: hidden;">
+                <div class="modal-close-btn" onclick="closeAllModals()" style="top: 20px; right: 20px; z-index: 10;"></div>
+                <div style="padding: 25px 0 15px 0;">
+                    <h2 style="margin: 0; font-size: 24px;">Thông Tin Tài Khoản Tích Điểm</h2>
+                </div>
+                <div style="background: #e6e6e6; padding: 10px 0; font-weight: 500; font-size: 16px;">
+                    Chi tiết khách hàng
+                </div>
+                <div style="padding: 0 40px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 30px;">
+                        <!-- Box Trắng -->
+                        <div style="background: white; border-radius: 15px; padding: 25px 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;">
+                            <span style="font-size: 14px; font-weight: bold;">Ngày tạo:</span>
+                            <span id="view-date" style="font-size: 16px; font-weight: 500;"></span>
+                        </div>
+                        <div style="background: white; border-radius: 15px; padding: 25px 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;">
+                            <span style="font-size: 14px; font-weight: bold;">Số điện thoại:</span>
+                            <span id="view-phone" style="font-size: 16px; font-weight: 500;"></span>
+                        </div>
+                        <div style="background: white; border-radius: 15px; padding: 25px 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;">
+                            <span style="font-size: 14px; font-weight: bold;">Họ tên khách hàng:</span>
+                            <span id="view-name" style="font-size: 16px; font-weight: 500;"></span>
+                        </div>
+                        <!-- Box Xanh Lá Cây -->
+                        <div style="background: #008A5A; color: white; border-radius: 15px; padding: 25px 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;">
+                            <span style="font-size: 14px; font-weight: bold;">Điểm:</span>
+                            <span id="view-points" style="font-size: 18px; font-weight: bold;">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MODAL 4: SỬA TÀI KHOẢN -->
+            <div id="modal-edit" class="modal-box">
+                <div class="modal-close-btn" onclick="closeAllModals()"></div>
+                <h2>Sửa tài khoản tích điểm</h2>
+                <div class="form-container">
+                    <div class="form-row">
+                        <label>Số điện thoại:</label>
+                        <input type="text" id="edit-phone" disabled class="input-disabled">
+                    </div>
+                    <div class="form-row">
+                        <label>Họ tên khách hàng:</label>
+                        <input type="text" id="edit-name">
+                    </div>
+                    <div class="form-row">
+                        <label>Điểm:</label>
+                        <input type="number" id="edit-points" min="0">
+                    </div>
+                </div>
+                <div class="btn-group-modal">
+                    <button class="btn-modal btn-cancel" onclick="closeAllModals()">HỦY</button>
+                    <button class="btn-modal btn-confirm" onclick="submitEdit()">XÁC NHẬN</button>
+                </div>
+            </div>
+
+            <!-- MODAL 5: XÓA TÀI KHOẢN -->
+            <div id="modal-delete" class="modal-box">
+                <div class="modal-close-btn" onclick="closeAllModals()"></div>
+                <h2>Xóa tài khoản tích điểm</h2>
+               
+                <div class="delete-info-box">
+                     <p style="font-weight: bold; margin-bottom: 15px; font-size: 16px; text-align: center;">Xác nhận xóa tài khoản tích điểm?</p>
+                    <div class="info-row"><span>SĐT:</span> <span id="del-phone"></span></div>
+                    <div class="info-row"><span>Họ tên khách hàng:</span> <span id="del-name"></span></div>
+                </div>
+                <div class="btn-group-modal">
+                    <button class="btn-modal btn-cancel" onclick="closeAllModals()">HỦY</button>
+                    <button class="btn-modal btn-confirm" onclick="submitDelete()">XÁC NHẬN</button>
+                </div>
+            </div>
+
         </div>
     </div>
 
-    <script src="javascript/TichDiem.js">
-        
-    </script>
+    <script src="javascript/TichDiem.js"></script>
 </body>
 </html>

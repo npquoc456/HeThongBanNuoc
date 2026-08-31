@@ -1,3 +1,33 @@
+
+let idnhanviendangnhap = localStorage.getItem('POS_STAFF_ID');
+let tennhanviendangnhap = localStorage.getItem('POS_STAFF_NAME') || 'Nhân Viên';
+
+document.addEventListener("DOMContentLoaded", function() {
+    
+    if (!idnhanviendangnhap) {
+        alert("Vui lòng đăng nhập trước khi sử dụng hệ thống!");
+        
+        if (window.javaBackend) {
+            window.javaBackend.loadTrang('Login.html');
+        } else {
+            window.location.href = "Login.html"; 
+        }
+        return;
+    }
+
+    const staffIdEl = document.getElementById('staffid');
+    const staffNameEl = document.getElementById('staffname');
+
+    if (staffIdEl) {
+        staffIdEl.innerText = idnhanviendangnhap; 
+    }
+    
+    if (staffNameEl) {
+        staffNameEl.innerText = tennhanviendangnhap;
+    }
+});
+      
+        
         function scaleApp() {
             const wrapper = document.getElementById('app-wrapper');
             const targetWidth = 1440;
