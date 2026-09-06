@@ -11,7 +11,6 @@ import lombok.Data;
 public class TKTrungThanh {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @Column(name = "ten_kh")

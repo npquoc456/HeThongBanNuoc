@@ -12,6 +12,11 @@ VALUES
 (2,'Tran Van A','a@gmail.com','0902222222','123456','2003-05-20','2025-01-10',2,'NHANVIEN','DANG_LAM_VIEC'),
 (3,'Le Thi B','b@gmail.com','0903333333','123456','2002-09-18','2025-02-20',3,'NHANVIEN','TAM_NGHI');
 
+INSERT INTO nhanvien
+(id,ten,email,phone,mat_khau,ngay_sinh,ngay_vao,ca_id,vai_tro,trang_thai)
+VALUES
+(4,'Nguyễn Thị Thanh Ngân','b@gmail.com','0903333333','123456','2002-09-18','2025-02-20',3,'NHANVIEN','TAM_NGHI');
+
 INSERT INTO ctca
 VALUES
 (1,1),

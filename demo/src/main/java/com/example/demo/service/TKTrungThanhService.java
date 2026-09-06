@@ -42,9 +42,7 @@ public class TKTrungThanhService {
         TKTrungThanh existTkTrungThanh = tkTrungThanhRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("khong tim thay khach hang co id: " + id));
         
-        existTkTrungThanh.setId(dto.getId());
         existTkTrungThanh.setTenKH(dto.getTenKH());
-        existTkTrungThanh.setNgayTao(dto.getNgayTao());
         existTkTrungThanh.setSoLuongMua(dto.getSoLuongMua());
 
         TKTrungThanh updatedTkTrungThanh = tkTrungThanhRepository.save(existTkTrungThanh);

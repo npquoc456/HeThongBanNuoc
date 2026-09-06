@@ -10,6 +10,34 @@ function scaleApp() {
 window.addEventListener('resize', scaleApp);
 scaleApp();
 
+let idnhanviendangnhap = localStorage.getItem('POS_STAFF_ID');
+let tennhanviendangnhap = localStorage.getItem('POS_STAFF_NAME') || 'Nhân Viên';
+
+document.addEventListener("DOMContentLoaded", function() {
+    
+    if (!idnhanviendangnhap) {
+        alert("Vui lòng đăng nhập trước khi sử dụng hệ thống!");
+        
+        if (window.javaBackend) {
+            window.javaBackend.loadTrang('Login.html');
+        } else {
+            window.location.href = "Login.html"; 
+        }
+        return;
+    }
+
+    const staffIdEl = document.getElementById('staffid');
+    const staffNameEl = document.getElementById('staffname');
+
+    if (staffIdEl) {
+        staffIdEl.innerText = idnhanviendangnhap; 
+    }
+    
+    if (staffNameEl) {
+        staffNameEl.innerText = tennhanviendangnhap;
+    }
+});
+
 let customersDB = [];
 
 async function loadcustomberfromapi() {
@@ -33,10 +61,7 @@ async function loadcustomberfromapi() {
     catch(error){
         console.error("khong the load du lieu dao vao cua KH ", error);
         // Fake data mẫu nếu chưa chạy Spring Boot
-        customersDB = [
-            { id: "07535726547", name: "Thịnh Suy", points: 10, date: "25/05/2015" },
-            { id: "03263874626", name: "Đức Lọ", points: 5, date: "30/06/2024" }
-        ];
+        customersDB = [];
         renderCustomers();
     }
 }
@@ -59,6 +84,15 @@ function renderCustomers() {
         c.id.includes(keyword) || c.name.toLowerCase().includes(keyword)
     );
 
+    filtered.sort((a, b) => {
+        // Chuyển trực tiếp chuỗi ngày thành dạng số (Timestamp) để so sánh
+        const dateA = new Date(a.date).getTime();
+        const dateB = new Date(b.date).getTime();
+        
+        // Lấy B trừ A: Ngày mới hơn (to hơn) sẽ được đẩy lên trên cùng
+        return dateB - dateA;
+    });
+    
     filtered.forEach(c => {
         container.innerHTML += `
             <div class="customer-item row-grid">
@@ -131,7 +165,11 @@ function submitCreateForm() {
         return;
     }
 
-    const createDate = new Date().toLocaleDateString('vi-VN');
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const createDate = `${year}-${month}-${day}`; // Ví dụ: 2026-09-03
     
     // Lưu tạm vào biến
     tempCustomerData = {
@@ -152,12 +190,32 @@ function submitCreateForm() {
 }
 
 // ----- LƯU CHÍNH THỨC VÀO ARRAY (KHI BẤM 'TẠO') -----
-function confirmAndSaveAccount() {
+async function confirmAndSaveAccount() {
     if(tempCustomerData) {
+
+        const dto = {
+            id: tempCustomerData.id,
+            tenKH: tempCustomerData.name,
+            soLuongMua: tempCustomerData.points,
+            ngayTao: tempCustomerData.date
+        };
+
+        try{
+            const response = await fetch('http://localhost:8080/api/tktrungthanh', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dto)
+            });
+            if(!response.ok) throw new Error("Lỗi thêm mới!");
+        }
+        catch (error) {
+            alert("Lỗi kết nối Backend!");
+            return;
+        }
+
         customersDB.push(tempCustomerData); 
         tempCustomerData = null;            
         
-        alert("Tạo tài khoản thành công!");
         closeAllModals();
         renderCustomers(); 
     }
@@ -196,7 +254,7 @@ function openEditModal(id) {
     document.getElementById('edit-points').value = customer.points;
 }
 
-function submitEdit() {
+async function submitEdit() {
     const name = document.getElementById('edit-name').value.trim();
     const points = parseInt(document.getElementById('edit-points').value);
 
@@ -207,9 +265,24 @@ function submitEdit() {
 
     const index = customersDB.findIndex(c => c.id === currentEditId);
     if(index !== -1) {
+
+        const dto = {
+            tenKH: name,
+            soLuongMua: points
+        };
+        try{
+            const response = await fetch(`http://localhost:8080/api/tktrungthanh/${currentEditId}`, {
+                method: 'PUT', // Hoặc PATCH tùy bạn setup backend
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dto)
+            });
+            if(!response.ok) throw new Error("Lỗi cập nhật!");
+        } catch (error) {
+            alert("Lỗi kết nối Backend!");
+            return;
+        }
         customersDB[index].name = name;
         customersDB[index].points = points;
-        alert("Cập nhật thông tin thành công!");
         closeAllModals();
         renderCustomers();
     }
@@ -231,11 +304,22 @@ function openDeleteModal(id) {
     document.getElementById('del-name').innerText = customer.name;
 }
 
-function submitDelete() {
-    // Lọc bỏ id cần xóa ra khỏi mảng
+async function submitDelete() {
+
+    try{
+        const response = await fetch(`http://localhost:8080/api/tktrungthanh/${currentDeleteId}`, {
+            method: 'DELETE'
+        });
+        if(!response.ok) throw new Error("Lỗi xóa!");
+    }
+    catch (error) {
+        alert("Lỗi kết nối Backend hoặc có trong danh sách giao dịch, không thể xóa!");
+        return;
+    }
+
+    // Lọc bỏ id cần xóa ra khỏi mảng giao diện
     customersDB = customersDB.filter(c => c.id !== currentDeleteId);
     
-    alert("Đã xóa tài khoản!");
     closeAllModals();
     renderCustomers();
 }

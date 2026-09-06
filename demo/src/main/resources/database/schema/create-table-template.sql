@@ -66,7 +66,7 @@ CREATE TABLE ctca (
 -- KHÁCH HÀNG
 -- =========================
 CREATE TABLE tktrungthanh (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    id INT PRIMARY KEY,
     ten_kh VARCHAR(100) NOT NULL,
     so_luong_mua INT DEFAULT 0,
     ngay_tao DATE

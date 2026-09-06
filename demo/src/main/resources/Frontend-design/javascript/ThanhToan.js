@@ -236,6 +236,7 @@ function actionTaoTkOrTim() {
     if (val === '') {
         document.getElementById('modal-tichdiem').style.display = 'none';
         document.getElementById('modal-taotk').style.display = 'block';
+
     } else {
         foundCustomerTemp = customersArray.find(c => c.id === val);
         if (foundCustomerTemp) {
@@ -563,10 +564,10 @@ async function createNewBillOnBackend(trangThai, phuongThuc) {
     const cthdsPayload = cart.map(item => ({ 
         sanPhamId: parseInt(item.id), soLuong: item.qty, donGia: item.price }));
     
-    const khachId = (foundCustomerTemp && foundCustomerTemp.id) ? parseInt(foundCustomerTemp.id) : null;
+    // ĐÃ FIX: Dùng .toString() thay vì parseInt() để không bị mất số 0 của SĐT
+    const khachId = (foundCustomerTemp && foundCustomerTemp.id) ? foundCustomerTemp.id.toString() : null;
     const customerName = (foundCustomerTemp && foundCustomerTemp.name) ? foundCustomerTemp.name : (currentCustomerName !== 'null' && currentCustomerName !== 'Khách lẻ' ? currentCustomerName : null);
 
-    // ĐÃ SỬA: Tự động lấy đúng ID Nhân Viên thay vì số 1
     const savedStaffId = localStorage.getItem('POS_STAFF_ID'); 
     const finalStaffId = savedStaffId ? parseInt(savedStaffId) : 1;
 
@@ -588,6 +589,7 @@ async function createNewBillOnBackend(trangThai, phuongThuc) {
         });
         if (!response.ok) throw new Error("Lỗi: " + response.status);
 
+        // Cộng điểm cho khách hàng sau khi lưu hóa đơn thành công
         if(khachId){
             let soluongsanphammua = cart.reduce((sum,item) => sum + item.qty, 0);
             let sodiemtruoc = parseInt(foundCustomerTemp.points) || 0;
@@ -599,7 +601,7 @@ async function createNewBillOnBackend(trangThai, phuongThuc) {
             await capnhatdiemkhachhang(khachId, diemmoi, foundCustomerTemp);
         }
         
-        alert("Tạo hóa đơn thành công!"); 
+        alert("Thanh toán thành công!"); 
         await loadhoadfromapi(); 
 
         if (mockBillsArray.length > 0 && customerName !== 'Khách lẻ' && customerName) {
@@ -681,9 +683,10 @@ async function updateBillStatusOnBackend(billId, newStatus, phuongThuc) {
 
 async function createCancelledBillOnBackend(cartData, total) {
     const cthdsPayload = cartData.map(item => ({ sanPhamId: parseInt(item.id), soLuong: item.qty, donGia: item.price }));
-    const khachId = (foundCustomerTemp && foundCustomerTemp.id) ? foundCustomerTemp.id : null;
+    
+    // ĐÃ FIX: Bỏ parseInt()
+    const khachId = (foundCustomerTemp && foundCustomerTemp.id) ? foundCustomerTemp.id.toString() : null;
 
-    // ĐÃ SỬA: Tự động lấy đúng ID Nhân Viên thay vì số 1
     const savedStaffId = localStorage.getItem('POS_STAFF_ID'); 
     const finalStaffId = savedStaffId ? parseInt(savedStaffId) : 1;
 
@@ -768,9 +771,9 @@ window.cancelCurrentBillAction = async function() {
         donGia: item.price 
     }));
 
-    const khachId = (foundCustomerTemp && foundCustomerTemp.id) ? parseInt(foundCustomerTemp.id) : null;
+    // ĐÃ FIX: Bỏ parseInt()
+    const khachId = (foundCustomerTemp && foundCustomerTemp.id) ? foundCustomerTemp.id.toString() : null;
 
-    // ĐÃ SỬA: Tự động lấy đúng ID Nhân Viên thay vì số 1
     const savedStaffId = localStorage.getItem('POS_STAFF_ID'); 
     const finalStaffId = savedStaffId ? parseInt(savedStaffId) : 1;
 
@@ -808,9 +811,3 @@ window.cancelCurrentBillAction = async function() {
         console.error("Lỗi khi lưu hóa đơn hủy:", error);
     }
 };
-
-function closeModalOnOutsideClick(event) {
-    if (event.target.id === 'modal-overlay') {
-        forceCancelWhenClosing(); 
-    }
-}
