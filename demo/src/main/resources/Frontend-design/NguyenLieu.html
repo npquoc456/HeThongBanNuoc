@@ -39,10 +39,22 @@
         .spacer { flex-grow: 1; }
 
         /* 2. TOP BAR */
-        .topbar { grid-area: topbar; width: 1099px; height: 95px; display: flex; justify-content: space-between; align-items: center; padding: 0 11px; }
-        .user-info { width: 343px; height: 73px; background: white; border-radius: 20px; display: flex; flex-direction: column; justify-content: center; padding-left: 20px; font-weight: 600; font-size: 16px; }
-        .time-info { margin-left: 35%; width: 260px; height: 73px; background: white; border-radius: 20px; display: flex; flex-direction: column; justify-content: center; align-items: center; font-weight: 600; font-size: 16px; }
-        .btn-other { width: 60px; height: 60px; background: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 16px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+         .topbar {
+            grid-area: topbar; width: 1099px; height: 95px; display: flex;
+            justify-content: space-between; align-items: center; padding: 0 11px;
+        }
+        .user-info{
+            width: 343px; height: 73px; background: white; border-radius: 20px;
+            display: flex; flex-direction: column; justify-content: center; padding-left: 20px; font-weight: 600; font-size: 16px;
+        }        
+        .time-info {
+            margin-left: 35%; width: 260px; height: 73px; background: white; border-radius: 20px;
+            display: flex; flex-direction: column; justify-content: center; align-items: center; font-weight: 600; font-size: 16px;
+        }
+        .btn-other {
+            width: 60px; height: 60px; background: white; border-radius: 50%; display: flex; justify-content: center; align-items: center;
+            font-weight: bold; font-size: 16px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
         .btn-other:hover { background: #f0f0f0; transform: scale(1.05); transition: all 0.2s ease-in-out; }
 
         /* 3. MAIN PANEL */
@@ -136,6 +148,14 @@
         .btn-xacnhan-green { background: #008A5A; padding: 10px 30px; border-radius: 20px; border: none; color: white; font-weight: bold; cursor: pointer; font-size: 18px; width: 180px; height: 45px; margin: 0 auto; display: block; transition: transform 0.1s; }
         .btn-xacnhan-green:active { transform: scale(0.95); }
 
+        .nav-item-dashboad:hover,
+        .nav-item-thanh-toan:hover,
+        .nav-item-tich-diem:hover,
+        .nav-item-nguyenlieu:hover,
+        .nav-item-dangxuat:hover {
+            background: rgba(255, 255, 255, 0.65);
+        }
+
     </style>
 </head>
 <body>
@@ -144,7 +164,7 @@
         <div class="grid-container">
 
             <div class="sidebar glass-panel">
-                <div class="sidebar-logo"><img src="ICONS/Logoicon.png" alt="Logo"></div>
+                <div class="sidebar-logo"><img src="ICONS/helloicon.png" alt="Logo" style="scale: 1.9;"></div>
                 <div class="nav-item-dashboad" onclick="chuyentrang('Dashboard.html')"><img src="ICONS/Dashboardicon.png" alt="icon"> DASHBOARD</div>
                 <div class="nav-item-thanh-toan" onclick="chuyentrang('ThanhToan.html')"><img src="ICONS/ThanhToanicon.png" alt="icon"> THANH TOÁN</div>
                 <div class="nav-item-tich-diem" onclick="chuyentrang('TichDiem.html')"><img src="ICONS/TichDiemicon.png" alt="icon"> TÍCH ĐIỂM</div>

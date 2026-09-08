@@ -347,9 +347,9 @@ loginForm.addEventListener("submit", async function (e) {
             localStorage.setItem('POS_STAFF_NAME', userData.tenNhanVien);
 
             if (window.javaBackend) {
-                window.javaBackend.loadTrang("ThanhToan.html"); 
+                window.javaBackend.loadTrang("Dashboard.html"); 
             } else {
-                window.location.href = "ThanhToan.html";
+                window.location.href = "Dashboard.html";
             }
         } else {
             const errorMsg = await response.text();

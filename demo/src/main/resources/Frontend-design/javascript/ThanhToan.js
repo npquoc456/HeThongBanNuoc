@@ -602,7 +602,11 @@ async function createNewBillOnBackend(trangThai, phuongThuc) {
         }
         
         alert("Thanh toán thành công!"); 
+        if (window && typeof window.dispatchEvent === 'function') {
+            window.dispatchEvent(new CustomEvent('dashboard:refresh'));
+        }
         await loadhoadfromapi(); 
+
 
         if (mockBillsArray.length > 0 && customerName !== 'Khách lẻ' && customerName) {
             const latestBillId = mockBillsArray[0].id;
@@ -672,6 +676,9 @@ async function updateBillStatusOnBackend(billId, newStatus, phuongThuc) {
         if (!response.ok) throw new Error("Lỗi máy chủ");
 
         alert("Thanh toán thành công!"); 
+        if (window && typeof window.dispatchEvent === 'function') {
+            window.dispatchEvent(new CustomEvent('dashboard:refresh'));
+        }
         closeAllModals(); 
         await loadhoadfromapi(); 
         

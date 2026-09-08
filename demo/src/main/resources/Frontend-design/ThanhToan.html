@@ -299,6 +299,13 @@
         .pay-btn * {
             pointer-events: none; /* Giúp cú click xuyên qua ảnh và chữ để ăn thẳng vào nút button */
         }
+        .nav-item-dashboad:hover,
+        .nav-item-thanh-toan:hover,
+        .nav-item-tich-diem:hover,
+        .nav-item-nguyenlieu:hover,
+        .nav-item-dangxuat:hover {
+            background: rgba(255, 255, 255, 0.65);
+        }
 
     </style>
 </head>
@@ -315,7 +322,7 @@
     <div id="app-wrapper">
         <div class="grid-container">
             <div class="sidebar glass-panel">
-                <div class="sidebar-logo"><img src="ICONS/Logoicon.png" alt="Logo"></div>
+                <div class="sidebar-logo"><img src="ICONS/helloicon.png" alt="Logo" style="scale: 1.9;"></div>
                 <div class="nav-item-dashboad" onclick="chuyentrang('Dashboard.html')"><img src="ICONS/Dashboardicon.png" alt="icon"> DASHBOARD</div>
                 <div class="nav-item-thanh-toan nav-active" onclick="chuyentrang('ThanhToan.html')"><img src="ICONS/ThanhToanicon.png" alt="icon"> THANH TOÁN</div>
                 <div class="nav-item-tich-diem" onclick="chuyentrang('TichDiem.html')"><img src="ICONS/TichDiemicon.png" alt="icon"> TÍCH ĐIỂM</div>
