@@ -216,6 +216,16 @@ public class DashboardController {
             topProducts
         );
 
+        summary.put(
+            "topLoaiSanPham",
+            weeklyStats.getTopProductCategory()
+        );
+
+        summary.put(
+            "tyTrongLoaiSanPham",
+            weeklyStats.getTopProductCategoryShare()
+        );
+
 
         return ResponseEntity.ok(
             summary

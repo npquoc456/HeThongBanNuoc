@@ -33,7 +33,7 @@ public class SanPhamcontroller {
      }
 
      @GetMapping("/{id}")
-     public ResponseEntity<SanPhamDTO> getSanPhamById(@PathVariable Integer id){
+     public ResponseEntity<SanPhamDTO> getSanPhamById(@PathVariable("id") Integer id){
           SanPhamDTO sanPham = sanPhamService.getSanPhamById(id);
           return ResponseEntity.ok(sanPham);
      }
@@ -44,12 +44,12 @@ public class SanPhamcontroller {
      }
 
      @PutMapping("/{id}")
-     public ResponseEntity<SanPhamDTO> updateSanPham(@PathVariable Integer id, @RequestBody SanPhamDTO sanPhamDTO){
+     public ResponseEntity<SanPhamDTO> updateSanPham(@PathVariable("id") Integer id, @RequestBody SanPhamDTO sanPhamDTO){
           return ResponseEntity.ok(sanPhamService.updateSanPhamDTO(id, sanPhamDTO));
      }
 
     @DeleteMapping("/{id}")
-     public ResponseEntity<SanPhamDTO> deleteSanPham(@PathVariable Integer id){
+     public ResponseEntity<SanPhamDTO> deleteSanPham(@PathVariable("id") Integer id){
           SanPhamDTO deletedSanPham = sanPhamService.getSanPhamById(id);
           sanPhamService.deleteSanPham(id);
           return ResponseEntity.ok(deletedSanPham);
@@ -57,25 +57,25 @@ public class SanPhamcontroller {
 
      //tinh nang tim kiem san pham theo ten, theo loai, theo ten va loai
      @GetMapping("/search")
-     public ResponseEntity<List<SanPhamDTO>> TimKiemSanPhamTheoTen(@RequestParam String tenSP){
+     public ResponseEntity<List<SanPhamDTO>> TimKiemSanPhamTheoTen(@RequestParam("tenSP") String tenSP){
           List<SanPhamDTO> sanPhams = sanPhamService.TimKiemSanPhamTheoTen(tenSP);
           return ResponseEntity.ok(sanPhams);
      }
      
      @GetMapping("/searchByLoai")
-     public ResponseEntity<List<SanPhamDTO>> TimSanPhamTheoLoaiSP(@RequestParam String loai){
+     public ResponseEntity<List<SanPhamDTO>> TimSanPhamTheoLoaiSP(@RequestParam("loai") String loai){
           List<SanPhamDTO> sanPhams = sanPhamService.TimSanPhamTheoLoaiSP(loai);
           return ResponseEntity.ok(sanPhams);
      }
 
      @GetMapping("/searchByLoaiAndTen")
-     public ResponseEntity<List<SanPhamDTO>> TimSanPhamTheoLoaiSPvaTenSP(@RequestParam String loai, @RequestParam String tenSP){
+     public ResponseEntity<List<SanPhamDTO>> TimSanPhamTheoLoaiSPvaTenSP(@RequestParam("loai") String loai, @RequestParam("tenSP") String tenSP){
           List<SanPhamDTO> sanPhams = sanPhamService.TimSanPhamTheoLoaiSPvaTenSP(loai, tenSP);
           return ResponseEntity.ok(sanPhams);
      }
 
      @GetMapping("/searchByTenAndLoai")
-     public ResponseEntity<List<SanPhamDTO>> TimSanPhamTheoTenSPvaLoaiSP(@RequestParam String tenSP, @RequestParam String loai){
+     public ResponseEntity<List<SanPhamDTO>> TimSanPhamTheoTenSPvaLoaiSP(@RequestParam("tenSP") String tenSP, @RequestParam("loai") String loai){
           List<SanPhamDTO> sanPhams = sanPhamService.TimSanPhamTheoLoaiSPvaTenSP(loai, tenSP);
           return ResponseEntity.ok(sanPhams);
      }

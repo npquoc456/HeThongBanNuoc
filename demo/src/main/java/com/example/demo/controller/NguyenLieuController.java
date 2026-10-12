@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -36,7 +37,7 @@ public class NguyenLieuController { // Đã sửa tên class viết hoa chữ C 
 
     // Lấy thông tin 1 nguyên liệu theo ID
     @GetMapping("/{id}")
-    public ResponseEntity<NguyenLieuDTO> getNguyenLieuById(@PathVariable Integer id) {
+    public ResponseEntity<NguyenLieuDTO> getNguyenLieuById(@PathVariable("id") Integer id) {
         NguyenLieuDTO nguyenLieu = nguyenLieuService.getNguyenLieuById(id);
         return ResponseEntity.ok(nguyenLieu);
     }
@@ -50,16 +51,21 @@ public class NguyenLieuController { // Đã sửa tên class viết hoa chữ C 
 
     // Sửa thông tin nguyên liệu
     @PutMapping("/{id}")
-    public ResponseEntity<NguyenLieuDTO> updateNguyenLieu(@PathVariable Integer id, @RequestBody NguyenLieuDTO dto) {
+    public ResponseEntity<NguyenLieuDTO> updateNguyenLieu(@PathVariable("id") Integer id, @RequestBody NguyenLieuDTO dto) {
         NguyenLieuDTO updated = nguyenLieuService.updateNguyenLieuDTO(id, dto);
         return ResponseEntity.ok(updated);
     }
 
     // Xóa nguyên liệu
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteNguyenLieu(@PathVariable Integer id) {
-        nguyenLieuService.deleteNguyenLieu(id);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<?> deleteNguyenLieu(@PathVariable("id") Integer id) {
+        try {
+            nguyenLieuService.deleteNguyenLieu(id);
+            return ResponseEntity.noContent().build();
+        } catch (DataIntegrityViolationException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(java.util.Map.of("message", "Không thể xóa nguyên liệu vì còn dữ liệu liên quan."));
+        }
     }
     
 }

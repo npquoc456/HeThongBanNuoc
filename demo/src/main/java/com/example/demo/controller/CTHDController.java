@@ -27,7 +27,7 @@ public class CTHDController {
 
      //tinh nang lay danh sach cthd theo hoa don, them cthd, sua cthd, xoa cthd
      @GetMapping("/hoadon/{hoaDonId}")
-     public ResponseEntity<List<CTHDDTO>> getCTHDByHoaDonId(@PathVariable Integer hoaDonId){
+     public ResponseEntity<List<CTHDDTO>> getCTHDByHoaDonId(@PathVariable("hoaDonId") Integer hoaDonId){
           List<CTHDDTO> cthds = cthdService.getCTHDByHoaDonId(hoaDonId);
           return ResponseEntity.ok(cthds);
      }
@@ -38,12 +38,12 @@ public class CTHDController {
      }
 
      @PutMapping("/{hoaDonId}/{sanPhamId}")
-     public ResponseEntity<CTHDDTO> updateCTHD(@PathVariable Integer hoaDonId, @PathVariable Integer sanPhamId, @RequestBody CTHDDTO cthdDTO){
+     public ResponseEntity<CTHDDTO> updateCTHD(@PathVariable("hoaDonId") Integer hoaDonId, @PathVariable("sanPhamId") Integer sanPhamId, @RequestBody CTHDDTO cthdDTO){
           return ResponseEntity.ok(cthdService.updateCTHD(hoaDonId, sanPhamId, cthdDTO));
      }
 
      @DeleteMapping("/{hoaDonId}/{sanPhamId}")
-     public ResponseEntity<String> deleteCTHD(@PathVariable Integer hoaDonId, @PathVariable Integer sanPhamId){
+     public ResponseEntity<String> deleteCTHD(@PathVariable("hoaDonId") Integer hoaDonId, @PathVariable("sanPhamId") Integer sanPhamId){
           cthdService.deleteCTHD(hoaDonId, sanPhamId);
           return ResponseEntity.ok("Xóa chi tiết hóa đơn thành công!");
      }

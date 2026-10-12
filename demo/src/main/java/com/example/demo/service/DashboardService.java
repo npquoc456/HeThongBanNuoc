@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -165,6 +166,12 @@ public class DashboardService {
 
         Map<Integer, Integer> productCounts =
                 new HashMap<>();
+
+        Map<String, BigDecimal> categoryRevenues =
+                new LinkedHashMap<>();
+
+        Map<String, String> categoryNames =
+                new LinkedHashMap<>();
 
 
         // ======================================================
@@ -381,6 +388,19 @@ public class DashboardService {
                         0
                     ) + quantity
                 );
+
+                SanPham product = detail.getSanPham();
+                String category = product.getLoai() == null
+                    || product.getLoai().isBlank()
+                        ? "Khác"
+                        : product.getLoai().trim();
+                String categoryKey = category.toLowerCase(java.util.Locale.ROOT);
+                BigDecimal lineRevenue = detail.getDonGia() == null
+                    ? BigDecimal.ZERO
+                    : detail.getDonGia().multiply(BigDecimal.valueOf(quantity));
+
+                categoryNames.putIfAbsent(categoryKey, category);
+                categoryRevenues.merge(categoryKey, lineRevenue, BigDecimal::add);
             }
         }
 
@@ -502,6 +522,14 @@ public class DashboardService {
                         Collectors.toList()
                     );
 
+        BigDecimal totalCategoryRevenue = categoryRevenues.values()
+            .stream()
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+        Map.Entry<String, BigDecimal> topCategory = categoryRevenues.entrySet()
+            .stream()
+            .max(Map.Entry.comparingByValue())
+            .orElse(null);
+
 
         // ======================================================
         // DEBUG
@@ -556,6 +584,18 @@ public class DashboardService {
 
         dto.setTopProducts(
             topProducts
+        );
+
+        dto.setTopProductCategory(
+            topCategory == null ? null : categoryNames.get(topCategory.getKey())
+        );
+
+        dto.setTopProductCategoryShare(
+            topCategory == null || totalCategoryRevenue.compareTo(BigDecimal.ZERO) <= 0
+                ? BigDecimal.ZERO
+                : topCategory.getValue()
+                    .multiply(BigDecimal.valueOf(100))
+                    .divide(totalCategoryRevenue, 2, java.math.RoundingMode.HALF_UP)
         );
 
 

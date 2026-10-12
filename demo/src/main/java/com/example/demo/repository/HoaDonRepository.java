@@ -19,6 +19,7 @@ import java.util.List;
 public interface HoaDonRepository
         extends JpaRepository<HoaDon, Integer> {
 
+    boolean existsByTkTrungThanh_Id(Integer customerId);
 
     // ==========================================================
     // Tìm hóa đơn trong một ngày

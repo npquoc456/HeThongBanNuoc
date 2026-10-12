@@ -5,21 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>POS System - Giao Diện Bán Hàng</title>
     <style>
-        /* RESET & CƠ BẢN */
-        * {
-            margin: 0; padding: 0; box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
 
         body {
-            background: url('anhnen/anhnen.png') no-repeat center center / cover;
-            height: 100vh; width: 100vw; display: flex;
-            justify-content: center; align-items: center; overflow: hidden; 
+            background: linear-gradient(135deg, #f7f1eb 0%, #e6d7cc 100%);
+            height: 100vh; width: 100vw; display: flex; justify-content: center; align-items: center; overflow: hidden; 
         }
 
         #app-wrapper { width: 1440px; height: 1080px; transform-origin: center; position: relative; }
 
-        /* BỐ CỤC CHÍNH BẰNG CSS GRID */
         .grid-container {
             width: 100%; height: 100%; display: grid;
             grid-template-columns: 292px 675px 404px; grid-template-rows: 95px 874px; 
@@ -28,45 +22,69 @@
         }
 
         .glass-panel {
-            background: rgba(255, 255, 255, 0.45); backdrop-filter: blur(12px);
+            background: rgba(255, 255, 255, 0.5); backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px); border: 4px solid rgba(255, 255, 255, 0.7); border-radius: 20px;
         }
 
-        /* 1. THANH BÊN TRÁI (SIDEBAR) */
+        /* 1. SIDEBAR */
         .sidebar {
-            grid-area: sidebar; width: 292px; height: 983px;
-            padding: 40px 0 30px 0; display: flex; flex-direction: column; align-items: center; 
+            grid-area: sidebar; width: 292px; height: 983px; padding: 40px 0 30px 0;
+            display: flex; flex-direction: column; align-items: center; overflow: hidden;
+            background: #ffffff !important; border: 4px solid rgba(255, 255, 255, 0.7);
+            border-radius: 26px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
         }
         .sidebar-logo { margin-bottom: 25px; }
         .sidebar-logo img { width: 140px; }
         .nav-item-dashboad, .nav-item-thanh-toan, .nav-item-tich-diem, .nav-item-nguyenlieu, .nav-item-dangxuat {
             display: flex; align-items: center; width: 85%; padding: 0 20px; height: 60px;
-            margin: 8px 0; border-radius: 15px; font-weight: bold; font-size: 18px; cursor: pointer; color: #000;
+            margin: 8px 0; border-radius: 15px; font-weight: bold; font-size: 18px; cursor: pointer; color: #333;
+            transition: background 0.2s;
         }
-        .nav-item-dangxuat img, .nav-item-dashboad img, .nav-item-thanh-toan img, .nav-item-tich-diem img, .nav-item-nguyenlieu img { width: 30px; margin-right: 15px; }
-        .nav-active { background: white; }
+        .nav-item-dashboad svg, .nav-item-thanh-toan svg, .nav-item-tich-diem svg, .nav-item-nguyenlieu svg, .nav-item-dangxuat svg {
+            width: 24px; height: 24px; margin-right: 15px; flex-shrink: 0; stroke: #333; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+        }
+        
+        .nav-active { background: #1c1918 !important; color: #fff !important; }
+        .nav-active svg { stroke: #fff; }
         .spacer { flex-grow: 1; }
 
-        /* 2. THANH TRÊN CÙNG (TOP BAR) */
+        .nav-item-dangxuat {
+            background: #fdf2f2 !important; color: #d32f2f !important; box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+        }
+        .nav-item-dangxuat:hover { background: #fae8e8 !important; }
+        .nav-item-dangxuat svg { stroke: #d32f2f; }
+
+        /* 2. TOP BAR */
         .topbar {
             grid-area: topbar; width: 1099px; height: 95px; display: flex;
-            justify-content: space-between; align-items: center; padding: 0 11px;
+            justify-content: space-between; align-items: center; padding: 0 20px;
         }
-        .user-info{
-            width: 343px; height: 73px; background: white; border-radius: 20px;
-            display: flex; flex-direction: column; justify-content: center; padding-left: 20px; font-weight: 600; font-size: 16px;
-        }        
+        .pos-badge {
+            display: flex; align-items: center; gap: 12px; background: #fff; padding: 8px 16px; border-radius: 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        .pos-badge .num {
+            font-size: 18px; font-weight: bold; color: #b45309; background: #fef3c7; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; border-radius: 12px;
+        }
+        .user-info { display: flex; flex-direction: column; justify-content: center; }
+        .user-id { font-size: 12px; font-weight: bold; color: #555; display: flex; align-items: center; gap: 6px; }
+        .user-name { font-size: 14px; font-weight: bold; color: #111; }
+        
         .time-info {
-            margin-left: 35%; width: 260px; height: 73px; background: white; border-radius: 20px;
-            display: flex; flex-direction: column; justify-content: center; align-items: center; font-weight: 600; font-size: 16px;
+            background: white; padding: 8px 16px; border-radius: 18px; display: flex; align-items: center; gap: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);
         }
-        .btn-other {
-            width: 60px; height: 60px; background: white; border-radius: 50%; display: flex; justify-content: center; align-items: center;
-            font-weight: bold; font-size: 16px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        .current-date { font-size: 13px; font-weight: 500; color: #555; }
+        .current-time { font-size: 15px; font-weight: bold; color: #111; }
+        .time-icon-box {
+            background: #fef3c7; width: 36px; height: 36px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px;
         }
-        .btn-other:hover { background: #f0f0f0; transform: scale(1.05); transition: all 0.2s ease-in-out; }
 
-        /* 3. BẢNG GIỮA (HÓA ĐƠN) */
+        .btn-other {
+            width: 48px; height: 48px; background: white; border-radius: 50%; display: flex; justify-content: center; align-items: center;
+            font-size: 22px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: transform 0.2s ease, background 0.2s ease;
+        }
+        .btn-other:hover { background: #f0f0f0; transform: scale(1.05); }
+
+        /* 3. MIDDLE PANEL */
         .middle-panel { grid-area: middle; width: 675px; height: 874px; padding: 22px; position: relative; }
         .cart-header-bar {
             width: 631px; height: 48px; background: white; border-radius: 12px; display: grid;
@@ -79,7 +97,6 @@
             padding: 10px 20px; text-align: center; color: #3e3e3e; font-size: large;
         }
         .cart-list-container::-webkit-scrollbar { width: 6px; }
-        .cart-list-container::-webkit-scrollbar-track { background: transparent; }
         .cart-list-container::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.15); border-radius: 10px; }
         .cart-item {
             display: grid; grid-template-columns: 70px 190px 90px 120px 1fr; align-items: center;
@@ -116,10 +133,10 @@
             width: 140px; height: 50px; border-radius: 25px; border: none; color: white; font-size: 16px; font-weight: bold; cursor: pointer;
         }
         .btn-action:hover { transform: scale(1.05); transition: 0.2s; }
-        .btn-cancel { background: #8B0000; } .btn-cancel:hover { background: #A00000; }
-        .btn-pay { background: #008A5A; } .btn-pay:hover { background: #00A86B; }
+        .btn-cancel { background: #8B0000; }
+        .btn-pay { background: #008A5A; }
 
-        /* 4. THANH BÊN PHẢI (SẢN PHẨM) */
+        /* 4. RIGHT PANEL */
         .right-panel { grid-area: right; width: 404px; height: 874px; padding: 20px; display: flex; flex-direction: column; }
         .search-bar { width: 100%; height: 50px; background: white; border-radius: 25px; display: flex; align-items: center; padding: 0 15px; margin-bottom: 15px; flex-shrink: 0; }
         .search-bar img { width: 20px; margin-right: 10px; }
@@ -130,14 +147,13 @@
         .cat-all { background: #A0B2A6; } .cat-coffee { background: #5C5C5C; } .cat-tea { background: #008A5A; } .cat-matcha {background-color: rgb(7, 108, 7);}
         .product-grid { display: grid; grid-template-columns: 172px 172px; gap: 16px; flex-grow: 1; overflow-y: auto; overflow-x: hidden; align-content: start; padding-bottom: 10px; }
         .product-grid::-webkit-scrollbar { width: 6px; }
-        .product-grid::-webkit-scrollbar-track { background: transparent; }
         .product-grid::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.15); border-radius: 10px; }
         .product-card { width: 172px; height: 172px; background: white; border-radius: 20px; position: relative; padding: 15px; display: flex; flex-direction: column; align-items: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
         .product-card h4 { font-size: 16px; margin-bottom: 5px; text-align: center; }
         .btn-add { position: absolute; bottom: 10px; right: 10px; width: 40px; height: 40px; cursor: pointer; transition: transform 0.1s; }
         .btn-add:active { transform: scale(0.9); }
 
-        /* ================= CSS MODALS (TỔNG QUAN) ================= */
+        /* MODALS */
         .modal-overlay {
             position: absolute; top: 50%; left: 50%; width: 200vw; height: 200vh; transform: translate(-50%, -50%); 
             background: rgba(0, 0, 0, 0.75); z-index: 1000; display: none; justify-content: center; align-items: center;
@@ -151,29 +167,24 @@
             border-radius: 50%; cursor: pointer; box-shadow: inset 0 2px 4px rgba(0,0,0,0.2); z-index: 10;
         }
 
-        /* --- Modal Tích Điểm --- */
         #modal-tichdiem { width: 520px; min-height: 360px; height: auto; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 40px; }
         #modal-tichdiem h2 { text-align: center; font-size: 20px; margin-bottom: 15px; }
         .input-group { margin: 15px 0 25px 0; width: 100%; text-align: center; }
         .input-group input { width: 80%; padding: 12px 20px; border-radius: 20px; border: 1px solid #ccc; font-size: 16px; text-align: center; outline: none; }
         .btn-group { display: flex; justify-content: center; gap: 20px; }
-        .btn-modal { padding: 10px 40px; border-radius: 20px; border: none; color: white; font-weight: bold; font-size: 16px; cursor: pointer; height: 45px; display: flex; justify-content: center; align-items: center; width: 150px; transition: transform 0.1s; }
+        .btn-modal { padding: 10px 40px; border-radius: 20px; border: none; color: white; font-weight: bold; font-size: 16px; cursor: pointer; height: 45px; display: flex; justify-content: center; align-items: center; width: 150px; }
         .btn-boqua { background: #800000; } .btn-timtao { background: #000080; } 
         .info-customer-box { background: #f0f0f0; border-radius: 15px; padding: 15px; text-align: left; margin-top: 20px; display: none; flex-direction: column; gap: 5px; font-size: 14px; font-weight: 500; width: 100%; }
         .info-customer-box .row-info { display: grid; grid-template-columns: 120px 1fr; }
         
-        /* --- Modal Tạo Tài Khoản --- */
         #modal-taotk { width: 600px; padding: 40px; }
         #modal-taotk h2 { font-size: 24px; margin-bottom: 25px; text-align: center; }
         .form-container { border: 2px solid #e0e0e0; border-radius: 20px; padding: 30px 20px; margin-bottom: 25px; }
         .form-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; font-weight: bold; font-size: 16px; }
-        .form-row:last-child { margin-bottom: 0; }
         .form-row label { flex: 1; text-align: left; padding-left: 10px; }
         .form-row input { flex: 2; padding: 12px 15px; border-radius: 20px; border: 1px solid #ccc; outline: none; font-size: 15px; }
-        .btn-xacnhan-green { background: #008A5A; padding: 10px 30px; border-radius: 20px; border: none; color: white; font-weight: bold; cursor: pointer; font-size: 18px; width: 180px; height: 45px; margin: 0 auto; display: block; transition: transform 0.1s; }
-        .btn-xacnhan-green:active { transform: scale(0.95); }
+        .btn-xacnhan-green { background: #008A5A; padding: 10px 30px; border-radius: 20px; border: none; color: white; font-weight: bold; cursor: pointer; font-size: 18px; width: 180px; height: 45px; margin: 0 auto; display: block; }
 
-        /* --- Modal Thông Tin Hóa Đơn & Thanh Toán --- */
         #modal-hoadon { width: 900px; display: none; flex-direction: row; gap: 40px; text-align: left; padding: 40px;}
         .invoice-left { width: 55%; background: #e6e6e6; border-radius: 20px; padding: 25px; margin-top: 30px;}
         .invoice-header { display: flex; align-items: center; margin-bottom: 25px; gap: 20px; }
@@ -182,13 +193,12 @@
         
         .invoice-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
         .invoice-table th, .invoice-table td { padding: 8px 5px; text-align: center; border-bottom: 1px solid #ccc; }
-        .invoice-table th { border-top: none; border-bottom: 1.5px solid #000; } /* Bỏ đường kẻ xám trên cùng, dưới màu đen */
+        .invoice-table th { border-top: none; border-bottom: 1.5px solid #000; }
         
         .payment-right { width: 45%; display: flex; flex-direction: column; margin-top: 60px; }
         .payment-right h3 { text-align: center; margin-bottom: 25px; text-transform: uppercase;}
         .payment-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-        .pay-btn { display: flex; flex-direction: column; justify-content: center; align-items: center; border-radius: 25px; height: 207px; width: 100%; padding: 10px; color: white; font-weight: bold; cursor: pointer; border: none; font-size: 18px; transition: transform 0.1s; gap: 12px; }
-        .pay-btn:active { transform: scale(0.95); }
+        .pay-btn { display: flex; flex-direction: column; justify-content: center; align-items: center; border-radius: 25px; height: 207px; width: 100%; padding: 10px; color: white; font-weight: bold; cursor: pointer; border: none; font-size: 18px; gap: 12px; }
         .pay-btn img { width: 100px; height: 100px; object-fit: contain; }
         .btn-bank { background: #093491; } .btn-cash { background: #02770f; } .btn-cancel-bill { background: #7e0101; } .btn-momo { background: #950068; }
         
@@ -196,91 +206,22 @@
         .invoice-totals .total-row { display: flex; justify-content: space-between; margin-bottom: 10px; padding-left: 20%;}
         .invoice-totals .main-total { font-size: 22px; color: #FF0000; }
 
-        /* ================= CSS MỚI: DANH SÁCH HÓA ĐƠN (CHUẨN ẢNH 2) ================= */
-        #modal-bill-list { 
-            width: 850px; 
-            padding: 40px; 
-            background: white;
-        }
-        #modal-bill-list h2 { 
-            font-size: 24px; 
-            margin-bottom: 30px; 
-            text-align: center; 
-        }
-
-        .bill-grid-container {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            height: 400px; /* Bật chiều cao cố định để kích hoạt cuộn */
-        }
-
-        /* Lưới 6 cột được căn chỉnh khớp kích thước */
-        .bill-row-grid {
-            display: grid;
-            grid-template-columns: 80px 220px 130px 150px 1fr 40px; 
-            align-items: center;
-            text-align: left; /* Chữ căn trái giống ảnh 2 */
-        }
-
-        /* Dòng tiêu đề */
-        .bill-header-row {
-            font-weight: bold;
-            font-size: 15px;
-            padding-bottom: 12px;
-            border-bottom: 2px solid #000; /* Viền dưới màu đen */
-            margin-bottom: 5px;
-        }
-
-        /* Ô tìm kiếm */
-        .bill-search-box {
-            display: flex;
-            align-items: center;
-            background: white;
-            border: 1px solid #ccc;
-            border-radius: 20px;
-            padding: 4px 15px;
-            height: 32px;
-            width: 190px;
-        }
+        #modal-bill-list { width: 850px; padding: 40px; background: white; }
+        #modal-bill-list h2 { font-size: 24px; margin-bottom: 30px; text-align: center; }
+        .bill-grid-container { width: 100%; display: flex; flex-direction: column; height: 400px; }
+        .bill-row-grid { display: grid; grid-template-columns: 80px 220px 130px 150px 1fr 40px; align-items: center; text-align: left; }
+        .bill-header-row { font-weight: bold; font-size: 15px; padding-bottom: 12px; border-bottom: 2px solid #000; margin-bottom: 5px; }
+        .bill-search-box { display: flex; align-items: center; background: white; border: 1px solid #ccc; border-radius: 20px; padding: 4px 15px; height: 32px; width: 190px; }
         .bill-search-box img { width: 14px; margin-right: 8px; }
         .bill-search-box input { border: none; outline: none; width: 100%; font-size: 14px; background: transparent; }
+        .bill-body-scroll { flex-grow: 1; overflow-y: auto; overflow-x: hidden; }
+        .bill-data-row { padding: 15px 0; border-bottom: 1px solid #ccc; font-size: 15px; }
 
-        /* Vùng cuộn danh sách */
-        .bill-body-scroll {
-            flex-grow: 1;
-            overflow-y: auto;
-            overflow-x: hidden;
-        }
-        
-        .bill-body-scroll::-webkit-scrollbar { width: 6px; }
-        .bill-body-scroll::-webkit-scrollbar-track { background: transparent; }
-        .bill-body-scroll::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 10px; }
-
-        /* Dòng dữ liệu */
-        .bill-data-row {
-            padding: 15px 0;
-            border-bottom: 1px solid #ccc; /* Đường viền mờ dưới mỗi dòng */
-            font-size: 15px;
-            transition: 0.1s;
-        }
-        .bill-data-row:hover { background-color: #f9f9f9; }
-
-        .edit-icon { width: 22px; height: 22px; cursor: pointer; transition: 0.1s; }
-        .edit-icon:active { transform: scale(0.9); }
-
-        /* ================= CSS CHI TIẾT HÓA ĐƠN ================= */
-        #modal-bill-detail { 
-            width: 650px; 
-            padding: 40px; 
-            display: none; 
-            flex-direction: column; 
-        }
+        #modal-bill-detail { width: 650px; padding: 40px; display: none; flex-direction: column; }
         .detail-header-top { display: flex; align-items: center; margin-bottom: 20px; padding-left: 20px; gap: 50px; }
         .detail-header-top img { width: 120px; height: 120px; object-fit: contain; }
         .detail-info-text { display: flex; flex-direction: column; gap: 8px; text-align: left; font-size: 16px; font-weight: 500; }
         .detail-info-text .info-row { display: grid; grid-template-columns: 130px 1fr; }
-
         .detail-table-box { background: #e6e6e6; border-radius: 20px; padding: 10px; margin-bottom: 20px; height: 338px; overflow-y: auto; width: 100%; }
         .detail-bottom-right { align-self: flex-end; width: 50%; display: flex; flex-direction: column; gap: 15px; padding-right: 10px; }
         .detail-status-row { display: flex; justify-content: space-between; align-items: center; font-size: 20px; font-weight: bold; }
@@ -289,58 +230,52 @@
 
         .btn-status {
             padding: 0 20px; border: none; color: white; font-weight: bold; font-size: 16px; cursor: pointer;
-            transition: 0.1s; min-width: 120px; height: 40px; border-radius: 25px; white-space: nowrap;
-            display: inline-flex; justify-content: center; align-items: center; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-width: 120px; height: 40px; border-radius: 25px; white-space: nowrap;
+            display: inline-flex; justify-content: center; align-items: center;
         }
-        .btn-status:active { transform: scale(0.95); }
         .btn-status-paid { background: #008A5A; }
         .btn-status-cancelled { background: #B30000; }
         .btn-status-pending { background: #0000CC; }
-        .pay-btn * {
-            pointer-events: none; /* Giúp cú click xuyên qua ảnh và chữ để ăn thẳng vào nút button */
-        }
+        .pay-btn * { pointer-events: none; }
+
         .nav-item-dashboad:hover,
         .nav-item-thanh-toan:hover,
         .nav-item-tich-diem:hover,
-        .nav-item-nguyenlieu:hover,
-        .nav-item-dangxuat:hover {
-            background: rgba(255, 255, 255, 0.65);
+        .nav-item-nguyenlieu:hover {
+            background: rgba(0, 0, 0, 0.05);
         }
-
     </style>
-</head>
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hệ Thống Bán Hàng</title>
-    <link rel="stylesheet" href="css/ThanhToan.css">
 </head>
 <body>
 
     <div id="app-wrapper">
         <div class="grid-container">
-            <div class="sidebar glass-panel">
+            <div class="sidebar">
                 <div class="sidebar-logo"><img src="ICONS/helloicon.png" alt="Logo" style="scale: 1.9;"></div>
-                <div class="nav-item-dashboad" onclick="chuyentrang('Dashboard.html')"><img src="ICONS/Dashboardicon.png" alt="icon"> DASHBOARD</div>
-                <div class="nav-item-thanh-toan nav-active" onclick="chuyentrang('ThanhToan.html')"><img src="ICONS/ThanhToanicon.png" alt="icon"> THANH TOÁN</div>
-                <div class="nav-item-tich-diem" onclick="chuyentrang('TichDiem.html')"><img src="ICONS/TichDiemicon.png" alt="icon"> TÍCH ĐIỂM</div>
-                <div class="nav-item-nguyenlieu" onclick="chuyentrang('NguyenLieu.html')"><img src="ICONS/ingredientsicon.png" alt="icon"> NGUYÊN LIỆU</div>
+                <div class="nav-item-dashboad" onclick="chuyentrang('Dashboard.html')"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg> DASHBOARD</div>
+                <div class="nav-item-thanh-toan nav-active" onclick="chuyentrang('ThanhToan.html')"><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg> THANH TOÁN</div>
+                <div class="nav-item-tich-diem" onclick="chuyentrang('TichDiem.html')"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg> TÍCH ĐIỂM</div>
+                <div class="nav-item-nguyenlieu" onclick="chuyentrang('NguyenLieu.html')"><svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg> NGUYÊN LIỆU</div>
                 <div class="spacer"></div>
-                <div class="nav-item-dangxuat" onclick="chuyentrang('KetCa.html')"><img src="ICONS/DangXuaticon.png" alt="icon"> KẾT CA</div>
+                <div class="nav-item-dangxuat" onclick="chuyentrang('KetCa.html')"><svg viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg> KẾT CA</div>
             </div>
 
             <div class="topbar glass-panel">
-                <div class="user-info">
-                    <div style="font-weight: lighter;font-size: 18px">ID: <span id="staffid"></span></div>
-                    <div style="font-weight: bold; font-size: 22px;">Tên: <span  id="staffname"></span></div>
+                <div class="pos-badge">
+                    <div class="num">01</div>
+                    <div class="user-info">
+                        <div class="user-id">MÃ CA: #POS-01 <span style="color: #10b981;">●</span></div>
+                        <div class="user-name"><span id="staffname">--</span> <span style="font-weight: normal; color: #666; font-size: 12px;">(Thu ngân chính)</span></div>
+                    </div>
                 </div>
                 <div class="time-info">
-                    <div style="font-weight: lighter; font-size: 18px;" id="current-date"></div>
-                    <div style="font-weight: bold; font-size: 22px; margin-left: 40%; " id="current-time"></div>
+                    <div style="display: flex; flex-direction: column;">
+                        <div class="current-date" id="current-date">--</div>
+                        <div class="current-time" id="current-time">--:--:--</div>
+                    </div>
+                    <div class="time-icon-box">⏱️</div>
                 </div>
-                <div class="btn-other" style="font-size: 32px;">⚙️</div>
+                <div class="btn-other">⚙️</div>
             </div>
 
             <div class="middle-panel glass-panel">
@@ -358,9 +293,7 @@
                 <div class="action-buttons">
                     <img src="ICONS/BillListicon.png" class="btn-bill" alt="Bill List" onclick="openBillListModal()">
                     <div class="right-actions">
-                        <!-- NÚT BÊN NGOÀI: CHỈ XÓA GIỎ HÀNG (Gọi clearCart) -->
                         <button class="btn-action btn-cancel" onclick="clearCart()">HỦY</button>
-                        
                         <button class="btn-action btn-pay" onclick="openTichDiemModal()">THANH TOÁN</button>
                     </div>
                 </div>
@@ -381,10 +314,8 @@
             </div>
         </div>
 
-        <!-- ================= VÙNG MODAL ================= -->
+        <!-- MODALS -->
         <div id="modal-overlay" class="modal-overlay" onclick="closeModalOnOutsideClick(event)">
-            
-            <!-- Modal 1: Nhập Số Điện Thoại Tích Điểm -->
             <div id="modal-tichdiem" class="modal-box">
                 <div class="modal-close-btn" onclick="closeAllModals()"></div>
                 <h2>Quý khách có muốn tích điểm không?<br>Nhập SĐT tích điểm:</h2>
@@ -402,7 +333,6 @@
                 </div>
             </div>
 
-            <!-- Modal 2: Form Tạo Tài Khoản -->
             <div id="modal-taotk" class="modal-box">
                 <div class="modal-close-btn" onclick="closeAllModals()"></div>
                 <h2>Tạo Tài Khoản Tích Điểm</h2>
@@ -413,7 +343,6 @@
                 <button class="btn-xacnhan-green" onclick="submitTaoTaiKhoan()">XÁC NHẬN</button>
             </div>
 
-            <!-- Modal 3: Thông tin hóa đơn & Phương thức thanh toán -->
             <div id="modal-hoadon" class="modal-box">
                 <div class="modal-close-btn" onclick="forceCancelWhenClosing()"></div>
                 <h2 style="position: absolute; top: 15px; left: 50%; transform: translateX(-50%); font-size: 24px; margin-bottom: 20px; margin-top: 20px;">THÔNG TIN HÓA ĐƠN</h2>
@@ -422,7 +351,6 @@
                         <img src="ICONS/Logoicon.png" alt="Logo">
                         <div class="invoice-info">
                             <p>Mã hóa đơn: <span id="receipt-id">1</span></p>
-                            <!-- ĐÃ SỬA ID Ở ĐÂY CHO KHỚP VỚI JS -->
                             <p>Nhân viên: <span id="receipt-staff"></span></p>
                             <p>Ngày tạo: <span id="receipt-date"></span></p>
                             <p>Khách hàng: <span id="receipt-customer">Khách lẻ</span></p>
@@ -438,34 +366,20 @@
                     <div class="payment-grid">
                         <button class="pay-btn btn-bank" onclick="processPayment('CHUYEN_KHOAN')"><img src="ICONS/nganhangicon.png" alt="Ngân hàng">Ngân hàng</button>
                         <button class="pay-btn btn-cash" onclick="processPayment('TIEN_MAT')"><img src="ICONS/tienmat.png" alt="Tiền mặt">Tiền mặt</button>
-                        
-                        <!-- NÚT BÊN TRONG MODAL: LƯU DATABASE THÀNH ĐÃ HỦY VÀ XÓA BẢNG (Gọi cancelCurrentBillAction) -->
                         <button class="pay-btn btn-cancel-bill" onclick="cancelCurrentBillAction()"><img src="ICONS/huydon.png" alt="Hủy đơn">Hủy đơn</button>
-                        
                         <button class="pay-btn btn-momo" onclick="processPayment('MOMO')"><img src="ICONS/momo.png" alt="Momo">Momo</button>
                     </div>
                     <div class="invoice-totals">
-                    <div class="total-row">
-                        <span>Tổng tiền:</span>
-                        <span id="receipt-total">0</span>
-                    </div>
-                    <div class="total-row">
-                        <span>GIẢM GIÁ:</span>
-                        <span id="receipt-discount">0</span>
-                    </div>
-                    <div class="total-row main-total">
-                        <span>THÀNH TIỀN:</span>
-                        <span id="receipt-final">0</span>
-                    </div>
+                        <div class="total-row"><span>Tổng tiền:</span><span id="receipt-total">0</span></div>
+                        <div class="total-row"><span>GIẢM GIÁ:</span><span id="receipt-discount">0</span></div>
+                        <div class="total-row main-total"><span>THÀNH TIỀN:</span><span id="receipt-final">0</span></div>
                     </div>
                 </div>
             </div>
 
-            <!-- MODAL MỚI: DANH SÁCH HÓA ĐƠN -->
             <div id="modal-bill-list" class="modal-box">
                 <div class="modal-close-btn" onclick="closeAllModals()"></div>
                 <h2>Danh sách hóa đơn</h2>
-                
                 <div class="bill-grid-container">
                     <div class="bill-row-grid bill-header-row">
                         <span>Mã HĐ</span>
@@ -478,54 +392,35 @@
                         <span>Trạng thái</span>
                         <span></span>
                     </div>
-                    
-                    <div class="bill-body-scroll" id="bill-list-body">
-                        <!-- JS đổ dữ liệu vào đây -->
-                    </div>
+                    <div class="bill-body-scroll" id="bill-list-body"></div>
                 </div>
             </div>
 
-            <!-- MODAL: CHI TIẾT HÓA ĐƠN ĐÃ LƯU -->
             <div id="modal-bill-detail" class="modal-box">
                 <div class="modal-close-btn" onclick="closeAllModals()"></div>
-                
                 <div class="detail-header-top">
                     <img src="ICONS/Logoicon.png" alt="Logo">
                     <div class="detail-info-text">
                         <div class="info-row"><span>Mã hóa đơn:</span> <span id="detail-id"></span></div>
-                        <!-- ĐÃ SỬA ID Ở ĐÂY CHO KHỚP VỚI JS -->
                         <div class="info-row"><span>Nhân viên:</span> <span id="detail-staff"></span></div>
                         <div class="info-row"><span>Ngày tạo:</span> <span id="detail-date"></span></div>
                         <div class="info-row"><span>Khách hàng:</span> <span id="detail-customer"></span></div>
                     </div>
                 </div>
-
                 <div class="detail-table-box">
                     <table class="invoice-table" style="width: 100%;">
-                        <thead>
-                            <tr><th>Mã Sp</th><th>Tên Sp</th><th>ĐGia</th><th>Sluong</th><th>TTiền</th></tr>
-                        </thead>
-                        <tbody id="detail-body">
-                        </tbody>
+                        <thead><tr><th>Mã Sp</th><th>Tên Sp</th><th>ĐGia</th><th>Sluong</th><th>TTiền</th></tr></thead>
+                        <tbody id="detail-body"></tbody>
                     </table>
                 </div>
-
                 <div class="detail-bottom-right">
-                    <div class="detail-status-row">
-                        <span class="text-navy">Tổng đơn:</span>
-                        <span class="text-blue" id="detail-total"></span>
-                    </div>
-                    <div class="detail-status-row">
-                        <span style="color: black;">Trạng thái:</span>
-                        <button id="detail-status-btn" class="btn-status"></button>
-                    </div>
+                    <div class="detail-status-row"><span class="text-navy">Tổng đơn:</span><span class="text-blue" id="detail-total"></span></div>
+                    <div class="detail-status-row"><span style="color: black;">Trạng thái:</span><button id="detail-status-btn" class="btn-status"></button></div>
                 </div>
             </div>
-
         </div>
     </div>
 
     <script src="javascript/ThanhToan.js"></script>
 </body>
-</html>
 </html>

@@ -16,6 +16,8 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.example.demo.service.TKTrungThanhService;
 import com.example.demo.dto.TKTrungThanhDTO;
@@ -24,6 +26,8 @@ import com.example.demo.dto.TKTrungThanhDTO;
 @RequestMapping("/api/tktrungthanh")
 @CrossOrigin("*")
 public class TKTrungThanhcontroller {
+
+    private static final Logger logger = LoggerFactory.getLogger(TKTrungThanhcontroller.class);
 
     @Autowired
     private TKTrungThanhService tkTrungThanhService;
@@ -35,7 +39,7 @@ public class TKTrungThanhcontroller {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<TKTrungThanhDTO> getTKTrungThanhById(@PathVariable Integer id) {
+    public ResponseEntity<TKTrungThanhDTO> getTKTrungThanhById(@PathVariable("id") Integer id) {
         TKTrungThanhDTO tkTrungThanhDTO = tkTrungThanhService.getTKTrungThanhById(id);
         return ResponseEntity.ok(tkTrungThanhDTO);
     }
@@ -47,35 +51,45 @@ public class TKTrungThanhcontroller {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<TKTrungThanhDTO> updateTkTrungThanh(@PathVariable Integer id, @RequestBody TKTrungThanhDTO dto) {
+    public ResponseEntity<TKTrungThanhDTO> updateTkTrungThanh(@PathVariable("id") Integer id, @RequestBody TKTrungThanhDTO dto) {
         TKTrungThanhDTO updatedTkTrungThanh = tkTrungThanhService.updatedTkTrungThanhDTO(id, dto);
         return ResponseEntity.ok(updatedTkTrungThanh);
     }
 
     // Đã fix lỗi: Đưa về Integer id cho đồng bộ
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteTkTrungThanh(@PathVariable Integer id) {
+    public ResponseEntity<?> deleteTkTrungThanh(@PathVariable("id") Integer id) {
         try {
-            tkTrungThanhService.deleteTkTrungThanh(id);
+            if (!tkTrungThanhService.deleteTkTrungThanh(id)) {
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                        .body(java.util.Map.of(
+                                "message",
+                                "Không thể xóa tài khoản này vì đã có hóa đơn."));
+            }
             return ResponseEntity.noContent().build();
         } catch (DataIntegrityViolationException e) {
-            // Bắt lỗi khi khách hàng đã có hóa đơn
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Không thể xóa! Khách hàng này đã có lịch sử hóa đơn.");
+            logger.error("Không thể xóa tài khoản tích điểm {} do vi phạm ràng buộc dữ liệu", id, e);
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(java.util.Map.of(
+                            "message",
+                            "Không thể xóa tài khoản này vì đã có hóa đơn."));
         } catch (Exception e) {
+            logger.error("Lỗi khi xóa tài khoản tích điểm {}", id, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Lỗi hệ thống khi xóa khách hàng.");
+                    .body(java.util.Map.of(
+                            "message",
+                            "Không thể xóa tài khoản tích điểm. Chi tiết lỗi đã được ghi vào log backend."));
         }   
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<TKTrungThanhDTO>> TimKiemTkTrungThanhTheoTen(@RequestParam String tenKH) {
+    public ResponseEntity<List<TKTrungThanhDTO>> TimKiemTkTrungThanhTheoTen(@RequestParam("tenKH") String tenKH) {
         List<TKTrungThanhDTO> tkTrungThanhList = tkTrungThanhService.TimKiemTkTrungThanhTheoTen(tenKH);
         return ResponseEntity.ok(tkTrungThanhList);
     }
 
     @GetMapping("/searchByIdAndName")
-    public ResponseEntity<List<TKTrungThanhDTO>> TimKiemTkTrungThanhTheoIDvaTen(@RequestParam Integer id, @RequestParam String tenKH) {
+    public ResponseEntity<List<TKTrungThanhDTO>> TimKiemTkTrungThanhTheoIDvaTen(@RequestParam("id") Integer id, @RequestParam("tenKH") String tenKH) {
         List<TKTrungThanhDTO> tkTrungThanhList = tkTrungThanhService.TimKiemTkTrungThanhTheoIDvaTen(id, tenKH);
         return ResponseEntity.ok(tkTrungThanhList);
     }

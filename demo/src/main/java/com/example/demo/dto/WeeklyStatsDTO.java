@@ -14,6 +14,10 @@ public class WeeklyStatsDTO {
 
     private List<TopProductDTO> topProducts;
 
+    private String topProductCategory;
+
+    private BigDecimal topProductCategoryShare;
+
 
     public WeeklyStatsDTO() {
     }
@@ -76,5 +80,21 @@ public class WeeklyStatsDTO {
 
         this.topProducts =
             topProducts;
+    }
+
+    public String getTopProductCategory() {
+        return topProductCategory;
+    }
+
+    public void setTopProductCategory(String topProductCategory) {
+        this.topProductCategory = topProductCategory;
+    }
+
+    public BigDecimal getTopProductCategoryShare() {
+        return topProductCategoryShare;
+    }
+
+    public void setTopProductCategoryShare(BigDecimal topProductCategoryShare) {
+        this.topProductCategoryShare = topProductCategoryShare;
     }
 }

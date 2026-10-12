@@ -14,6 +14,20 @@ let currentCustomerName = "Khách lẻ";
 let foundCustomerTemp = null; 
 let mockBillsArray = [];
 
+function normalizeCustomerId(id) {
+    const value = String(id ?? '').trim();
+    if (!/^\d+$/.test(value)) return null;
+
+    const numericId = Number(value);
+    if (!Number.isSafeInteger(numericId) || numericId <= 0 || numericId > 2147483647) return null;
+    return String(numericId);
+}
+
+async function responseErrorMessage(response, fallback) {
+    const message = (await response.text()).trim();
+    return message || `${fallback} (HTTP ${response.status})`;
+}
+
 let idnhanviendangnhap = localStorage.getItem('POS_STAFF_ID');
 let tennhanviendangnhap = localStorage.getItem('POS_STAFF_NAME') || 'Nhân Viên';
 
@@ -208,10 +222,15 @@ function clearCart() {
 async function loadCustomersFromAPI() {
     try {
         const res = await fetch('http://localhost:8080/api/tktrungthanh');
+        if (!res.ok) throw new Error(`Lỗi máy chủ: ${res.status}`);
         const data = await res.json();
         customersArray = data.map(c => ({ id: c.id.toString(), name: c.tenKH, date: c.ngayTao, points: c.soLuongMua }));
         customersDB = customersArray; 
-    } catch (e) {}
+    } catch (e) {
+        customersArray = [];
+        customersDB = [];
+        console.error("Không thể tải tài khoản tích điểm:", e);
+    }
 }
 loadCustomersFromAPI();
 
@@ -238,7 +257,8 @@ function actionTaoTkOrTim() {
         document.getElementById('modal-taotk').style.display = 'block';
 
     } else {
-        foundCustomerTemp = customersArray.find(c => c.id === val);
+        const customerId = normalizeCustomerId(val);
+        foundCustomerTemp = customerId ? customersArray.find(c => normalizeCustomerId(c.id) === customerId) : null;
         if (foundCustomerTemp) {
             document.getElementById('info-customer-box').style.display = 'flex';
             document.getElementById('info-sdt').innerText = foundCustomerTemp.id;
@@ -257,7 +277,13 @@ async function submitTaoTaiKhoan() {
         return;
     }
 
-    let existingKH = customersDB.find(c => c.id === sdt);
+    const customerId = normalizeCustomerId(sdt);
+    if(!customerId) {
+        alert("Số điện thoại phải là số nguyên dương phù hợp với ID tài khoản.");
+        return;
+    }
+
+    let existingKH = customersDB.find(c => normalizeCustomerId(c.id) === customerId);
 
     if(existingKH){
         alert("Số điện thoại này đã tồn tại trong hệ thống. Đã tự động chọn tài khoản!");
@@ -272,7 +298,7 @@ async function submitTaoTaiKhoan() {
     }
 
     const TKTrungThanhDTO = {
-        id: sdt, 
+        id: Number(customerId),
         tenKH: tenKH, 
         soLuongMua: 0, 
         ngayTao: new Date().toISOString().split('T')[0]
@@ -289,8 +315,16 @@ async function submitTaoTaiKhoan() {
             alert("Tạo tài khoản thành công!");
             currentCustomerName = tenKH;
 
-            await loadCustomersFromAPI();
-            foundCustomerTemp = customersDB.find(c => c.id === sdt) || { id: sdt, name: tenKH, points: 0 };
+            const created = await response.json();
+            foundCustomerTemp = {
+                id: String(created.id),
+                name: created.tenKH,
+                points: created.soLuongMua ?? 0,
+                date: created.ngayTao || new Date().toISOString().split('T')[0]
+            };
+            customersArray = customersArray.filter(c => normalizeCustomerId(c.id) !== customerId);
+            customersArray.push(foundCustomerTemp);
+            customersDB = customersArray;
 
             document.getElementById('modal-taotk').style.display = 'none';
             if(typeof closeAllModals === 'function') closeAllModals();
@@ -298,11 +332,12 @@ async function submitTaoTaiKhoan() {
             openHoaDonModal(null); 
         }
         else {
-            alert("Lỗi: Không thể tạo tài khoản (Có thể SĐT này đã tồn tại).");
+            alert(await responseErrorMessage(response, "Không thể tạo tài khoản tích điểm."));
         }
 
     } catch (error){
         console.error("Lỗi khi lưu tk tích điểm: ", error);
+        alert(error.message || "Không thể tạo tài khoản tích điểm.");
     }
 }
 
@@ -560,12 +595,16 @@ async function processPayment(phuongThuc) {
     }
 }
 
+/* ==========================================================================
+   THANH TOÁN & TÍCH ĐIỂM (TƯƠNG THÍCH ID KIỂU INTEGER)
+   ========================================================================== */
+
 async function createNewBillOnBackend(trangThai, phuongThuc) {
     const cthdsPayload = cart.map(item => ({ 
         sanPhamId: parseInt(item.id), soLuong: item.qty, donGia: item.price }));
     
-    // ĐÃ FIX: Dùng .toString() thay vì parseInt() để không bị mất số 0 của SĐT
-    const khachId = (foundCustomerTemp && foundCustomerTemp.id) ? foundCustomerTemp.id.toString() : null;
+    // Đồng bộ kiểu Integer theo đúng định nghĩa ID ở Backend
+    const khachId = (foundCustomerTemp && foundCustomerTemp.id) ? parseInt(foundCustomerTemp.id) : null;
     const customerName = (foundCustomerTemp && foundCustomerTemp.name) ? foundCustomerTemp.name : (currentCustomerName !== 'null' && currentCustomerName !== 'Khách lẻ' ? currentCustomerName : null);
 
     const savedStaffId = localStorage.getItem('POS_STAFF_ID'); 
@@ -573,7 +612,7 @@ async function createNewBillOnBackend(trangThai, phuongThuc) {
 
     const hoaDonDTO = {
         nhanVienId: finalStaffId, 
-        tkTrungThanhId: khachId, 
+        tkTrungThanhId: khachId, // Kiểu Integer truyền xuống Backend
         tongTien: finalCartPrice, 
         trangThai: trangThai, 
         phuongThucThanhToan: phuongThuc, 
@@ -589,24 +628,11 @@ async function createNewBillOnBackend(trangThai, phuongThuc) {
         });
         if (!response.ok) throw new Error("Lỗi: " + response.status);
 
-        // Cộng điểm cho khách hàng sau khi lưu hóa đơn thành công
-        if(khachId){
-            let soluongsanphammua = cart.reduce((sum,item) => sum + item.qty, 0);
-            let sodiemtruoc = parseInt(foundCustomerTemp.points) || 0;
-            let diemmoi = sodiemtruoc + soluongsanphammua;
-
-            if (diemmoi >= 10){
-                diemmoi = diemmoi - 10;
-            }
-            await capnhatdiemkhachhang(khachId, diemmoi, foundCustomerTemp);
-        }
-        
-        alert("Thanh toán thành công!"); 
+        alert("Thanh toán thành công!");
         if (window && typeof window.dispatchEvent === 'function') {
             window.dispatchEvent(new CustomEvent('dashboard:refresh'));
         }
         await loadhoadfromapi(); 
-
 
         if (mockBillsArray.length > 0 && customerName !== 'Khách lẻ' && customerName) {
             const latestBillId = mockBillsArray[0].id;
@@ -622,26 +648,6 @@ async function createNewBillOnBackend(trangThai, phuongThuc) {
     } catch (e) {
         console.error(e);
         alert("Lỗi lưu hóa đơn vào CSDL!");
-    }
-}
-
-async function capnhatdiemkhachhang(id, diemmoi, khachhang) {
-    const dto = {
-        id: id, 
-        tenKH: khachhang.name, 
-        soLuongMua: diemmoi, 
-        ngayTao: khachhang.date || new Date().toISOString().split('T')[0]
-    };
-    try{
-        await fetch(`http://localhost:8080/api/tktrungthanh/${id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(dto)
-        });
-        await loadCustomersFromAPI();
-    }
-    catch(e){
-        console.error("Lỗi cập nhật điểm: ", e);
     }
 }
 

@@ -4,9 +4,11 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.example.demo.dto.TKTrungThanhDTO;
 import com.example.demo.entity.TKTrungThanh;
+import com.example.demo.repository.HoaDonRepository;
 import com.example.demo.repository.TKTrungThanhRepository;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -16,6 +18,8 @@ import java.util.stream.Collector;
 public class TKTrungThanhService {
     @Autowired 
     private TKTrungThanhRepository tkTrungThanhRepository; 
+    @Autowired
+    private HoaDonRepository hoaDonRepository;
 
     //lay danh sach tat ca
     public List<TKTrungThanhDTO> getAllTkTrungThanh(){
@@ -49,10 +53,14 @@ public class TKTrungThanhService {
         return mapToDTO(updatedTkTrungThanh);
     }
 
-    public void deleteTkTrungThanh(Integer id){
+    @Transactional
+    public boolean deleteTkTrungThanh(Integer id){
         TKTrungThanh existTkTrungThanh = tkTrungThanhRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("khong tim thay khach hang co id: " + id));
-        tkTrungThanhRepository.delete(existTkTrungThanh);
+        if (hoaDonRepository.existsByTkTrungThanh_Id(id)) {
+            return false;
+        }
+        return tkTrungThanhRepository.deleteIfNoBills(existTkTrungThanh.getId()) == 1;
     }
 
     public List<TKTrungThanhDTO> TimKiemTkTrungThanhTheoTen(String tenKH) {

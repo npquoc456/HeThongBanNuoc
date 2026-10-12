@@ -5,9 +5,11 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.example.demo.dto.NguyenLieuDTO;
 import com.example.demo.entity.NguyenLieu;
+import com.example.demo.repository.CTNLRepository;
 import com.example.demo.repository.NguyenLieuRepository;
 
 
@@ -15,6 +17,8 @@ import com.example.demo.repository.NguyenLieuRepository;
 public class NguyenLieuService {
     @Autowired 
     private NguyenLieuRepository nguyenLieuRepository; 
+    @Autowired
+    private CTNLRepository ctnlRepository;
 
     public List<NguyenLieuDTO> getAllNguyenLieu(){
         return nguyenLieuRepository.findAll()
@@ -47,9 +51,11 @@ public class NguyenLieuService {
         return mapToDTO(updatedNguyenLieu);
     }
 
+    @Transactional
     public void deleteNguyenLieu(Integer id){
         NguyenLieu existingNguyenLieu = nguyenLieuRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("khong tim thay nguyen lieu co id: " + id));
+        ctnlRepository.deleteByIngredientId(id);
         nguyenLieuRepository.delete(existingNguyenLieu);
     }
 
@@ -79,7 +85,6 @@ public class NguyenLieuService {
 
     private NguyenLieu mapToEntity(NguyenLieuDTO dto){
         NguyenLieu entity = new NguyenLieu(); 
-        entity.setId(dto.getId());
         entity.setTenNL(dto.getTenNL());
         entity.setSoLuong(dto.getSoLuong());
         entity.setDonVi(dto.getDonVi()); // Đã sửa từ getDonViTinh() thành getDonVi()

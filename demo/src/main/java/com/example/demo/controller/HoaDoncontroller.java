@@ -38,7 +38,7 @@ public class HoaDoncontroller {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<HoaDonDTO> getHoaDonById(@PathVariable Integer id){
+    public ResponseEntity<HoaDonDTO> getHoaDonById(@PathVariable("id") Integer id){
         try {
             System.out.println("[HoaDoncontroller] GET /api/hoadon/" + id + " called");
             HoaDonDTO hoaDon = hoaDonService.getHoaDonById(id);
@@ -64,13 +64,13 @@ public class HoaDoncontroller {
 
 
     @PutMapping("/{id}")
-    public ResponseEntity<HoaDonDTO> updateHoaDon(@PathVariable Integer id, @RequestBody HoaDonDTO hoaDonDTO){
+    public ResponseEntity<HoaDonDTO> updateHoaDon(@PathVariable("id") Integer id, @RequestBody HoaDonDTO hoaDonDTO){
         HoaDonDTO updatedHoaDon = hoaDonService.updateHoaDon(id, hoaDonDTO);
         return ResponseEntity.ok(updatedHoaDon);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteHoaDon(@PathVariable Integer id){
+    public ResponseEntity<Void> deleteHoaDon(@PathVariable("id") Integer id){
         hoaDonService.deleteHoaDon(id);
         return ResponseEntity.noContent().build();
     }

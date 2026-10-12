@@ -11,6 +11,7 @@ import com.example.demo.dto.CTHDDTO;
 import com.example.demo.entity.HoaDon;
 import com.example.demo.entity.CTHD;
 import com.example.demo.entity.CTHDid;
+import com.example.demo.entity.TKTrungThanh;
 import com.example.demo.repository.HoaDonRepository;
 import com.example.demo.repository.NhanVienRepository;
 import com.example.demo.repository.TKTrungThanhRepository;
@@ -65,6 +66,20 @@ public class HoaDonService {
                 
                 cthdReponsitory.save(cthd); 
             }
+        }
+
+        if (savedHoaDon.getTkTrungThanh() != null && dto.getCTHDs() != null) {
+            int purchasedQuantity = dto.getCTHDs().stream()
+                    .mapToInt(CTHDDTO::getSoLuong)
+                    .sum();
+            TKTrungThanh customer = savedHoaDon.getTkTrungThanh();
+            int updatedPoints = (customer.getSoLuongMua() == null ? 0 : customer.getSoLuongMua())
+                    + purchasedQuantity;
+            if (updatedPoints >= 10) {
+                updatedPoints -= 10;
+            }
+            customer.setSoLuongMua(updatedPoints);
+            tkTrungThanhRepository.save(customer);
         }
         
         return mapToDTO(hoaDonRepository.findById(savedHoaDon.getId()).orElse(savedHoaDon));
@@ -140,7 +155,9 @@ public class HoaDonService {
             entity.setNhanVien(nhanVienRepository.findById(dto.getNhanVienId()).orElse(null));
         }
         if (dto.getTkTrungThanhId() != null) {
-            entity.setTkTrungThanh(tkTrungThanhRepository.findById(dto.getTkTrungThanhId()).orElse(null));
+            entity.setTkTrungThanh(tkTrungThanhRepository.findById(dto.getTkTrungThanhId())
+                    .orElseThrow(() -> new RuntimeException(
+                            "Không tìm thấy tài khoản tích điểm có id: " + dto.getTkTrungThanhId())));
         }
 
         return entity;
