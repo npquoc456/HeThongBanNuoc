@@ -1,8 +1,9 @@
-USE MayBanNuoc;
+-- Chọn database MayBanNuoc trên kết nối MySQL trước khi chạy script này.
 
 SET FOREIGN_KEY_CHECKS = 0;
 
 DROP TABLE IF EXISTS cthd;
+DROP TABLE IF EXISTS ketca;
 DROP TABLE IF EXISTS hoadon;
 DROP TABLE IF EXISTS ctnl;
 DROP TABLE IF EXISTS ctca;
@@ -124,6 +125,8 @@ CREATE TABLE hoadon (
     trang_thai VARCHAR(30),
     ngay_hd DATETIME DEFAULT CURRENT_TIMESTAMP,
     phuong_thuc VARCHAR(30),
+    tien_khach_dua DECIMAL(12,2),
+    tien_thoi DECIMAL(12,2),
 
     CONSTRAINT fk_hd_kh
         FOREIGN KEY (kh_id)
@@ -132,6 +135,26 @@ CREATE TABLE hoadon (
     CONSTRAINT fk_hd_nv
         FOREIGN KEY (nv_id)
         REFERENCES nhanvien(id)
+);
+
+-- =========================
+-- BIÊN BẢN KẾT CA / BÀN GIAO TIỀN
+-- =========================
+CREATE TABLE ketca (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    staff_id INT NOT NULL,
+    staff_name VARCHAR(100) NOT NULL,
+    shift_started_at DATETIME NOT NULL,
+    closed_at DATETIME NOT NULL,
+    counted_cash BIGINT NOT NULL,
+    expected_cash BIGINT NOT NULL DEFAULT 0,
+    cash_difference BIGINT NOT NULL DEFAULT 0,
+    float_fund BIGINT NOT NULL,
+    cash_handover BIGINT NOT NULL,
+    bank_transfer BIGINT NOT NULL,
+    total_submit BIGINT NOT NULL,
+    denominations_json TEXT NOT NULL,
+    CONSTRAINT uk_ketca_staff_started UNIQUE (staff_id, shift_started_at)
 );
 
 -- =========================
@@ -153,4 +176,3 @@ CREATE TABLE cthd (
         FOREIGN KEY (sp_id)
         REFERENCES sanpham(id)
 );
-

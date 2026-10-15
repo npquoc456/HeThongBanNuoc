@@ -1,5 +1,5 @@
 {
-    "java.configuration.updateBuildConfiguration": "interactive",
+    "java.configuration.updateBuildConfiguration": "automatic",
     "java.debug.settings.console": "integratedTerminal",
     "java.compile.nullAnalysis.mode": "automatic",
     "spring-boot.ls.java.support": true,

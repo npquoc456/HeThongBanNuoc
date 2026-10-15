@@ -7,6 +7,10 @@ let currentCategory = 'all';
 let totalCartPrice = 0; 
 let finalCartPrice = 0; 
 let currentPayingBillId = null; 
+let demoQrCountdownInterval = null;
+let demoQrExpiresAt = 0;
+let demoQrObjectUrl = null;
+let pendingInvoiceReceipt = null;
 let customersDB = [];
 let customersArray = [];
 // ĐÃ SỬA: Đổi mặc định từ "null" sang "Khách lẻ" để tránh hiển thị chữ null lên giao diện
@@ -397,6 +401,8 @@ async function loadhoadfromapi() {
                 total: bill.tongTien || 0,
                 status: mapStatus(bill.trangThai),
                 method: bill.phuongThucThanhToan || 'TIEN_MAT',
+                cashReceived: bill.tienKhachDua,
+                cashChange: bill.tienThoi,
                 items: cthdList.map(item => ({
                     id: item.sanPhamId || item.sanPham?.id || 'N/A',
                     name: item.tenSanPham || item.sanPham?.tenSP || 'Sản phẩm',
@@ -588,18 +594,324 @@ function showBillDetail(billId) {
 }
 
 async function processPayment(phuongThuc) {
-    if (currentPayingBillId) {
-        await updateBillStatusOnBackend(currentPayingBillId, 'DA_XAC_NHAN', phuongThuc);
+    if (phuongThuc === 'TIEN_MAT') {
+        openCashPaymentModal();
+    } else if (phuongThuc === 'CHUYEN_KHOAN') {
+        await openDemoBankPaymentModal();
+    } else if (phuongThuc === 'MOMO') {
+        openMomoPaymentModal();
     } else {
-        await createNewBillOnBackend('DA_XAC_NHAN', phuongThuc);
+        await completePayment(phuongThuc);
     }
+}
+
+function getCurrentPayableAmount() {
+    if (currentPayingBillId) {
+        const bill = mockBillsArray.find(item => String(item.id) === String(currentPayingBillId));
+        if (!bill) throw new Error('Không tìm thấy hóa đơn cần thanh toán.');
+        return Number(bill.total);
+    }
+    return Number(finalCartPrice);
+}
+
+function showPaymentStep(modalId) {
+    document.querySelectorAll('.modal-box').forEach(modal => modal.style.display = 'none');
+    document.getElementById('modal-overlay').style.display = 'flex';
+    document.getElementById(modalId).style.display = 'block';
+}
+
+function returnToPaymentMethodSelection() {
+    closeDemoQrCountdown();
+    document.querySelectorAll('.modal-box').forEach(modal => modal.style.display = 'none');
+    document.getElementById('modal-overlay').style.display = 'flex';
+    document.getElementById('modal-hoadon').style.display = 'flex';
+}
+
+function openMomoPaymentModal() {
+    let amount;
+    try {
+        amount = getCurrentPayableAmount();
+    } catch (error) {
+        alert(error.message);
+        return;
+    }
+    document.getElementById('momo-payment-total').textContent = formatMoney(amount);
+    showPaymentStep('modal-momo-payment');
+}
+
+async function confirmMomoPayment() {
+    await completePayment('MOMO');
+}
+
+function cancelPaymentFromStep() {
+    if (confirm('Bạn có chắc muốn hủy đơn hàng này không?')) {
+        window.cancelCurrentBillAction();
+    }
+}
+
+function openCashPaymentModal() {
+    let amount;
+    try {
+        amount = getCurrentPayableAmount();
+    } catch (error) {
+        alert(error.message);
+        return;
+    }
+    document.getElementById('cash-payment-total').textContent = formatMoney(amount);
+    const input = document.getElementById('cash-received-input');
+    input.value = '';
+    document.getElementById('cash-change-preview').textContent = formatMoney(0);
+    document.getElementById('cash-payment-confirm').disabled = true;
+    showPaymentStep('modal-cash-payment');
+    input.focus();
+}
+
+function updateCashChangePreview() {
+    const amount = getCurrentPayableAmount();
+    const received = parseCashReceived(document.getElementById('cash-received-input').value);
+    const valid = Number.isSafeInteger(received) && received >= amount;
+    document.getElementById('cash-change-preview').textContent =
+        formatMoney(valid ? received - amount : 0);
+    document.getElementById('cash-payment-confirm').disabled = !valid;
+}
+
+function parseCashReceived(value) {
+    const digits = String(value || '').replace(/\D/g, '');
+    return digits ? Number(digits) : 0;
+}
+
+function formatCashReceivedInput(input) {
+    const digits = input.value.replace(/\D/g, '');
+    input.value = digits ? Number(digits).toLocaleString('vi-VN') : '';
+    input.setSelectionRange(input.value.length, input.value.length);
+    updateCashChangePreview();
+}
+
+async function confirmCashPayment() {
+    const received = parseCashReceived(document.getElementById('cash-received-input').value);
+    const amount = getCurrentPayableAmount();
+    if (!Number.isSafeInteger(received) || received < amount) {
+        alert('Số tiền khách đưa chưa đủ thanh toán hóa đơn.');
+        return;
+    }
+    await completePayment('TIEN_MAT', received, received - amount);
+}
+
+async function openDemoBankPaymentModal() {
+    let amount;
+    try {
+        amount = getCurrentPayableAmount();
+    } catch (error) {
+        alert(error.message);
+        return;
+    }
+    const qr = document.getElementById('payment-demo-qr');
+    qr.src = 'ICONS/QRthanhtoan.png';
+    qr.style.display = 'block';
+    document.getElementById('bank-payment-total').textContent = formatMoney(amount);
+    showPaymentStep('modal-bank-payment');
+    startDemoQrCountdown();
+    await loadDemoQr(amount);
+}
+
+async function loadDemoQr(amount) {
+    const qr = document.getElementById('payment-demo-qr');
+    const message = document.getElementById('payment-qr-message');
+    qr.src = 'ICONS/QRthanhtoan.png';
+
+    try {
+        const params = new URLSearchParams({
+            amount: String(amount),
+            invoiceId: `${currentPayingBillId || 'new'}-${Date.now()}`
+        });
+        const response = await fetch(`http://localhost:8080/api/demo-payment/qr?${params}`);
+        if (!response.ok) throw new Error(await responseErrorMessage(response, 'Không tạo được mã QR demo'));
+        if (demoQrObjectUrl) URL.revokeObjectURL(demoQrObjectUrl);
+        demoQrObjectUrl = URL.createObjectURL(await response.blob());
+        qr.src = demoQrObjectUrl;
+        message.textContent = 'Mã QR demo đã sẵn sàng. Bạn cũng có thể xác nhận thành công ngay.';
+    } catch (error) {
+        message.textContent = 'Không tải được mã QR động; đang dùng ảnh QRthanhtoan.png. Thanh toán demo vẫn có thể xác nhận.';
+        console.warn('Không tải được QR động, dùng mã QR tĩnh dự phòng:', error);
+    }
+}
+
+function startDemoQrCountdown() {
+    if (demoQrCountdownInterval) clearInterval(demoQrCountdownInterval);
+    const countdown = document.getElementById('payment-qr-countdown');
+    const refreshButton = document.getElementById('bank-qr-refresh');
+    refreshButton.disabled = true;
+    demoQrExpiresAt = Date.now() + 60_000;
+
+    const updateCountdown = () => {
+        const remainingSeconds = Math.max(0, Math.ceil((demoQrExpiresAt - Date.now()) / 1000));
+        const minutes = String(Math.floor(remainingSeconds / 60)).padStart(2, '0');
+        const seconds = String(remainingSeconds % 60).padStart(2, '0');
+        countdown.textContent = remainingSeconds > 0
+            ? `Mã QR hết hạn sau ${minutes}:${seconds}`
+            : 'Mã QR đã hết hạn. Bạn có thể tạo mã khác.';
+        refreshButton.disabled = remainingSeconds > 0;
+        if (remainingSeconds === 0) {
+            clearInterval(demoQrCountdownInterval);
+            demoQrCountdownInterval = null;
+        }
+    };
+
+    updateCountdown();
+    demoQrCountdownInterval = setInterval(updateCountdown, 250);
+}
+
+function regenerateDemoQr() {
+    if (Date.now() < demoQrExpiresAt) return;
+    loadDemoQr(getCurrentPayableAmount());
+    startDemoQrCountdown();
+}
+
+function closeDemoQrCountdown() {
+    if (demoQrCountdownInterval) {
+        clearInterval(demoQrCountdownInterval);
+        demoQrCountdownInterval = null;
+    }
+    if (demoQrObjectUrl) {
+        URL.revokeObjectURL(demoQrObjectUrl);
+        demoQrObjectUrl = null;
+    }
+}
+
+async function confirmDemoBankPayment() {
+    await completePayment('CHUYEN_KHOAN');
+}
+
+async function completePayment(phuongThuc, tienKhachDua = null, tienThoi = null) {
+    const modalName = phuongThuc === 'TIEN_MAT'
+        ? 'cash-payment'
+        : phuongThuc === 'CHUYEN_KHOAN'
+            ? 'bank-payment'
+            : 'momo-payment';
+    const confirmButton = document.querySelector(`#modal-${modalName} .payment-step-confirm`);
+    const receipt = createPaymentReceipt(phuongThuc, tienKhachDua, tienThoi);
+    if (confirmButton) confirmButton.disabled = true;
+    try {
+        const saved = currentPayingBillId
+            ? await updateBillStatusOnBackend(currentPayingBillId, 'DA_XAC_NHAN', phuongThuc, tienKhachDua, tienThoi)
+            : await createNewBillOnBackend('DA_XAC_NHAN', phuongThuc, tienKhachDua, tienThoi);
+        if (!saved) return;
+        if (!receipt.id && mockBillsArray.length > 0) receipt.id = mockBillsArray[0].id;
+        closeAllModals();
+        pendingInvoiceReceipt = receipt;
+        showPaymentStep('modal-invoice-confirm');
+    } finally {
+        if (confirmButton && document.getElementById('modal-overlay').style.display === 'flex') {
+            confirmButton.disabled = false;
+        }
+    }
+}
+
+function createPaymentReceipt(phuongThuc, tienKhachDua, tienThoi) {
+    const existingBill = currentPayingBillId
+        ? mockBillsArray.find(bill => String(bill.id) === String(currentPayingBillId))
+        : null;
+    const items = existingBill
+        ? existingBill.items
+        : cart.map(item => ({
+            id: item.id,
+            name: item.name,
+            price: Number(item.price),
+            qty: Number(item.qty)
+        }));
+    return {
+        id: existingBill?.id || '',
+        staff: existingBill?.staff || tennhanviendangnhap,
+        customer: existingBill?.customer || (currentCustomerName && currentCustomerName !== 'null' ? currentCustomerName : 'Khách lẻ'),
+        date: existingBill?.date || getFormattedDateTime(),
+        items,
+        total: existingBill ? Number(existingBill.total) : Number(totalCartPrice),
+        discount: existingBill ? 0 : Number(totalCartPrice - finalCartPrice),
+        amountDue: existingBill ? Number(existingBill.total) : Number(finalCartPrice),
+        paymentMethod: phuongThuc,
+        cashReceived: tienKhachDua,
+        cashChange: tienThoi
+    };
+}
+
+function buildInvoiceText(receipt) {
+    const paymentMethodNames = {
+        TIEN_MAT: 'Tiền mặt',
+        CHUYEN_KHOAN: 'Chuyển khoản (Demo)',
+        MOMO: 'Momo'
+    };
+    const lines = [
+        '========== HÓA ĐƠN THANH TOÁN ==========',
+        `Mã hóa đơn: ${receipt.id || 'Mới tạo'}`,
+        `Ngày tạo: ${receipt.date}`,
+        `Nhân viên: ${receipt.staff}`,
+        `Khách hàng: ${receipt.customer}`,
+        `Phương thức thanh toán: ${paymentMethodNames[receipt.paymentMethod] || receipt.paymentMethod}`,
+        '',
+        'CHI TIẾT',
+        '-----------------------------------------',
+        ...receipt.items.map(item =>
+            `${item.name} (Mã: ${item.id}) | ${item.qty} x ${formatMoney(item.price)} = ${formatMoney(item.price * item.qty)}`
+        ),
+        '-----------------------------------------',
+        `Tổng tiền hàng: ${formatMoney(receipt.total)}`,
+        `Giảm giá: ${formatMoney(receipt.discount)}`,
+        `Khách cần thanh toán: ${formatMoney(receipt.amountDue)}`
+    ];
+    if (receipt.paymentMethod === 'TIEN_MAT') {
+        lines.push(
+            `Tiền khách đưa: ${formatMoney(receipt.cashReceived)}`,
+            `Tiền thối: ${formatMoney(receipt.cashChange)}`
+        );
+    }
+    lines.push('=========================================');
+
+    return `\uFEFF${lines.join('\r\n')}`;
+}
+
+function downloadInvoiceTxt(receipt) {
+    const blob = new Blob([buildInvoiceText(receipt)], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    link.href = url;
+    link.download = `HoaDon_${receipt.id || timestamp}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function confirmInvoiceExport() {
+    if (!pendingInvoiceReceipt) return;
+    const receipt = pendingInvoiceReceipt;
+    const content = buildInvoiceText(receipt);
+    try {
+        if (window.javaBackend && typeof window.javaBackend.saveInvoiceTxt === 'function') {
+            const savedPath = window.javaBackend.saveInvoiceTxt(String(receipt.id || ''), content);
+            alert(`Đã lưu hóa đơn vào: ${savedPath}`);
+        } else {
+            downloadInvoiceTxt(receipt);
+        }
+    } catch (error) {
+        console.error('Không thể lưu hóa đơn vào thư mục ICONS:', error);
+        alert(`Không thể lưu vào ICONS: ${error.message}. Hệ thống sẽ tải file TXT về máy.`);
+        downloadInvoiceTxt(receipt);
+    }
+    pendingInvoiceReceipt = null;
+    closeAllModals();
+}
+
+function skipInvoiceExport() {
+    pendingInvoiceReceipt = null;
+    closeAllModals();
 }
 
 /* ==========================================================================
    THANH TOÁN & TÍCH ĐIỂM (TƯƠNG THÍCH ID KIỂU INTEGER)
    ========================================================================== */
 
-async function createNewBillOnBackend(trangThai, phuongThuc) {
+async function createNewBillOnBackend(trangThai, phuongThuc, tienKhachDua = null, tienThoi = null) {
     const cthdsPayload = cart.map(item => ({ 
         sanPhamId: parseInt(item.id), soLuong: item.qty, donGia: item.price }));
     
@@ -614,6 +926,8 @@ async function createNewBillOnBackend(trangThai, phuongThuc) {
         nhanVienId: finalStaffId, 
         tkTrungThanhId: khachId, // Kiểu Integer truyền xuống Backend
         tongTien: finalCartPrice, 
+        tienKhachDua,
+        tienThoi,
         trangThai: trangThai, 
         phuongThucThanhToan: phuongThuc, 
         ngayTao: getFormattedDateTime(),
@@ -626,9 +940,8 @@ async function createNewBillOnBackend(trangThai, phuongThuc) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(hoaDonDTO)
         });
-        if (!response.ok) throw new Error("Lỗi: " + response.status);
+        if (!response.ok) throw new Error(await responseErrorMessage(response, 'Không lưu được hóa đơn'));
 
-        alert("Thanh toán thành công!");
         if (window && typeof window.dispatchEvent === 'function') {
             window.dispatchEvent(new CustomEvent('dashboard:refresh'));
         }
@@ -645,13 +958,15 @@ async function createNewBillOnBackend(trangThai, phuongThuc) {
         if (document.getElementById('modal-bill-list')?.style.display === "block") {
             renderBillList();
         }
+        return true;
     } catch (e) {
         console.error(e);
-        alert("Lỗi lưu hóa đơn vào CSDL!");
+        alert(`Lỗi lưu hóa đơn vào CSDL: ${e.message}`);
+        return false;
     }
 }
 
-async function updateBillStatusOnBackend(billId, newStatus, phuongThuc) {
+async function updateBillStatusOnBackend(billId, newStatus, phuongThuc, tienKhachDua = null, tienThoi = null) {
     const bill = mockBillsArray.find(b => b.id === billId);
     if (!bill) return;
 
@@ -659,6 +974,8 @@ async function updateBillStatusOnBackend(billId, newStatus, phuongThuc) {
         id: parseInt(bill.id),
         ngayTao: bill.date, 
         tongTien: bill.total,
+        tienKhachDua,
+        tienThoi,
         trangThai: newStatus, 
         phuongThucThanhToan: phuongThuc
     };
@@ -679,18 +996,22 @@ async function updateBillStatusOnBackend(billId, newStatus, phuongThuc) {
             });
         }
 
-        if (!response.ok) throw new Error("Lỗi máy chủ");
+        if (!response.ok) throw new Error(await responseErrorMessage(response, 'Lỗi máy chủ'));
 
-        alert("Thanh toán thành công!"); 
         if (window && typeof window.dispatchEvent === 'function') {
             window.dispatchEvent(new CustomEvent('dashboard:refresh'));
         }
         closeAllModals(); 
         await loadhoadfromapi(); 
+        if (newStatus === 'DA_HUY' || newStatus === 'HUY') {
+            alert('Hủy đơn thành công!');
+        }
+        return true;
         
     } catch (e) {
         console.error(e);
-        alert("Lỗi cập nhật trạng thái thanh toán!");
+        alert(`Lỗi cập nhật trạng thái thanh toán: ${e.message}`);
+        return false;
     }
 }
 
@@ -745,6 +1066,7 @@ async function createCancelledBillOnBackend(cartData, total) {
    ========================================================================== */
 
 function closeAllModals() {
+    closeDemoQrCountdown();
     document.getElementById('modal-overlay').style.display = 'none';
     document.querySelectorAll('.modal-box').forEach(m => m.style.display = 'none');
     currentPayingBillId = null; 

@@ -64,13 +64,16 @@ function chuyentrang(trang) {
 // =====================================================
 // 2. BIẾN TOÀN CỤC & DỮ LIỆU KIỂM KÊ / ĐỐI SOÁT QUỸ CA
 // =====================================================
-const KETCA_API_URL = 'http://localhost:8080/api/ketca';
-const STORAGE_DENOM_KEY = 'POS_KETCA_DENOM_STATE';
-const STORAGE_HISTORY_KEY = 'POS_KETCA_HISTORY';
+function getKetCaApiUrl() {
+    const port = new URLSearchParams(window.location.search).get('apiPort');
+    const apiPort = /^\d{1,5}$/.test(port || '') ? port : '8080';
+    return `http://localhost:${apiPort}/api/ketca`;
+}
+const STORAGE_DENOM_KEY = 'POS_KETCA_DENOM_STATE_V2';
+const STORAGE_SHIFT_STARTED_AT = 'POS_SHIFT_STARTED_AT';
 
-// Danh sách 10 mệnh giá tiêu chuẩn (mặc định 10 tờ 500.000đ = 5.000.000đ như hình mẫu)
 const DEFAULT_DENOMINATIONS = [
-    { value: 500000, qty: 10 },
+    { value: 500000, qty: 0 },
     { value: 200000, qty: 0 },
     { value: 100000, qty: 0 },
     { value: 50000,  qty: 0 },
@@ -86,36 +89,14 @@ let denominationsState = [];
 let activeDenomIndex = 0;
 let isFreshSelection = true; // Khi vừa chọn dòng mới, bấm số sẽ nhập mới thay vì nối đuôi số cũ
 
-// Thông tin quỹ ca hiện tại (đồng bộ theo thông số mẫu)
 let shiftSummaryData = {
-    expectedCashInDrawer: 5000000, // Tổng tiền mặt hệ thống ghi nhận (gồm cả quỹ nổi)
-    cardAndQrRevenue: 3650000,     // Doanh thu thẻ / QR
-    initialFloatFund: 1000000      // Quỹ nổi ban đầu trừ lại két
+    expectedCashInDrawer: 1500000,
+    cardAndQrRevenue: 0,
+    initialFloatFund: 1500000
 };
-
-// Dữ liệu lịch sử nộp tiền các đợt mặc định
-const DEFAULT_HANDOVER_HISTORY = [
-    {
-        id: 1,
-        date: '01/01/2026',
-        time: '23:59',
-        status: 'Đã duyệt',
-        staffName: 'NGUYỄN VĂN A',
-        totalSubmit: 500000,
-        cashVnd: 300000,
-        bankTransfer: 200000
-    },
-    {
-        id: 2,
-        date: '01/01/2026',
-        time: '23:59',
-        status: 'Đã duyệt',
-        staffName: 'TRỊNH TRẦN PHƯƠNG TUẤN',
-        totalSubmit: 5000000,
-        cashVnd: 0,
-        bankTransfer: 5000000
-    }
-];
+let shiftStartedAt = localStorage.getItem(STORAGE_SHIFT_STARTED_AT);
+let ketCaApiReady = false;
+let handoverHistory = [];
 
 function formatNumberVN(amount) {
     return Number(amount || 0).toLocaleString('vi-VN');
@@ -157,33 +138,22 @@ function saveDenominationsToStorage() {
     } catch (e) {}
 }
 
-function getHandoverHistoryFromStorage() {
-    try {
-        const raw = localStorage.getItem(STORAGE_HISTORY_KEY);
-        if (raw) {
-            const parsed = JSON.parse(raw);
-            if (Array.isArray(parsed) && parsed.length > 0) {
-                return parsed;
-            }
-        }
-    } catch (e) {}
-    return DEFAULT_HANDOVER_HISTORY.map(item => ({ ...item }));
-}
-
-function saveHandoverHistoryToStorage(list) {
-    try {
-        localStorage.setItem(STORAGE_HISTORY_KEY, JSON.stringify(list));
-    } catch (e) {}
-}
-
 async function initKetCaPage() {
     loadDenominationsFromStorage();
     activeDenomIndex = 0;
     isFreshSelection = true;
-
-    // Nếu có API backend thật, tự động đồng bộ thông số quỹ ca
-    await fetchShiftSummaryFromApi();
-
+    if (!shiftStartedAt) {
+        shiftStartedAt = toLocalDateTime(new Date());
+        localStorage.setItem(STORAGE_SHIFT_STARTED_AT, shiftStartedAt);
+    }
+    try {
+        const [history] = await Promise.all([fetchHandoverHistoryFromApi(), fetchShiftSummaryFromApi()]);
+        handoverHistory = history;
+        ketCaApiReady = true;
+    } catch (error) {
+        ketCaApiReady = false;
+        alert(`Không thể tải dữ liệu kết ca từ máy chủ: ${error.message}`);
+    }
     renderDenominationTable();
     updateKeypadScreen();
     updateReconciliationSummary();
@@ -191,19 +161,26 @@ async function initKetCaPage() {
 }
 
 async function fetchShiftSummaryFromApi() {
-    try {
-        const response = await fetch(`${KETCA_API_URL}/current-shift`);
-        if (response.ok) {
-            const data = await response.json();
-            if (data) {
-                if (data.expectedCashInDrawer !== undefined) shiftSummaryData.expectedCashInDrawer = Number(data.expectedCashInDrawer);
-                if (data.cardAndQrRevenue !== undefined) shiftSummaryData.cardAndQrRevenue = Number(data.cardAndQrRevenue);
-                if (data.initialFloatFund !== undefined) shiftSummaryData.initialFloatFund = Number(data.initialFloatFund);
-            }
-        }
-    } catch (e) {
-        // Sử dụng dữ liệu mặc định khi chạy độc lập hoặc chưa bật API ketca
-    }
+    const params = new URLSearchParams({ staffId: idnhanviendangnhap, startedAt: shiftStartedAt });
+    const response = await fetch(`${getKetCaApiUrl()}/current-shift?${params}`);
+    if (!response.ok) throw new Error(await response.text() || `HTTP ${response.status}`);
+    const data = await response.json();
+    shiftSummaryData.expectedCashInDrawer = Number(data.expectedCash);
+    shiftSummaryData.cardAndQrRevenue = Number(data.bankTransfer);
+    shiftSummaryData.initialFloatFund = Number(data.floatFund);
+}
+
+async function fetchHandoverHistoryFromApi() {
+    const response = await fetch(getKetCaApiUrl());
+    if (!response.ok) throw new Error(await response.text() || `HTTP ${response.status}`);
+    const history = await response.json();
+    if (!Array.isArray(history)) throw new Error('Dữ liệu lịch sử kết ca không hợp lệ.');
+    return history;
+}
+
+function toLocalDateTime(date) {
+    const twoDigits = value => String(value).padStart(2, '0');
+    return `${date.getFullYear()}-${twoDigits(date.getMonth() + 1)}-${twoDigits(date.getDate())}T${twoDigits(date.getHours())}:${twoDigits(date.getMinutes())}:${twoDigits(date.getSeconds())}`;
 }
 
 // =====================================================
@@ -367,7 +344,7 @@ function updateReconciliationSummary() {
     const expectedCash = shiftSummaryData.expectedCashInDrawer;
 
     // Tiền mặt thực nộp bàn giao = Tiền mặt kiểm đếm - Quỹ nổi ban đầu giữ lại két
-    const actualHandoverCash = Math.max(0, totalCountedCash - floatFund);
+    const actualHandoverCash = totalCountedCash - floatFund;
     const difference = totalCountedCash - expectedCash;
 
     // Cập nhật chân bảng kiểm kê
@@ -380,12 +357,16 @@ function updateReconciliationSummary() {
     const recCardQrEl = document.getElementById('reconcile-card-qr');
     const recFloatEl = document.getElementById('reconcile-float-fund');
     const recHandoverEl = document.getElementById('reconcile-handover-cash');
+    const recTotalSubmitEl = document.getElementById('reconcile-total-submit');
+    const recExpectedCashEl = document.getElementById('reconcile-expected-cash');
     const statusPillEl = document.getElementById('reconcile-status-pill');
 
     if (recCountedEl) recCountedEl.innerText = formatCurrencyDong(totalCountedCash);
     if (recCardQrEl) recCardQrEl.innerText = formatCurrencyDong(cardQr);
     if (recFloatEl) recFloatEl.innerText = `-${formatCurrencyDong(floatFund)}`;
     if (recHandoverEl) recHandoverEl.innerHTML = `${formatNumberVN(actualHandoverCash)}<br>đ`;
+    if (recTotalSubmitEl) recTotalSubmitEl.innerText = formatCurrencyDong(actualHandoverCash + cardQr);
+    if (recExpectedCashEl) recExpectedCashEl.innerText = formatCurrencyDong(expectedCash);
 
     // Trạng thái khớp / lệch quỹ
     if (statusPillEl && footerSubEl) {
@@ -410,35 +391,44 @@ function renderHandoverHistory() {
     const countBadge = document.getElementById('history-count-badge');
     if (!container) return;
 
-    const historyList = getHandoverHistoryFromStorage();
-
     if (countBadge) {
-        const formattedCount = String(historyList.length).padStart(2, '0');
+        const formattedCount = String(handoverHistory.length).padStart(2, '0');
         countBadge.innerHTML = `${formattedCount} đợt<br>giao`;
     }
 
     container.innerHTML = '';
 
-    historyList.forEach((item, idx) => {
+    if (handoverHistory.length === 0) {
+        container.innerHTML = '<div style="text-align:center; color:#9ca3af; font-size:12px; padding:20px 0;">Chưa có biên bản bàn giao ca.</div>';
+    }
+
+    handoverHistory.forEach((item, idx) => {
+        const closedAt = item.closedAt ? new Date(item.closedAt) : null;
+        const date = closedAt && !Number.isNaN(closedAt.getTime())
+            ? closedAt.toLocaleDateString('vi-VN')
+            : '--';
+        const time = closedAt && !Number.isNaN(closedAt.getTime())
+            ? closedAt.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
+            : '--:--';
         const itemEl = document.createElement('div');
         itemEl.className = 'history-item';
         itemEl.innerHTML = `
             <div class="history-item-top">
                 <div class="history-time-group">
                     <span class="history-num-circle">${idx + 1}</span>
-                    <span class="history-date">${item.date}</span>
-                    <span class="history-clock">${item.time}</span>
+                    <span class="history-date">${date}</span>
+                    <span class="history-clock">${time}</span>
                 </div>
-                <span class="history-status-pill">✓ ${item.status || 'Đã duyệt'}</span>
+                <span class="history-status-pill ${item.cashDifference ? 'diff' : ''}">✓ ${escapeHtml(item.status || 'Đã bàn giao')}</span>
             </div>
-            <div class="history-staff-name">${item.staffName}</div>
-            <div class="history-total-submit">Tiền nộp: ${formatCurrencyVND(item.totalSubmit)}</div>
+            <div class="history-staff-name">${escapeHtml(item.staffName || 'Nhân viên')}</div>
+            <div class="history-total-submit">Tổng tiền ca: ${formatCurrencyVND(item.totalSubmit)}</div>
             <div class="history-detail-row">
-                <span>• Tiền VNĐ:</span>
-                <span>${formatCurrencyVND(item.cashVnd)}</span>
+                <span>• Lợi nhuận tiền mặt:</span>
+                <span>${formatCurrencyVND(item.cashHandover)}</span>
             </div>
             <div class="history-detail-row">
-                <span>• Ngân hàng:</span>
+                <span>• Lợi nhuận chuyển khoản:</span>
                 <span>${formatCurrencyVND(item.bankTransfer)}</span>
             </div>
         `;
@@ -504,22 +494,35 @@ function closeModalOnOutsideClick(event) {
     }
 }
 
-function openConfirmHandoverModal() {
+async function openConfirmHandoverModal() {
+    if (!ketCaApiReady) {
+        alert("Chưa kết nối được dữ liệu kết ca. Vui lòng tải lại trang khi máy chủ hoạt động.");
+        return;
+    }
+    try {
+        await fetchShiftSummaryFromApi();
+        updateReconciliationSummary();
+    } catch (error) {
+        alert(`Không thể cập nhật số liệu ca mới nhất: ${error.message}`);
+        return;
+    }
     closeAllModals();
 
     const totalCountedCash = calculateTotalCountedCash();
     const cardQr = shiftSummaryData.cardAndQrRevenue;
-    const actualHandoverCash = Math.max(0, totalCountedCash - shiftSummaryData.initialFloatFund);
+    const actualHandoverCash = totalCountedCash - shiftSummaryData.initialFloatFund;
 
     const staffEl = document.getElementById('modal-staff-name');
     const countedEl = document.getElementById('modal-counted-cash');
     const cardQrEl = document.getElementById('modal-card-qr');
     const handoverEl = document.getElementById('modal-handover-cash');
+    const expectedCashEl = document.getElementById('modal-expected-cash');
 
     if (staffEl) staffEl.innerText = tennhanviendangnhap;
     if (countedEl) countedEl.innerText = formatCurrencyDong(totalCountedCash);
     if (cardQrEl) cardQrEl.innerText = formatCurrencyDong(cardQr);
     if (handoverEl) handoverEl.innerText = formatCurrencyDong(actualHandoverCash);
+    if (expectedCashEl) expectedCashEl.innerText = formatCurrencyDong(shiftSummaryData.expectedCashInDrawer);
 
     const overlay = document.getElementById('modal-overlay');
     const modalBox = document.getElementById('modal-handover-confirm');
@@ -528,55 +531,100 @@ function openConfirmHandoverModal() {
 }
 
 async function confirmAndPrintHandover() {
-    const now = new Date();
-    const dateStr = now.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
-    const timeStr = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', hour12: false });
-
-    const totalCountedCash = calculateTotalCountedCash();
-    const actualHandoverCash = Math.max(0, totalCountedCash - shiftSummaryData.initialFloatFund);
-    const bankAmount = shiftSummaryData.cardAndQrRevenue;
-    const totalSubmitAmount = actualHandoverCash + bankAmount;
-
-    const newRecord = {
-        id: Date.now(),
-        date: dateStr,
-        time: timeStr,
-        status: 'Đã duyệt',
-        staffName: tennhanviendangnhap.toUpperCase(),
-        totalSubmit: totalSubmitAmount,
-        cashVnd: actualHandoverCash,
-        bankTransfer: bankAmount
-    };
-
-    // Gửi dữ liệu lên REST API nếu có backend
+    if (!ketCaApiReady) {
+        alert("Chưa kết nối được máy chủ; chưa thể lưu biên bản kết ca.");
+        return;
+    }
+    const confirmButton = document.querySelector('#modal-handover-confirm .btn-confirm');
+    if (confirmButton) confirmButton.disabled = true;
+    let record;
     try {
-        await fetch(KETCA_API_URL, {
+        const response = await fetch(getKetCaApiUrl(), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 staffId: idnhanviendangnhap,
-                staffName: tennhanviendangnhap,
-                countedCash: totalCountedCash,
-                cardQrRevenue: bankAmount,
-                floatFund: shiftSummaryData.initialFloatFund,
-                handoverCash: actualHandoverCash,
+                shiftStartedAt,
                 denominations: denominationsState
             })
         });
-    } catch (e) {
-        // Fallback lưu localStorage nếu chưa chạy API
+        if (!response.ok) throw new Error(await response.text() || `HTTP ${response.status}`);
+        record = await response.json();
+    } catch (error) {
+        alert(`Không thể lưu kết ca: ${error.message}`);
+        if (confirmButton) confirmButton.disabled = false;
+        return;
     }
 
-    const historyList = getHandoverHistoryFromStorage();
-    historyList.unshift(newRecord);
-    saveHandoverHistoryToStorage(historyList);
+    handoverHistory.unshift(record);
     renderHandoverHistory();
-
     closeAllModals();
 
-    if (window.javaBackend && typeof window.javaBackend.inBienBanKetCa === 'function') {
-        window.javaBackend.inBienBanKetCa(JSON.stringify(newRecord));
-    } else {
-        alert("Đã in biên bản và xác nhận bàn giao ca thành công!");
+    const receipt = createHandoverReceipt(record);
+    try {
+        if (window.javaBackend && typeof window.javaBackend.inBienBanKetCa === 'function') {
+            window.javaBackend.inBienBanKetCa(JSON.stringify(record));
+        } else {
+            downloadHandoverReceipt(receipt);
+        }
+    } catch (printError) {
+        console.error('Không thể in qua máy in được cấu hình:', printError);
+        try {
+            downloadHandoverReceipt(receipt);
+        } catch (downloadError) {
+            alert(`Ca đã được lưu nhưng không thể xuất biên bản: ${downloadError.message}`);
+        }
     }
+    localStorage.removeItem('POS_STAFF_ID');
+    localStorage.removeItem('POS_STAFF_NAME');
+    localStorage.removeItem('POS_STAFF_ROLE');
+    localStorage.removeItem(STORAGE_SHIFT_STARTED_AT);
+    localStorage.removeItem(STORAGE_DENOM_KEY);
+    setTimeout(() => chuyentrang('Login.html'), 800);
+}
+
+function createHandoverReceipt(record) {
+    const closedAt = new Date(record.closedAt);
+    const denominationLines = (record.denominations || [])
+        .map(item => `${formatCurrencyVND(item.value)} x ${item.qty} = ${formatCurrencyVND(item.value * item.qty)}`)
+        .join('\n');
+    return [
+        'BIÊN BẢN KẾT CA / BÀN GIAO TIỀN',
+        `Mã biên bản: ${record.id}`,
+        `Nhân viên: ${record.staffName}`,
+        `Bắt đầu ca: ${record.shiftStartedAt}`,
+        `Kết ca: ${closedAt.toLocaleString('vi-VN')}`,
+        '',
+        'CHI TIẾT KIỂM ĐẾM:',
+        denominationLines,
+        '',
+        `Tổng tiền mặt kiểm đếm: ${formatCurrencyVND(record.countedCash)}`,
+        `Tiền mặt hệ thống dự kiến: ${formatCurrencyVND(record.expectedCash)}`,
+        `Chênh lệch kiểm đếm: ${formatCurrencyVND(record.cashDifference)}`,
+        `Quỹ đầu ca giữ lại: ${formatCurrencyVND(record.floatFund)}`,
+        `Lợi nhuận tiền mặt bàn giao: ${formatCurrencyVND(record.cashHandover)}`,
+        `Lợi nhuận chuyển khoản: ${formatCurrencyVND(record.bankTransfer)}`,
+        `TỔNG TIỀN BÀN GIAO: ${formatCurrencyVND(record.totalSubmit)}`,
+        `Trạng thái: ${record.status}`
+    ].join('\n');
+}
+
+function downloadHandoverReceipt(receipt) {
+    const file = new Blob([`\uFEFF${receipt}`], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(file);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `bien-ban-ket-ca-${Date.now()}.txt`;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function escapeHtml(value) {
+    return String(value).replace(/[&<>"']/g, character => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+    })[character]);
 }

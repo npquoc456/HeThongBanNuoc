@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 
 import com.example.demo.constant.TrangThaiLamViec;
 import com.example.demo.constant.VaiTro;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -25,4 +26,10 @@ public class NhanVienDTO {
     private VaiTro vaiTro;
 
     private List<CTCaDTO> ctCaList;
+
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    private String matKhau;
+
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    private String xacNhanMatKhau;
 }

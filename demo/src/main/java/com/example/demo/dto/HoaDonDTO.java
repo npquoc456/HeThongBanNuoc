@@ -30,6 +30,9 @@ public class HoaDonDTO {
 
     private BigDecimal tongTien;
 
+    private BigDecimal tienKhachDua;
+    private BigDecimal tienThoi;
+
     private TrangThaiHoaDon trangThai;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")

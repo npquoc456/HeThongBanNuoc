@@ -31,6 +31,12 @@ public class HoaDon {
     @Column(name = "tong_hd", precision = 12, scale = 2)
     private BigDecimal tongTien;
 
+    @Column(name = "tien_khach_dua", precision = 12, scale = 2)
+    private BigDecimal tienKhachDua;
+
+    @Column(name = "tien_thoi", precision = 12, scale = 2)
+    private BigDecimal tienThoi;
+
     @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "trang_thai")

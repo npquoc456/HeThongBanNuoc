@@ -488,14 +488,13 @@
                     <div><b>Khung giờ:</b> <span id="swap-view-time"></span></div>
                 </div>
                 <div class="form-container">
-                    <div class="form-row"><label>Người muốn đổi cùng:</label><select id="swap-target-nv"></select></div>
                     <div class="form-row">
                         <label>Đổi sang ca:</label>
                         <select id="swap-target-ca">
-                            <option value="Ca 1 (06:30 - 12:00)">Ca 1 (06:30 - 12:00)</option>
-                            <option value="Ca 2 (12:00 - 17:30)">Ca 2 (12:00 - 17:30)</option>
-                            <option value="Ca 3 (17:30 - 23:00)">Ca 3 (17:30 - 23:00)</option>
-                            <option value="Xin nghỉ ca (OFF)">Xin nghỉ ca (OFF)</option>
+                            <option value="Ca 1|06:30|12:00">Ca 1 (06:30 - 12:00)</option>
+                            <option value="Ca 2|12:00|17:30">Ca 2 (12:00 - 17:30)</option>
+                            <option value="Ca 3|17:30|23:00">Ca 3 (17:30 - 23:00)</option>
+                            <option value="OFF||">Xin nghỉ ca (OFF)</option>
                         </select>
                     </div>
                     <div class="form-row"><label>Lý do xin đổi ca:</label><textarea id="swap-reason-input" rows="3" placeholder="Nhập lý do đổi ca..."></textarea></div>
@@ -515,6 +514,8 @@
                     <div class="form-row"><label>Điện thoại (`phone`):</label><input type="text" id="nv-form-sdt" placeholder="VD: 0902222222"></div>
                     <div class="form-row"><label>Ngày sinh (`ngay_sinh`):</label><input type="date" id="nv-form-ngaysinh"></div>
                     <div class="form-row"><label>Ngày vào làm (`ngay_vao`):</label><input type="date" id="nv-form-ngaylam"></div>
+                    <div class="form-row staff-password-row"><label>Mật khẩu:</label><input type="password" id="nv-form-password" autocomplete="new-password"></div>
+                    <div class="form-row staff-password-row"><label>Xác nhận mật khẩu:</label><input type="password" id="nv-form-password-confirm" autocomplete="new-password"></div>
                     <div class="form-row">
                         <label>Vai trò (`vai_tro`):</label>
                         <select id="nv-form-vaitro">

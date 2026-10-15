@@ -666,8 +666,11 @@ function openStaffSwapRequestModal(shift) {
     document.getElementById('swap-view-ca').innerText = `${shift.tenCa} (${dayObj.label} - ${dayObj.fullDate})`;
     document.getElementById('swap-view-time').innerText = `${shift.thoiGianBD} - ${shift.thoiGianKT}`;
     document.getElementById('swap-reason-input').value = '';
-
-    populateStaffSelect('swap-target-nv', staffList.find(n => Number(n.id) !== Number(shift.nhanVienId))?.id);
+    const targetShift = document.getElementById('swap-target-ca');
+    const currentShiftValue = `${shift.tenCa}|${shift.thoiGianBD}|${shift.thoiGianKT}`;
+    targetShift.value = Array.from(targetShift.options).some(option => option.value === currentShiftValue)
+        ? currentShiftValue
+        : targetShift.options[0].value;
 
     document.getElementById('modal-overlay').style.display = 'flex';
     document.getElementById('modal-shift-staff-swap').style.display = 'block';
@@ -679,20 +682,27 @@ function submitStaffSwapRequest() {
     if (!reason) { alert("Vui lòng nhập lý do xin đổi ca để Quản lý xét duyệt!"); return; }
 
     const fromNv = staffList.find(n => Number(n.id) === Number(currentSwapSourceAssignment.nhanVienId));
-    const targetNvId = Number(document.getElementById('swap-target-nv').value);
-    const toNv = staffList.find(n => Number(n.id) === targetNvId);
-    const targetCaText = document.getElementById('swap-target-ca').value;
+    const [targetShiftName, targetShiftStart, targetShiftEnd] = document.getElementById('swap-target-ca').value.split('|');
+    if (targetShiftName === currentSwapSourceAssignment.tenCa
+        && targetShiftStart === currentSwapSourceAssignment.thoiGianBD
+        && targetShiftEnd === currentSwapSourceAssignment.thoiGianKT) {
+        alert("Vui lòng chọn ca khác ca hiện tại.");
+        return;
+    }
     const dayObj = getWeekDaysArray(currentWeekStart)[Number(currentSwapSourceAssignment.dayIndex)] || getWeekDaysArray(currentWeekStart)[0];
 
     const newReq = {
-        id: 'SW-' + Math.floor(100 + Math.random() * 900),
+        id: `SW-${Date.now()}`,
         timeAgo: 'Vừa xong',
         fromNvId: currentSwapSourceAssignment.nhanVienId,
         fromNvName: fromNv ? fromNv.tenNhanVien : 'Nhân viên',
         fromShiftText: `${currentSwapSourceAssignment.tenCa} (${dayObj.fullDate})`,
-        toNvId: targetNvId,
-        toNvName: toNv ? toNv.tenNhanVien : 'Nhân sự khác',
-        toShiftText: targetCaText.split('(')[0].trim(),
+        toShiftName: targetShiftName,
+        toShiftStart: targetShiftStart,
+        toShiftEnd: targetShiftEnd,
+        toShiftText: targetShiftName === 'OFF'
+            ? 'Xin nghỉ ca (OFF)'
+            : `${targetShiftName} (${targetShiftStart} - ${targetShiftEnd})`,
         reason: `Lý do: ${reason}`,
         status: 'PENDING',
         assignmentId: currentSwapSourceAssignment.id
@@ -744,7 +754,7 @@ function renderSwapRequests() {
                 <div class="swap-people">
                     <div><div>${req.fromNvName}</div><div style="font-size:10.5px; color:#e11d48;">${req.fromShiftText}</div></div>
                     <span style="color:#9ca3af;">➔</span>
-                    <div style="text-align:right;"><div>${req.toNvName}</div><div style="font-size:10.5px; color:#047857;">Đổi sang ${req.toShiftText}</div></div>
+                    <div style="text-align:right;"><div>Ca được yêu cầu</div><div style="font-size:10.5px; color:#047857;">Đổi sang ${req.toShiftText}</div></div>
                 </div>
                 <div class="swap-reason">"${req.reason}"</div>
                 ${actionHtml}
@@ -756,14 +766,20 @@ function renderSwapRequests() {
 function handleSwapDecision(reqId, isApproved) {
     const req = swapRequests.find(r => r.id === reqId);
     if (!req) return;
-    req.status = isApproved ? 'APPROVED' : 'REJECTED';
     if (isApproved && req.assignmentId) {
         const shift = scheduleAssignments.find(a => a.id === req.assignmentId);
-        if (shift && req.toNvId) shift.nhanVienId = req.toNvId;
+        if (shift && req.toShiftName === 'OFF') {
+            scheduleAssignments = scheduleAssignments.filter(a => a.id !== req.assignmentId);
+        } else if (shift) {
+            shift.tenCa = req.toShiftName;
+            shift.thoiGianBD = req.toShiftStart;
+            shift.thoiGianKT = req.toShiftEnd;
+        }
         saveScheduleToLocal();
         renderCalendarMatrix();
         updateRealtimeWorkingStaffWidget();
     }
+    req.status = isApproved ? 'APPROVED' : 'REJECTED';
     localStorage.setItem('POS_SWAP_REQUESTS', JSON.stringify(swapRequests));
     renderSwapRequests();
 }
@@ -851,6 +867,9 @@ function openCreateStaffModal() {
     document.getElementById('nv-form-ngaylam').value = new Date().toISOString().split('T')[0];
     document.getElementById('nv-form-vaitro').value = 'NHANVIEN';
     document.getElementById('nv-form-trangthai').value = 'DANG_LAM_VIEC';
+    document.getElementById('nv-form-password').value = '';
+    document.getElementById('nv-form-password-confirm').value = '';
+    document.querySelectorAll('.staff-password-row').forEach(row => row.style.display = '');
 
     document.getElementById('modal-overlay').style.display = 'flex';
     document.getElementById('modal-staff-form').style.display = 'block';
@@ -872,6 +891,9 @@ function openEditStaffModal(id) {
     document.getElementById('nv-form-ngaylam').value = nv.ngayLamViec || '2025-01-01';
     document.getElementById('nv-form-vaitro').value = nv.vaiTro || 'NHANVIEN';
     document.getElementById('nv-form-trangthai').value = nv.trangThaiLamViec || 'DANG_LAM_VIEC';
+    document.getElementById('nv-form-password').value = '';
+    document.getElementById('nv-form-password-confirm').value = '';
+    document.querySelectorAll('.staff-password-row').forEach(row => row.style.display = 'none');
 
     document.getElementById('modal-overlay').style.display = 'flex';
     document.getElementById('modal-staff-form').style.display = 'block';
@@ -885,8 +907,15 @@ async function submitStaffForm() {
     const ngayLamViec = document.getElementById('nv-form-ngaylam').value;
     const vaiTro = document.getElementById('nv-form-vaitro').value;
     const trangThaiLamViec = document.getElementById('nv-form-trangthai').value;
+    const matKhau = document.getElementById('nv-form-password').value;
+    const xacNhanMatKhau = document.getElementById('nv-form-password-confirm').value;
 
     if (!tenNhanVien) { alert("Vui lòng nhập họ tên nhân viên!"); return; }
+    if (!currentEditingStaffId && !matKhau) { alert("Vui lòng tạo mật khẩu cho nhân viên!"); return; }
+    if (!currentEditingStaffId && matKhau !== xacNhanMatKhau) {
+        alert("Mật khẩu và xác nhận mật khẩu không khớp!");
+        return;
+    }
 
     const dto = { tenNhanVien, email, sdt, ngaySinh, ngayLamViec, vaiTro, trangThaiLamViec };
 
@@ -903,9 +932,9 @@ async function submitStaffForm() {
             const res = await fetch(API_NV_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(dto)
+                body: JSON.stringify({ ...dto, matKhau, xacNhanMatKhau })
             });
-            if (!res.ok) throw new Error(await res.text());
+            if (!res.ok) throw new Error(await res.text() || `HTTP ${res.status}`);
         }
         closeAllModals();
         await loadAllDataFromApi();

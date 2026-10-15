@@ -656,6 +656,7 @@
             align-items: center;
             gap: 4px;
         }
+        .history-status-pill.diff { background: #fff1f2; border-color: #fecdd3; color: #be123c; }
 
         .history-staff-name {
             font-size: 13px;
@@ -913,7 +914,7 @@
                                 <span class="denom-footer-title">TỔNG TIỀN MẶT KIỂM ĐẾM:</span>
                                 <span class="denom-footer-sub" id="denom-footer-subtext">Khớp với kiểm kê thực tế</span>
                             </div>
-                            <div class="denom-footer-amount" id="total-counted-cash">5.000.000 đ</div>
+                            <div class="denom-footer-amount" id="total-counted-cash">1.500.000 đ</div>
                         </div>
                     </div>
 
@@ -948,11 +949,11 @@
                             <div class="screen-row-mid">
                                 <span class="screen-qty-label">Số tờ:</span>
                                 <div class="screen-qty-val-wrap">
-                                    <span class="screen-qty-number" id="screen-qty-number">10</span>
+                                    <span class="screen-qty-number" id="screen-qty-number">3</span>
                                     <span class="screen-qty-unit">tờ</span>
                                 </div>
                             </div>
-                            <div class="screen-row-bot" id="screen-subtotal-text">= 5.000.000 đ</div>
+                            <div class="screen-row-bot" id="screen-subtotal-text">= 1.500.000 đ</div>
                         </div>
 
                         <div class="keypad-grid">
@@ -1022,20 +1023,28 @@
                             <div class="reconcile-summary-box">
                                 <div class="reconcile-line">
                                     <span>Tiền mặt kiểm đếm:</span>
-                                    <span class="val" id="reconcile-counted-cash">5.000.000 đ</span>
+                                    <span class="val" id="reconcile-counted-cash">1.500.000 đ</span>
                                 </div>
                                 <div class="reconcile-line">
-                                    <span>Doanh thu thẻ / QR:</span>
-                                    <span class="val" id="reconcile-card-qr">3.650.000 đ</span>
+                                    <span>Tiền mặt hệ thống dự kiến:</span>
+                                    <span class="val" id="reconcile-expected-cash">1.500.000 đ</span>
+                                </div>
+                                <div class="reconcile-line">
+                                    <span>Lợi nhuận chuyển khoản:</span>
+                                    <span class="val" id="reconcile-card-qr">0 đ</span>
                                 </div>
                                 <div class="reconcile-line">
                                     <span>Quỹ nổi ban đầu trừ lại két:</span>
-                                    <span class="val text-red" id="reconcile-float-fund">-1.000.000 đ</span>
+                                    <span class="val text-red" id="reconcile-float-fund">-1.500.000 đ</span>
                                 </div>
                                 <div class="reconcile-divider"></div>
                                 <div class="reconcile-final-row">
-                                    <span class="reconcile-final-label">Tiền mặt thực nộp bàn<br>giao:</span>
-                                    <span class="reconcile-final-val" id="reconcile-handover-cash">4.000.000<br>đ</span>
+                                    <span class="reconcile-final-label">Lợi nhuận tiền mặt bàn giao:</span>
+                                    <span class="reconcile-final-val" id="reconcile-handover-cash">0<br>đ</span>
+                                </div>
+                                <div class="reconcile-line" style="font-weight: 800;">
+                                    <span>Tổng tiền bàn giao ca:</span>
+                                    <span class="val" id="reconcile-total-submit">0 đ</span>
                                 </div>
                             </div>
                         </div>
@@ -1053,7 +1062,7 @@
                                     </div>
                                     <span class="card-title-text">Lịch Sử Nộp Tiền Các<br>Đợt</span>
                                 </div>
-                                <div class="history-count-badge" id="history-count-badge">02 đợt<br>giao</div>
+                                <div class="history-count-badge" id="history-count-badge">00 đợt<br>giao</div>
                             </div>
 
                             <div class="history-list" id="handover-history-list">
@@ -1091,7 +1100,7 @@
                                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
                                 <polyline points="9 12 11 14 15 10"></polyline>
                             </svg>
-                            <span>Quy tắc: Tiền mặt bàn giao gồm Quỹ nổi giữ lại + Tổng tiền mặt thực tế.</span>
+                            <span>Quy tắc: Lợi nhuận tiền mặt = tiền kiểm đếm - quỹ đầu ca 1.500.000đ.</span>
                         </div>
                     </div>
 
@@ -1129,15 +1138,19 @@
                         </div>
                         <div style="background: #f9fafb; border-radius: 15px; padding: 16px 10px; border: 1px solid #e5e7eb; display: flex; flex-direction: column; align-items: center; gap: 6px;">
                             <span style="font-size: 12.5px; font-weight: bold; color: #666;">Tổng tiền mặt kiểm đếm</span>
-                            <span id="modal-counted-cash" style="font-size: 16px; font-weight: 800; color: #b45309;">5.000.000 đ</span>
+                            <span id="modal-counted-cash" style="font-size: 16px; font-weight: 800; color: #b45309;">1.500.000 đ</span>
                         </div>
                         <div style="background: #f9fafb; border-radius: 15px; padding: 16px 10px; border: 1px solid #e5e7eb; display: flex; flex-direction: column; align-items: center; gap: 6px;">
-                            <span style="font-size: 12.5px; font-weight: bold; color: #666;">Doanh thu thẻ / QR</span>
-                            <span id="modal-card-qr" style="font-size: 16px; font-weight: 800; color: #111;">3.650.000 đ</span>
+                            <span style="font-size: 12.5px; font-weight: bold; color: #666;">Tiền mặt hệ thống dự kiến</span>
+                            <span id="modal-expected-cash" style="font-size: 16px; font-weight: 800; color: #111;">1.500.000 đ</span>
+                        </div>
+                        <div style="background: #f9fafb; border-radius: 15px; padding: 16px 10px; border: 1px solid #e5e7eb; display: flex; flex-direction: column; align-items: center; gap: 6px;">
+                            <span style="font-size: 12.5px; font-weight: bold; color: #666;">Lợi nhuận chuyển khoản</span>
+                            <span id="modal-card-qr" style="font-size: 16px; font-weight: 800; color: #111;">0 đ</span>
                         </div>
                         <div style="background: #0f5132; color: white; border-radius: 15px; padding: 16px 10px; display: flex; flex-direction: column; align-items: center; gap: 6px;">
-                            <span style="font-size: 12.5px; font-weight: bold;">Tiền mặt thực nộp</span>
-                            <span id="modal-handover-cash" style="font-size: 17px; font-weight: 800;">4.000.000 đ</span>
+                            <span style="font-size: 12.5px; font-weight: bold;">Tiền mặt thực bàn giao</span>
+                            <span id="modal-handover-cash" style="font-size: 17px; font-weight: 800;">0 đ</span>
                         </div>
                     </div>
 

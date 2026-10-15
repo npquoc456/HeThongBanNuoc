@@ -43,8 +43,12 @@ public class NhanVienController {
     }
 
     @PostMapping
-    public ResponseEntity<NhanVienDTO> createNhanVien(@RequestBody NhanVienDTO dto) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(nhanVienService.createNhanVien(dto));
+    public ResponseEntity<?> createNhanVien(@RequestBody NhanVienDTO dto) {
+        try {
+            return ResponseEntity.status(HttpStatus.CREATED).body(nhanVienService.createNhanVien(dto));
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body(ex.getMessage());
+        }
     }
 
     @PutMapping("/{id}")

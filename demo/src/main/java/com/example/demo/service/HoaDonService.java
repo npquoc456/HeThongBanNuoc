@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.ArrayList;
+import java.math.BigDecimal;
 
 import com.example.demo.dto.HoaDonDTO;
 import com.example.demo.dto.CTHDDTO;
@@ -51,6 +52,7 @@ public class HoaDonService {
     @Transactional
     public HoaDonDTO createHoaDon(HoaDonDTO dto) {
         HoaDon hoaDon = mapToEntity(dto);
+        validateCashPayment(hoaDon);
         HoaDon savedHoaDon = hoaDonRepository.save(hoaDon);
 
         // ĐỔI THÀNH getCTHDs()
@@ -90,10 +92,30 @@ public class HoaDonService {
         HoaDon existingHoaDon = hoaDonRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn có id: " + id));
 
-        existingHoaDon.setNgayTao(dto.getNgayTao());
-        existingHoaDon.setTongTien(dto.getTongTien());
-        existingHoaDon.setTrangThai(dto.getTrangThai());
-        existingHoaDon.setPhuongThucThanhToan(dto.getPhuongThucThanhToan());
+        HoaDon paymentToValidate = new HoaDon();
+        paymentToValidate.setTongTien(dto.getTongTien() != null ? dto.getTongTien() : existingHoaDon.getTongTien());
+        paymentToValidate.setTrangThai(dto.getTrangThai());
+        paymentToValidate.setPhuongThucThanhToan(
+                dto.getPhuongThucThanhToan() != null
+                        ? dto.getPhuongThucThanhToan()
+                        : existingHoaDon.getPhuongThucThanhToan());
+        paymentToValidate.setTienKhachDua(dto.getTienKhachDua());
+        paymentToValidate.setTienThoi(dto.getTienThoi());
+        validateCashPayment(paymentToValidate);
+
+        if (dto.getNgayTao() != null) existingHoaDon.setNgayTao(dto.getNgayTao());
+        if (dto.getTongTien() != null) existingHoaDon.setTongTien(dto.getTongTien());
+        if (dto.getTrangThai() != null) existingHoaDon.setTrangThai(dto.getTrangThai());
+        if (dto.getPhuongThucThanhToan() != null) {
+            existingHoaDon.setPhuongThucThanhToan(dto.getPhuongThucThanhToan());
+        }
+        if (dto.getPhuongThucThanhToan() == null) {
+            if (dto.getTienKhachDua() != null) existingHoaDon.setTienKhachDua(dto.getTienKhachDua());
+            if (dto.getTienThoi() != null) existingHoaDon.setTienThoi(dto.getTienThoi());
+        } else {
+            existingHoaDon.setTienKhachDua(dto.getTienKhachDua());
+            existingHoaDon.setTienThoi(dto.getTienThoi());
+        }
 
         HoaDon updatedHoaDon = hoaDonRepository.save(existingHoaDon);
         return mapToDTO(updatedHoaDon);
@@ -110,6 +132,8 @@ public class HoaDonService {
         dto.setId(entity.getId());
         dto.setNgayTao(entity.getNgayTao());
         dto.setTongTien(entity.getTongTien());
+        dto.setTienKhachDua(entity.getTienKhachDua());
+        dto.setTienThoi(entity.getTienThoi());
         dto.setTrangThai(entity.getTrangThai());
         dto.setPhuongThucThanhToan(entity.getPhuongThucThanhToan());
         
@@ -148,6 +172,8 @@ public class HoaDonService {
         entity.setId(dto.getId());
         entity.setNgayTao(dto.getNgayTao());
         entity.setTongTien(dto.getTongTien());
+        entity.setTienKhachDua(dto.getTienKhachDua());
+        entity.setTienThoi(dto.getTienThoi());
         entity.setTrangThai(dto.getTrangThai());
         entity.setPhuongThucThanhToan(dto.getPhuongThucThanhToan());
         
@@ -161,5 +187,25 @@ public class HoaDonService {
         }
 
         return entity;
+    }
+
+    private void validateCashPayment(HoaDon hoaDon) {
+        if (hoaDon.getTrangThai() != com.example.demo.constant.TrangThaiHoaDon.DA_XAC_NHAN
+                && hoaDon.getTrangThai() != com.example.demo.constant.TrangThaiHoaDon.DA_THANH_TOAN) {
+            return;
+        }
+        if (hoaDon.getPhuongThucThanhToan() != com.example.demo.constant.PhuongThucThanhToan.TIEN_MAT) {
+            return;
+        }
+        BigDecimal due = hoaDon.getTongTien();
+        BigDecimal received = hoaDon.getTienKhachDua();
+        BigDecimal change = hoaDon.getTienThoi();
+        if (due == null || received == null || change == null
+                || received.signum() < 0 || change.signum() < 0
+                || received.stripTrailingZeros().scale() > 0 || change.stripTrailingZeros().scale() > 0
+                || received.compareTo(due) < 0
+                || received.subtract(due).compareTo(change) != 0) {
+            throw new IllegalArgumentException("Tiền khách đưa không hợp lệ hoặc tiền thối không khớp hóa đơn.");
+        }
     }
 }

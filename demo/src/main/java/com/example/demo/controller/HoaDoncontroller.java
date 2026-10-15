@@ -50,12 +50,14 @@ public class HoaDoncontroller {
     }
 
     @PostMapping
-    public ResponseEntity<HoaDonDTO> createHoaDon(@RequestBody HoaDonDTO hoaDonDTO){
+    public ResponseEntity<?> createHoaDon(@RequestBody HoaDonDTO hoaDonDTO){
         try {
             System.out.println("[HoaDoncontroller] POST /api/hoadon payload: " + hoaDonDTO);
             HoaDonDTO created = hoaDonService.createHoaDon(hoaDonDTO);
             System.out.println("[HoaDoncontroller] created id: " + (created==null? "null": created.getId()));
             return ResponseEntity.ok(created);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(500).build();
@@ -64,9 +66,13 @@ public class HoaDoncontroller {
 
 
     @PutMapping("/{id}")
-    public ResponseEntity<HoaDonDTO> updateHoaDon(@PathVariable("id") Integer id, @RequestBody HoaDonDTO hoaDonDTO){
-        HoaDonDTO updatedHoaDon = hoaDonService.updateHoaDon(id, hoaDonDTO);
-        return ResponseEntity.ok(updatedHoaDon);
+    public ResponseEntity<?> updateHoaDon(@PathVariable("id") Integer id, @RequestBody HoaDonDTO hoaDonDTO){
+        try {
+            HoaDonDTO updatedHoaDon = hoaDonService.updateHoaDon(id, hoaDonDTO);
+            return ResponseEntity.ok(updatedHoaDon);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @DeleteMapping("/{id}")

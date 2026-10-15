@@ -1,15 +1,14 @@
 package com.example.demo.repository;
 
 import com.example.demo.constant.TrangThaiHoaDon;
+import com.example.demo.constant.PhuongThucThanhToan;
 import com.example.demo.entity.HoaDon;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-
 import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -65,5 +64,13 @@ public interface HoaDonRepository
 
         @Param("endDate")
         LocalDateTime endDate
+    );
+
+    List<HoaDon> findByNhanVien_IdAndTrangThaiInAndPhuongThucThanhToanAndNgayTaoGreaterThanEqualAndNgayTaoLessThanEqual(
+            Integer staffId,
+            List<TrangThaiHoaDon> trangThais,
+            PhuongThucThanhToan phuongThuc,
+            LocalDateTime startDate,
+            LocalDateTime endDate
     );
 }

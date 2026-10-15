@@ -1,6 +1,11 @@
 package com.example.demo;
 
 import java.net.ServerSocket;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,6 +48,10 @@ public class MainApp extends Application {
             selectedPort = BACKUP_PORT;
             System.out.println("8080 đã được sử dụng -> chuyển sang 8082");
         }
+    }
+
+    private String frontendUrl(String page) {
+        return baseUrl + page + "?apiPort=" + selectedPort;
     }
 
     private boolean isPortAvailable(int port) {
@@ -112,10 +121,10 @@ public class MainApp extends Application {
                         Thread.currentThread().interrupt();
                     }
                 }
-                Platform.runLater(() -> webEngine.load(baseUrl + "Login.html"));
+                Platform.runLater(() -> webEngine.load(frontendUrl("Login.html")));
             }).start();
         } else {
-            webEngine.load(baseUrl + "Login.html");
+            webEngine.load(frontendUrl("Login.html"));
         }
 
         Scene scene = new Scene(webView, 1440, 1024);
@@ -183,7 +192,35 @@ public class MainApp extends Application {
         }
 
         public void loadTrang(String trang) {
-            Platform.runLater(() -> webEngine.load(baseUrl + trang));
+            Platform.runLater(() -> webEngine.load(frontendUrl(trang)));
+        }
+
+        public String saveInvoiceTxt(String invoiceId, String content) {
+            if (content == null || content.isBlank()) {
+                throw new IllegalArgumentException("Nội dung hóa đơn không được để trống.");
+            }
+            String safeInvoiceId = invoiceId == null
+                    ? ""
+                    : invoiceId.replaceAll("[^A-Za-z0-9_-]", "_");
+            if (safeInvoiceId.isBlank()) {
+                safeInvoiceId = String.valueOf(System.currentTimeMillis());
+            }
+
+            Path workingDirectory = Path.of(System.getProperty("user.dir")).toAbsolutePath();
+            Path iconsDirectory = workingDirectory.resolve("ICONS");
+            Path invoiceFile = iconsDirectory.resolve("HoaDon_" + safeInvoiceId + ".txt");
+            try {
+                Files.createDirectories(iconsDirectory);
+                Files.writeString(
+                        invoiceFile,
+                        content,
+                        StandardCharsets.UTF_8,
+                        StandardOpenOption.CREATE,
+                        StandardOpenOption.TRUNCATE_EXISTING);
+                return invoiceFile.toString();
+            } catch (IOException ex) {
+                throw new IllegalStateException("Không thể lưu hóa đơn vào thư mục ICONS.", ex);
+            }
         }
     }
 }

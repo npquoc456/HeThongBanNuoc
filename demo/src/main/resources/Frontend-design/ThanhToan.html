@@ -201,6 +201,27 @@
             position: absolute; top: 20px; right: 20px; width: 25px; height: 25px; background: #ff0000;
             border-radius: 50%; cursor: pointer; box-shadow: inset 0 2px 4px rgba(0,0,0,0.2); z-index: 10;
         }
+        #modal-cash-payment, #modal-bank-payment {
+            width: 520px; padding: 38px; text-align: center;
+        }
+        .payment-step-total { margin: 18px 0; font-size: 25px; font-weight: 800; color: #146c43; }
+        .payment-step-input {
+            width: 100%; padding: 14px 16px; border: 1px solid #cbd5e1; border-radius: 12px;
+            font-size: 21px; text-align: center; margin-bottom: 12px;
+        }
+        .payment-step-change { font-size: 18px; font-weight: 700; margin: 10px 0 20px; }
+        .payment-step-actions { display: flex; justify-content: center; flex-wrap: wrap; gap: 14px; margin-top: 20px; }
+        .payment-step-actions button {
+            padding: 12px 20px; border: 0; border-radius: 12px; color: white; font-weight: 800; cursor: pointer;
+        }
+        .payment-step-cancel { background: #64748b; }
+        .payment-step-confirm { background: #146c43; }
+        .payment-step-confirm:disabled { background: #9ca3af; cursor: not-allowed; }
+        .payment-qr-error { color: #b91c1c !important; }
+        #payment-demo-qr { width: 260px; height: 260px; display: block; margin: 12px auto; }
+        #payment-qr-message { min-height: 22px; color: #475569; font-size: 13px; }
+        #payment-qr-countdown { font-weight: 800; color: #b45309; margin: 8px 0; }
+        #modal-invoice-confirm { width: 480px; padding: 38px; text-align: center; }
 
         #modal-tichdiem { width: 520px; min-height: 360px; height: auto; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 40px; }
         #modal-tichdiem h2 { text-align: center; font-size: 20px; margin-bottom: 15px; }
@@ -446,6 +467,67 @@
                         <div class="total-row"><span>GIẢM GIÁ:</span><span id="receipt-discount">0</span></div>
                         <div class="total-row main-total"><span>THÀNH TIỀN:</span><span id="receipt-final">0</span></div>
                     </div>
+                </div>
+            </div>
+
+            <div id="modal-cash-payment" class="modal-box">
+                <div class="modal-close-btn" onclick="closeAllModals()"></div>
+                <h2>Thanh toán tiền mặt</h2>
+                <div>Số tiền khách cần thanh toán</div>
+                <div id="cash-payment-total" class="payment-step-total">0 ₫</div>
+                <label for="cash-received-input">Nhập số tiền khách đưa</label>
+                <input id="cash-received-input" class="payment-step-input" type="text" inputmode="numeric"
+                       oninput="formatCashReceivedInput(this)" placeholder="Số tiền khách đưa">
+                <div class="payment-step-change">Tiền thối: <span id="cash-change-preview">0 ₫</span></div>
+                <div class="payment-step-actions">
+                    <button class="payment-step-cancel" onclick="returnToPaymentMethodSelection()">Đổi phương thức</button>
+                    <button class="payment-step-cancel" onclick="cancelPaymentFromStep()">Hủy đơn</button>
+                    <button id="cash-payment-confirm" class="payment-step-confirm" onclick="confirmCashPayment()" disabled>
+                        Xác nhận đã thu tiền
+                    </button>
+                </div>
+            </div>
+
+            <div id="modal-bank-payment" class="modal-box">
+                <div class="modal-close-btn" onclick="closeAllModals()"></div>
+                <h2>Quét mã QR thanh toán (Demo)</h2>
+                <div id="bank-payment-total" class="payment-step-total">0 ₫</div>
+                <img id="payment-demo-qr" src="ICONS/QRthanhtoan.png" alt="Mã QR thanh toán demo">
+                <div id="payment-qr-message">Mã QR demo. Nhấn xác nhận bên dưới để giả lập thanh toán thành công.</div>
+                <div id="payment-qr-countdown">Mã QR hết hạn sau 01:00</div>
+                <p style="font-size:13px; color:#64748b; margin-top:10px;">
+                    Đây là mã QR mô phỏng, không tạo giao dịch ngân hàng thật. Xác nhận sẽ luôn giả lập thanh toán thành công.
+                </p>
+                <div class="payment-step-actions">
+                    <button class="payment-step-cancel" onclick="returnToPaymentMethodSelection()">Đổi phương thức</button>
+                    <button class="payment-step-cancel" onclick="cancelPaymentFromStep()">Hủy đơn</button>
+                    <button id="bank-qr-refresh" class="payment-step-cancel" onclick="regenerateDemoQr()" disabled>
+                        Tạo mã khác
+                    </button>
+                    <button id="bank-payment-confirm" class="payment-step-confirm" onclick="confirmDemoBankPayment()">
+                        Xác nhận thành công (Demo)
+                    </button>
+                </div>
+            </div>
+
+            <div id="modal-momo-payment" class="modal-box">
+                <div class="modal-close-btn" onclick="closeAllModals()"></div>
+                <h2>Thanh toán MoMo</h2>
+                <div>Số tiền cần thanh toán</div>
+                <div id="momo-payment-total" class="payment-step-total">0 ₫</div>
+                <div class="payment-step-actions">
+                    <button class="payment-step-cancel" onclick="returnToPaymentMethodSelection()">Đổi phương thức</button>
+                    <button class="payment-step-cancel" onclick="cancelPaymentFromStep()">Hủy đơn</button>
+                    <button class="payment-step-confirm" onclick="confirmMomoPayment()">Xác nhận đã thanh toán</button>
+                </div>
+            </div>
+
+            <div id="modal-invoice-confirm" class="modal-box">
+                <h2>Thanh toán thành công</h2>
+                <p>Bạn có muốn xuất hóa đơn TXT và lưu vào thư mục ICONS không?</p>
+                <div class="payment-step-actions">
+                    <button class="payment-step-cancel" onclick="skipInvoiceExport()">Không in</button>
+                    <button class="payment-step-confirm" onclick="confirmInvoiceExport()">Có, in hóa đơn</button>
                 </div>
             </div>
 

@@ -46,6 +46,13 @@ public class NhanVienService {
     // 4. Thêm nhân viên mới
     @Transactional
     public NhanVienDTO createNhanVien(NhanVienDTO dto) {
+        if (dto.getMatKhau() == null || dto.getMatKhau().isBlank()) {
+            throw new IllegalArgumentException("Mật khẩu không được để trống.");
+        }
+        if (!dto.getMatKhau().equals(dto.getXacNhanMatKhau())) {
+            throw new IllegalArgumentException("Mật khẩu xác nhận không khớp.");
+        }
+
         NhanVien nv = new NhanVien();
         nv.setHoTen(dto.getTenNhanVien());
         nv.setEmail(dto.getEmail());
@@ -54,8 +61,7 @@ public class NhanVienService {
         nv.setNgayLamViec(dto.getNgayLamViec() != null ? dto.getNgayLamViec() : LocalDate.now());
         nv.setTrangThaiLamViec(dto.getTrangThaiLamViec() != null ? dto.getTrangThaiLamViec() : TrangThaiLamViec.DANG_LAM_VIEC);
         nv.setVaiTro(dto.getVaiTro() != null ? dto.getVaiTro() : VaiTro.NHANVIEN);
-        // Mật khẩu mặc định khi tạo nhân viên mới trên hệ thống POS
-        nv.setMatKhau("123456");
+        nv.setMatKhau(dto.getMatKhau());
 
         NhanVien saved = nhanVienRepository.save(nv);
         return mapToDTO(saved);

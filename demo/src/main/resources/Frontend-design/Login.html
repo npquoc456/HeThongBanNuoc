@@ -347,6 +347,10 @@ loginForm.addEventListener("submit", async function (e) {
             
             // >>> BỔ SUNG DÒNG NÀY ĐỂ LƯU CHÍNH XÁC VAI TRÒ (ADMIN / NHANVIEN) <<<
             localStorage.setItem('POS_STAFF_ROLE', userData.vaiTro);
+            const now = new Date();
+            const twoDigits = value => String(value).padStart(2, '0');
+            localStorage.setItem('POS_SHIFT_STARTED_AT',
+                `${now.getFullYear()}-${twoDigits(now.getMonth() + 1)}-${twoDigits(now.getDate())}T${twoDigits(now.getHours())}:${twoDigits(now.getMinutes())}:${twoDigits(now.getSeconds())}`);
 
             if (window.javaBackend) {
                 window.javaBackend.loadTrang("Dashboard.html"); 

@@ -1,4 +1,44 @@
 
+-- Chọn database MayBanNuoc trên kết nối MySQL trước khi chạy script này.
+
+SET @add_tien_khach_dua = IF(
+    (SELECT COUNT(*) FROM information_schema.COLUMNS
+     WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'hoadon' AND COLUMN_NAME = 'tien_khach_dua') = 0,
+    'ALTER TABLE hoadon ADD COLUMN tien_khach_dua DECIMAL(12,2) NULL',
+    'SELECT 1'
+);
+PREPARE stmt_add_tien_khach_dua FROM @add_tien_khach_dua;
+EXECUTE stmt_add_tien_khach_dua;
+DEALLOCATE PREPARE stmt_add_tien_khach_dua;
+
+SET @add_tien_thoi = IF(
+    (SELECT COUNT(*) FROM information_schema.COLUMNS
+     WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'hoadon' AND COLUMN_NAME = 'tien_thoi') = 0,
+    'ALTER TABLE hoadon ADD COLUMN tien_thoi DECIMAL(12,2) NULL',
+    'SELECT 1'
+);
+PREPARE stmt_add_tien_thoi FROM @add_tien_thoi;
+EXECUTE stmt_add_tien_thoi;
+DEALLOCATE PREPARE stmt_add_tien_thoi;
+
+CREATE TABLE IF NOT EXISTS ketca (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    staff_id INT NOT NULL,
+    staff_name VARCHAR(100) NOT NULL,
+    shift_started_at DATETIME NOT NULL,
+    closed_at DATETIME NOT NULL,
+    counted_cash BIGINT NOT NULL,
+    expected_cash BIGINT NOT NULL DEFAULT 0,
+    cash_difference BIGINT NOT NULL DEFAULT 0,
+    float_fund BIGINT NOT NULL,
+    cash_handover BIGINT NOT NULL,
+    bank_transfer BIGINT NOT NULL,
+    total_submit BIGINT NOT NULL,
+    denominations_json TEXT NOT NULL,
+    CONSTRAINT uk_ketca_staff_started UNIQUE (staff_id, shift_started_at),
+    INDEX idx_ketca_closed_at (closed_at)
+);
+
 INSERT INTO calam(id,ten_ca,thoi_gian_bd,thoi_gian_kt)
 VALUES
 (1,'Ca sáng','07:00','11:00'),
