@@ -12,6 +12,7 @@ import com.example.demo.entity.CTHDid;
 public interface CTHDReponsitory extends JpaRepository<CTHD, CTHDid> {
 
     List<CTHD> findByHoaDonId(Integer hoaDonId);
+    List<CTHD> findByHoaDon_Id(Integer hoaDonId);
 
     @Query("""
         SELECT new com.example.demo.dto.TopProductDTO(

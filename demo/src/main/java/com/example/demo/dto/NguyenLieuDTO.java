@@ -13,5 +13,6 @@ public class NguyenLieuDTO {
     private String tenNL;
     private String donVi;
     private double soLuong;
+    private double soLuongToiThieu;
     private TrangThaiVatLieu trangThai;
 }

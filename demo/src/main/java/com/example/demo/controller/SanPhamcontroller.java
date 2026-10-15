@@ -39,13 +39,21 @@ public class SanPhamcontroller {
      }
 
      @PostMapping
-     public ResponseEntity<SanPhamDTO> createSanPham(@RequestBody SanPhamDTO sanPhamDTO){
-          return ResponseEntity.status(HttpStatus.CREATED).body(sanPhamService.createSanPham(sanPhamDTO));
+     public ResponseEntity<?> createSanPham(@RequestBody SanPhamDTO sanPhamDTO){
+          try {
+               return ResponseEntity.status(HttpStatus.CREATED).body(sanPhamService.createSanPham(sanPhamDTO));
+          } catch (IllegalArgumentException ex) {
+               return ResponseEntity.badRequest().body(ex.getMessage());
+          }
      }
 
      @PutMapping("/{id}")
-     public ResponseEntity<SanPhamDTO> updateSanPham(@PathVariable("id") Integer id, @RequestBody SanPhamDTO sanPhamDTO){
-          return ResponseEntity.ok(sanPhamService.updateSanPhamDTO(id, sanPhamDTO));
+     public ResponseEntity<?> updateSanPham(@PathVariable("id") Integer id, @RequestBody SanPhamDTO sanPhamDTO){
+          try {
+               return ResponseEntity.ok(sanPhamService.updateSanPhamDTO(id, sanPhamDTO));
+          } catch (IllegalArgumentException ex) {
+               return ResponseEntity.badRequest().body(ex.getMessage());
+          }
      }
 
     @DeleteMapping("/{id}")

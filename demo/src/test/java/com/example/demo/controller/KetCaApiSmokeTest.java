@@ -21,9 +21,7 @@ class KetCaApiSmokeTest {
 
     @Test
     void currentShiftEndpointReturnsSummaryForConfiguredDatabase() throws Exception {
-        LocalDateTime startedAt = LocalDateTime.now()
-                .withHour(11)
-                .withMinute(44)
+        LocalDateTime startedAt = LocalDateTime.now().minusHours(1)
                 .withSecond(1)
                 .withNano(0);
 

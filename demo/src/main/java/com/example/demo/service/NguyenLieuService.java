@@ -44,6 +44,7 @@ public class NguyenLieuService {
         
         existingNguyenLieu.setTenNL(dto.getTenNL());
         existingNguyenLieu.setSoLuong(dto.getSoLuong());
+        existingNguyenLieu.setSoLuongToiThieu(dto.getSoLuongToiThieu());
         existingNguyenLieu.setDonVi(dto.getDonVi()); // Đã sửa từ getDonViTinh() thành getDonVi()
         existingNguyenLieu.setTrangThai(dto.getTrangThai());
 
@@ -77,6 +78,7 @@ public class NguyenLieuService {
         dto.setId(entity.getId());
         dto.setTenNL(entity.getTenNL());
         dto.setSoLuong(entity.getSoLuong());
+        dto.setSoLuongToiThieu(entity.getSoLuongToiThieu() == null ? 0 : entity.getSoLuongToiThieu());
         dto.setDonVi(entity.getDonVi()); // Đã sửa từ setDonViTinh() thành setDonVi()
         dto.setTrangThai(entity.getTrangThai());
 
@@ -87,6 +89,7 @@ public class NguyenLieuService {
         NguyenLieu entity = new NguyenLieu(); 
         entity.setTenNL(dto.getTenNL());
         entity.setSoLuong(dto.getSoLuong());
+        entity.setSoLuongToiThieu(dto.getSoLuongToiThieu());
         entity.setDonVi(dto.getDonVi()); // Đã sửa từ getDonViTinh() thành getDonVi()
         entity.setTrangThai(dto.getTrangThai());
 

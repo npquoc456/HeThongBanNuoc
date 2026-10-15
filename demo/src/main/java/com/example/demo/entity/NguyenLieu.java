@@ -22,6 +22,9 @@ public class NguyenLieu {
     @Column(name = "so_luong")
     private Double soLuong;
 
+    @Column(name = "so_luong_toi_thieu", nullable = false, columnDefinition = "DOUBLE NOT NULL DEFAULT 0")
+    private Double soLuongToiThieu = 0.0;
+
     @Column(name = "don_vi")
     private String donVi;
 

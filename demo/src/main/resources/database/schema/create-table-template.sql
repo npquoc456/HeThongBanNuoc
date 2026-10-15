@@ -91,6 +91,7 @@ CREATE TABLE nguyenlieu (
     id INT AUTO_INCREMENT PRIMARY KEY,
     ten_nl VARCHAR(100) NOT NULL,
     so_luong DOUBLE DEFAULT 0,
+    so_luong_toi_thieu DOUBLE NOT NULL DEFAULT 0,
     don_vi VARCHAR(20) NOT NULL,
     trang_thai VARCHAR(20) NOT NULL
 );

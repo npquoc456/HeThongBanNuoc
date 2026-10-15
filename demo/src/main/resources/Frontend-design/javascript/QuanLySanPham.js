@@ -93,8 +93,10 @@ function chuyentrang(trang) {
 // 2. BIẾN TOÀN CỤC & LƯU TRỮ TRẠNG THÁI / ẢNH LOCALSTORAGE
 // =====================================================
 const API_BASE_URL = 'http://localhost:8080/api/sanpham';
+const INGREDIENT_API_URL = 'http://localhost:8080/api/nguyenlieu';
 let productsDB = [];
 let allProductsCache = [];
+let ingredientOptions = [];
 let currentCategory = 'ALL';
 let currentCategoryName = 'Tất cả';
 let currentSpPage = 1;
@@ -160,6 +162,7 @@ function mapSanPhamDtoToModel(sp) {
         rawLoaiSP: sp.loaiSP || "CA_PHE",
         hinhAnh: sp.hinhAnh || "",
         cthdList: sp.cthdList || [],
+        nguyenLieus: Array.isArray(sp.nguyenLieus) ? sp.nguyenLieus : [],
         trangThai: resolvedStatus
     };
 }
@@ -535,15 +538,101 @@ function closeModalOnOutsideClick(event) {
     if (event.target.id === 'modal-overlay') closeAllModals();
 }
 
-function openCreateSpModal() {
+async function loadIngredientOptions() {
+    const response = await fetch(INGREDIENT_API_URL);
+    if (!response.ok) throw new Error(await getApiErrorMessage(response, "Không tải được danh sách nguyên liệu."));
+    const ingredients = await response.json();
+    if (!Array.isArray(ingredients)) throw new Error("API nguyên liệu trả về dữ liệu không hợp lệ.");
+    ingredientOptions = ingredients;
+}
+
+function addRecipeIngredientRow(ingredientId = "", quantity = "") {
+    const row = document.createElement('div');
+    row.className = 'recipe-row';
+
+    const select = document.createElement('select');
+    select.setAttribute('aria-label', 'Chọn nguyên liệu');
+    const placeholder = document.createElement('option');
+    placeholder.value = "";
+    placeholder.textContent = "Chọn nguyên liệu";
+    select.appendChild(placeholder);
+    ingredientOptions.forEach(ingredient => {
+        const option = document.createElement('option');
+        option.value = ingredient.id;
+        option.textContent = ingredient.tenNL;
+        option.dataset.unit = ingredient.donVi || "";
+        select.appendChild(option);
+    });
+    select.value = String(ingredientId || "");
+
+    const amount = document.createElement('input');
+    amount.type = 'number';
+    amount.min = '0.000001';
+    amount.step = 'any';
+    amount.placeholder = 'Số lượng';
+    amount.value = quantity;
+    amount.setAttribute('aria-label', 'Định lượng nguyên liệu');
+
+    const unit = document.createElement('span');
+    unit.className = 'recipe-unit';
+    unit.textContent = select.selectedOptions[0]?.dataset.unit || 'Đơn vị';
+
+    const remove = document.createElement('button');
+    remove.type = 'button';
+    remove.className = 'recipe-remove';
+    remove.textContent = '×';
+    remove.title = 'Xóa nguyên liệu';
+    remove.setAttribute('aria-label', 'Xóa nguyên liệu');
+    remove.addEventListener('click', () => row.remove());
+
+    select.addEventListener('change', () => {
+        unit.textContent = select.selectedOptions[0]?.dataset.unit || 'Đơn vị';
+    });
+    row.append(select, amount, unit, remove);
+    document.getElementById('recipe-list').appendChild(row);
+}
+
+function populateRecipeRows(recipe = []) {
+    const list = document.getElementById('recipe-list');
+    list.replaceChildren();
+    recipe.forEach(item => addRecipeIngredientRow(item.nguyenLieuId, item.soLuongCan));
+}
+
+function readRecipeRows() {
+    const rows = [...document.querySelectorAll('#recipe-list .recipe-row')];
+    const recipe = [];
+    const ingredientIds = new Set();
+    for (const row of rows) {
+        const id = Number(row.querySelector('select').value);
+        const quantity = Number(row.querySelector('input').value);
+        if (!Number.isInteger(id) || id <= 0 || !Number.isFinite(quantity) || quantity <= 0) {
+            throw new Error("Vui lòng chọn nguyên liệu và nhập định lượng lớn hơn 0 cho từng dòng.");
+        }
+        if (ingredientIds.has(id)) throw new Error("Mỗi nguyên liệu chỉ được thêm một lần trong công thức.");
+        ingredientIds.add(id);
+        recipe.push({ nguyenLieuId: id, soLuongCan: quantity });
+    }
+    if (!recipe.length) throw new Error("Vui lòng thêm ít nhất một nguyên liệu cho sản phẩm.");
+    return recipe;
+}
+
+async function openCreateSpModal() {
     if (!isManagerMode) return;
     closeAllModals();
     currentEditSpId = null;
     selectedImageFileName = "";
     selectedImageDataUrl = "";
+    try {
+        await loadIngredientOptions();
+    } catch (error) {
+        alert(error.message || "Không thể tải danh sách nguyên liệu.");
+        return;
+    }
 
     document.getElementById('modal-overlay').style.display = 'flex';
     document.getElementById('modal-sp-form').style.display = 'block';
+    document.getElementById('recipe-error').textContent = '';
+    populateRecipeRows();
 
     document.getElementById('modal-form-title').innerText = "Thêm Sản Phẩm Mới";
     document.getElementById('form-tenSP').value = '';
@@ -551,6 +640,7 @@ function openCreateSpModal() {
     document.getElementById('form-giaSP').value = '';
     document.getElementById('form-moTa').value = '';
     document.getElementById('form-trangThai').value = 'DANG_BAN';
+    addRecipeIngredientRow();
 
     const fileInput = document.getElementById('form-hinhAnh-file');
     if (fileInput) fileInput.value = '';
@@ -565,12 +655,15 @@ async function openEditSpModal(id) {
 
     let item = allProductsCache.find(s => s.id === id);
     try {
+        await loadIngredientOptions();
         const res = await fetch(`${API_BASE_URL}/${id}`);
-        if (res.ok) {
-            const dto = await res.json();
-            item = mapSanPhamDtoToModel(dto);
-        }
-    } catch (e) {}
+        if (!res.ok) throw new Error(await getApiErrorMessage(res, "Không thể tải thông tin sản phẩm."));
+        const dto = await res.json();
+        item = mapSanPhamDtoToModel(dto);
+    } catch (error) {
+        alert(error.message || "Không thể tải sản phẩm và danh sách nguyên liệu.");
+        return;
+    }
     if (!item) return;
 
     selectedImageFileName = item.hinhAnh || "";
@@ -578,6 +671,8 @@ async function openEditSpModal(id) {
 
     document.getElementById('modal-overlay').style.display = 'flex';
     document.getElementById('modal-sp-form').style.display = 'block';
+    document.getElementById('recipe-error').textContent = '';
+    populateRecipeRows(item.nguyenLieus);
 
     document.getElementById('modal-form-title').innerText = "Cập Nhật Sản Phẩm";
     document.getElementById('form-tenSP').value = item.tenSP;
@@ -605,6 +700,14 @@ function submitSpForm() {
         return;
     }
 
+    let nguyenLieus;
+    try {
+        nguyenLieus = readRecipeRows();
+    } catch (error) {
+        document.getElementById('recipe-error').textContent = error.message;
+        return;
+    }
+    document.getElementById('recipe-error').textContent = '';
     tempSpPayload = {
         id: currentEditSpId,
         tenSP: tenSP,
@@ -613,7 +716,8 @@ function submitSpForm() {
         loaiSP: loaiSP,
         hinhAnh: selectedImageFileName,
         previewDataUrl: selectedImageDataUrl,
-        trangThai: trangThai
+        trangThai: trangThai,
+        nguyenLieus: nguyenLieus
     };
 
     const catInfo = getCategoryBadgeInfo(loaiSP);
@@ -656,7 +760,8 @@ async function confirmAndSaveSp() {
         moTa: tempSpPayload.moTa,
         loaiSP: tempSpPayload.loaiSP,
         hinhAnh: tempSpPayload.hinhAnh,
-        trangThai: tempSpPayload.trangThai
+        trangThai: tempSpPayload.trangThai,
+        nguyenLieus: tempSpPayload.nguyenLieus
     };
 
     try {

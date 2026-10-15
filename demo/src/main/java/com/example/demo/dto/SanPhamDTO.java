@@ -16,5 +16,6 @@ public class SanPhamDTO {
     private String loaiSP;
     private String hinhAnh;
 
-    List<CTHDDTO> cthdList;
+    private List<CTHDDTO> cthdList;
+    private List<SanPhamNguyenLieuDTO> nguyenLieus;
 }

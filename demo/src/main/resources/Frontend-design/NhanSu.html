@@ -170,8 +170,14 @@
         .rt-main-box { background: #f9fafb; border-radius: 14px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #f3f4f6; }
         .rt-big-num { font-size: 28px; font-weight: 900; color: #047857; line-height: 1; }
         .rt-big-num span { font-size: 13px; font-weight: 700; color: #4b5563; }
-        .rt-shift-breakdown { display: flex; flex-direction: column; gap: 6px; }
-        .rt-shift-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 12px; border-radius: 10px; font-size: 12px; font-weight: 700; }
+        .rt-shift-breakdown { display: flex; flex-direction: column; gap: 6px; max-height: 90px; overflow-y: auto; overflow-x: hidden; padding-right: 4px; flex: 0 1 auto; scrollbar-width: thin; scrollbar-color: rgba(0, 0, 0, 0.18) transparent; }
+        .rt-shift-breakdown::-webkit-scrollbar { width: 4px; }
+        .rt-shift-breakdown::-webkit-scrollbar-track { background: transparent; }
+        .rt-shift-breakdown::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.18); border-radius: 8px; }
+        .rt-shift-breakdown::-webkit-scrollbar-thumb:hover { background: rgba(0, 0, 0, 0.35); }
+        .rt-shift-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 12px; border-radius: 10px; font-size: 12px; font-weight: 700; flex: 0 0 auto; min-height: 26px; box-sizing: border-box; }
+        .rt-shift-row > span:first-child { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+        .rt-shift-row > span:last-child { flex-shrink: 0; margin-left: 8px; }
         .rt-shift-row.ca1 { background: #ecfdf5; color: #065f46; }
         .rt-shift-row.ca2 { background: #fffbeb; color: #92400e; }
         .rt-shift-row.ca3 { background: #fff1f2; color: #9f1239; }
@@ -352,9 +358,8 @@
                         <div class="shift-templates-card">
                             <div class="templates-row">
                                 <span class="templates-label">KHUNG GIỜ CA:</span>
-                                <div class="shift-template-pill ca1" draggable="true" ondragstart="onDragTemplateStart(event, 'Ca 1', '06:30', '12:00')">● Ca 1: 06:30 - 12:00</div>
-                                <div class="shift-template-pill ca2" draggable="true" ondragstart="onDragTemplateStart(event, 'Ca 2', '12:00', '17:30')">● Ca 2: 12:00 - 17:30</div>
-                                <div class="shift-template-pill ca3" draggable="true" ondragstart="onDragTemplateStart(event, 'Ca 3', '17:30', '23:00')">● Ca 3: 17:30 - 23:00</div>
+                                <div id="shift-templates-list" style="display: contents;"></div>
+                                <button type="button" class="btn-top-act" onclick="refreshShiftTemplates()">↻ Làm mới ca</button>
                             </div>
                             <div class="drag-hint" id="schedule-mode-hint">ⓘ Kéo thả ca làm vào lịch bên dưới hoặc bấm vào ô để thêm / sửa / xóa ca.</div>
                         </div>
@@ -463,15 +468,11 @@
                     <div class="form-row"><label>Ngày trong tuần:</label><select id="shift-form-day"></select></div>
                     <div class="form-row">
                         <label>Chọn ca mẫu nhanh:</label>
-                        <select id="shift-form-preset" onchange="applyShiftPreset()">
-                            <option value="Ca 1|06:30|12:00">Ca 1: 06:30 - 12:00</option>
-                            <option value="Ca 2|12:00|17:30">Ca 2: 12:00 - 17:30</option>
-                            <option value="Ca 3|17:30|23:00">Ca 3: 17:30 - 23:00</option>
-                        </select>
+                        <select id="shift-form-preset" onchange="applyShiftPreset()"></select>
                     </div>
-                    <div class="form-row"><label>Tên ca làm:</label><input type="text" id="shift-form-tenCa" value="Ca 1"></div>
-                    <div class="form-row"><label>Giờ bắt đầu:</label><input type="time" id="shift-form-bd" value="06:30"></div>
-                    <div class="form-row"><label>Giờ kết thúc:</label><input type="time" id="shift-form-kt" value="12:00"></div>
+                    <div class="form-row"><label>Tên ca làm:</label><input type="text" id="shift-form-tenCa"></div>
+                    <div class="form-row"><label>Giờ bắt đầu:</label><input type="time" id="shift-form-bd"></div>
+                    <div class="form-row"><label>Giờ kết thúc:</label><input type="time" id="shift-form-kt"></div>
                 </div>
                 <div class="btn-group-modal">
                     <button class="btn-modal btn-cancel" id="btn-delete-shift" onclick="deleteShiftAssignment()" style="display: none;">XÓA CA NÀY</button>
@@ -491,9 +492,6 @@
                     <div class="form-row">
                         <label>Đổi sang ca:</label>
                         <select id="swap-target-ca">
-                            <option value="Ca 1|06:30|12:00">Ca 1 (06:30 - 12:00)</option>
-                            <option value="Ca 2|12:00|17:30">Ca 2 (12:00 - 17:30)</option>
-                            <option value="Ca 3|17:30|23:00">Ca 3 (17:30 - 23:00)</option>
                             <option value="OFF||">Xin nghỉ ca (OFF)</option>
                         </select>
                     </div>

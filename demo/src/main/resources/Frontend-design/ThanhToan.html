@@ -270,7 +270,11 @@
         .bill-search-box { display: flex; align-items: center; background: white; border: 1px solid #ccc; border-radius: 20px; padding: 4px 15px; height: 32px; width: 190px; }
         .bill-search-box img { width: 14px; margin-right: 8px; }
         .bill-search-box input { border: none; outline: none; width: 100%; font-size: 14px; background: transparent; }
-        .bill-body-scroll { flex-grow: 1; overflow-y: auto; overflow-x: hidden; }
+        .bill-body-scroll { flex-grow: 1; overflow-y: auto; overflow-x: hidden; scrollbar-width: thin; scrollbar-color: rgba(0, 0, 0, 0.18) transparent; }
+        .bill-body-scroll::-webkit-scrollbar { width: 4px; }
+        .bill-body-scroll::-webkit-scrollbar-track { background: transparent; }
+        .bill-body-scroll::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.18); border-radius: 8px; }
+        .bill-body-scroll::-webkit-scrollbar-thumb:hover { background: rgba(0, 0, 0, 0.35); }
         .bill-data-row { padding: 15px 0; border-bottom: 1px solid #ccc; font-size: 15px; }
 
         #modal-bill-detail { width: 650px; padding: 40px; display: none; flex-direction: column; }

@@ -187,8 +187,15 @@ function changeWeekOffset(deltaWeeks) {
     selectedDayIndex = getTodayIndexInWeek(currentWeekStart);
     updateWeekRangeLabel();
     renderCalendarHeader();
-    renderCalendarMatrix();
-    updateRealtimeWorkingStaffWidget();
+    loadScheduleAssignments().then(() => {
+        renderCalendarMatrix();
+        updateRealtimeWorkingStaffWidget();
+    }).catch(error => {
+        scheduleAssignments = [];
+        renderCalendarMatrix();
+        updateRealtimeWorkingStaffWidget();
+        alert("Không thể tải lịch ca: " + error.message);
+    });
 }
 
 // =====================================================
@@ -196,6 +203,7 @@ function changeWeekOffset(deltaWeeks) {
 // =====================================================
 const API_NV_URL = 'http://localhost:8080/api/nhanvien';
 const API_CALAM_URL = 'http://localhost:8080/api/calam';
+const API_SCHEDULE_URL = 'http://localhost:8080/api/lichca';
 
 let staffList = [];
 let caLamList = [];
@@ -243,19 +251,25 @@ async function loadAllDataFromApi() {
         ];
     }
 
-    let loadedCa = false;
     try {
-        const resCa = await fetch(API_CALAM_URL);
-        if (resCa.ok) {
-            const dataCa = await resCa.json();
-            if (Array.isArray(dataCa)) {
-                caLamList = dataCa;
-                loadedCa = true;
-            }
-        }
-    } catch (e) {}
+        const resCa = await fetch(API_CALAM_URL, { cache: 'no-store' });
+        if (!resCa.ok) throw new Error(await resCa.text() || `HTTP ${resCa.status}`);
+        const dataCa = await resCa.json();
+        if (!Array.isArray(dataCa)) throw new Error("Dữ liệu ca làm không hợp lệ");
+        caLamList = dataCa;
+        renderShiftTemplates();
+    } catch (error) {
+        console.error("Không thể tải danh sách ca từ API /api/calam:", error);
+        alert("Không thể tải danh sách ca làm từ database: " + error.message);
+    }
 
-    loadScheduleAssignments(loadedCa);
+    try {
+        await loadScheduleAssignments();
+    } catch (error) {
+        scheduleAssignments = [];
+        alert("Không thể tải lịch ca từ máy chủ. Hãy kiểm tra migration lịch ca và kết nối backend: " + error.message);
+    }
+
     updateWeekRangeLabel();
     updateStaffBadgeCount();
     renderCalendarHeader();
@@ -264,22 +278,114 @@ async function loadAllDataFromApi() {
     updateRealtimeWorkingStaffWidget();
 }
 
-function loadScheduleAssignments(fromApi) {
-    const savedLocal = localStorage.getItem('POS_SCHEDULE_ASSIGNMENTS');
-    if (savedLocal) {
-        scheduleAssignments = JSON.parse(savedLocal);
-    } else {
-        scheduleAssignments = [
-            { id: 's1', caLamId: 1, nhanVienId: 1, dayIndex: 0, tenCa: 'Ca 1', thoiGianBD: '06:30', thoiGianKT: '12:00' },
-            { id: 's2', caLamId: 2, nhanVienId: 2, dayIndex: 1, tenCa: 'Ca 2', thoiGianBD: '12:00', thoiGianKT: '17:30' },
-            { id: 's3', caLamId: 3, nhanVienId: 3, dayIndex: 2, tenCa: 'Ca 3', thoiGianBD: '17:30', thoiGianKT: '23:00' }
-        ];
+async function refreshShiftTemplates() {
+    try {
+        const response = await fetch(API_CALAM_URL, { cache: 'no-store' });
+        if (!response.ok) throw new Error(await response.text() || `HTTP ${response.status}`);
+        const data = await response.json();
+        if (!Array.isArray(data)) throw new Error("Dữ liệu ca làm không hợp lệ");
+        caLamList = data;
+        renderShiftTemplates();
+        updateRealtimeWorkingStaffWidget();
+    } catch (error) {
+        alert("Không thể làm mới danh sách ca: " + error.message);
     }
-    saveScheduleToLocal();
 }
 
-function saveScheduleToLocal() {
-    localStorage.setItem('POS_SCHEDULE_ASSIGNMENTS', JSON.stringify(scheduleAssignments));
+function normalizeShiftTemplate(template) {
+    const normalizeTime = value => {
+        const match = /^(\d{1,2}):(\d{2})/.exec(value || '');
+        return match ? `${match[1].padStart(2, '0')}:${match[2]}` : '';
+    };
+    return {
+        id: template.id,
+        tenCa: template.tenCa || template.name,
+        thoiGianBD: normalizeTime(template.thoiGianBD),
+        thoiGianKT: normalizeTime(template.thoiGianKT)
+    };
+}
+
+function renderShiftTemplates() {
+    const templateList = document.getElementById('shift-templates-list');
+    const presetSelect = document.getElementById('shift-form-preset');
+    if (templateList) {
+        templateList.replaceChildren();
+        caLamList.forEach((rawTemplate, index) => {
+            const template = normalizeShiftTemplate(rawTemplate);
+            const pill = document.createElement('div');
+            pill.className = `shift-template-pill ${['ca1', 'ca2', 'ca3'][index % 3]}`;
+            pill.draggable = true;
+            pill.textContent = `● ${template.tenCa}: ${template.thoiGianBD} - ${template.thoiGianKT}`;
+            pill.addEventListener('dragstart', event => onDragTemplateStart(
+                event, template.tenCa, template.thoiGianBD, template.thoiGianKT));
+            templateList.appendChild(pill);
+        });
+        if (caLamList.length === 0) {
+            const empty = document.createElement('span');
+            empty.className = 'drag-hint';
+            empty.textContent = 'Chưa có ca nào trong database.';
+            templateList.appendChild(empty);
+        }
+    }
+
+    if (presetSelect) {
+        const previous = presetSelect.value;
+        presetSelect.replaceChildren();
+        caLamList.forEach(rawTemplate => {
+            const template = normalizeShiftTemplate(rawTemplate);
+            presetSelect.add(new Option(
+                `${template.tenCa}: ${template.thoiGianBD} - ${template.thoiGianKT}`,
+                String(template.id)
+            ));
+        });
+        if (caLamList.some(template => String(template.id) === previous)) {
+            presetSelect.value = previous;
+        }
+    }
+
+    const swapSelect = document.getElementById('swap-target-ca');
+    if (swapSelect) {
+        const offOption = new Option('Xin nghỉ ca (OFF)', 'OFF||');
+        swapSelect.replaceChildren();
+        caLamList.forEach(rawTemplate => {
+            const template = normalizeShiftTemplate(rawTemplate);
+            swapSelect.add(new Option(
+                `${template.tenCa} (${template.thoiGianBD} - ${template.thoiGianKT})`,
+                JSON.stringify([template.tenCa, template.thoiGianBD, template.thoiGianKT])
+            ));
+        });
+        swapSelect.add(offOption);
+    }
+}
+
+async function loadScheduleAssignments() {
+    const days = getWeekDaysArray(currentWeekStart);
+    const startDate = toLocalDateString(days[0].dateObj);
+    const endDate = toLocalDateString(days[6].dateObj);
+    const response = await fetch(`${API_SCHEDULE_URL}?startDate=${startDate}&endDate=${endDate}`);
+    if (!response.ok) throw new Error(await response.text() || `HTTP ${response.status}`);
+    const data = await response.json();
+    if (!Array.isArray(data)) throw new Error("Dữ liệu lịch ca không hợp lệ");
+    scheduleAssignments = data.map(mapScheduleDto);
+}
+
+function toLocalDateString(date) {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
+function mapScheduleDto(dto) {
+    const scheduledDate = new Date(`${dto.ngayLam}T00:00:00`);
+    const dayIndex = Math.round((scheduledDate - getWeekDaysArray(currentWeekStart)[0].dateObj) / 86400000);
+    return {
+        id: dto.id,
+        nhanVienId: dto.nhanVienId,
+        tenNhanVien: dto.tenNhanVien,
+        dayIndex,
+        ngayLam: dto.ngayLam,
+        tenCa: dto.tenCa,
+        thoiGianBD: dto.thoiGianBD,
+        thoiGianKT: dto.thoiGianKT
+    };
 }
 
 // =====================================================
@@ -319,6 +425,8 @@ function getInitials(fullName) {
 }
 
 function getShiftCssClass(tenCa) {
+    const templateIndex = caLamList.findIndex(template => template.tenCa === tenCa);
+    if (templateIndex >= 0) return ['ca1', 'ca2', 'ca3'][templateIndex % 3];
     const lower = (tenCa || '').toLowerCase();
     if (lower.includes('1') || lower.includes('sáng')) return 'ca1';
     if (lower.includes('2') || lower.includes('chiều') || lower.includes('trưa')) return 'ca2';
@@ -421,13 +529,13 @@ async function onCellDrop(event, targetNvId, targetDayIdx) {
             thoiGianKT: dragPayload.thoiGianKT
         });
     } else if (dragPayload.type === 'EXISTING') {
-        const item = scheduleAssignments.find(a => a.id === dragPayload.assignmentId);
+        const item = scheduleAssignments.find(a => String(a.id) === String(dragPayload.assignmentId));
         if (item) {
-            item.nhanVienId = targetNvId;
-            item.dayIndex = targetDayIdx;
-            saveScheduleToLocal();
-            renderCalendarMatrix();
-            updateRealtimeWorkingStaffWidget();
+            await createOrUpdateShiftAssignment({
+                ...item,
+                nhanVienId: targetNvId,
+                dayIndex: targetDayIdx
+            });
         }
     }
     dragPayload = null;
@@ -435,7 +543,7 @@ async function onCellDrop(event, targetNvId, targetDayIdx) {
 
 function onShiftChipClick(event, assignmentId) {
     event.stopPropagation();
-    const shift = scheduleAssignments.find(a => a.id === assignmentId);
+    const shift = scheduleAssignments.find(a => String(a.id) === String(assignmentId));
     if (!shift) return;
 
     if (isManagerMode) {
@@ -484,10 +592,6 @@ function updateRealtimeWorkingStaffWidget() {
         totalDayCountEl.innerText = `${dayShifts.length} ca phân công`;
     }
 
-    const ca1List = dayShifts.filter(s => getShiftCssClass(s.tenCa) === 'ca1');
-    const ca2List = dayShifts.filter(s => getShiftCssClass(s.tenCa) === 'ca2');
-    const ca3List = dayShifts.filter(s => getShiftCssClass(s.tenCa) === 'ca3');
-
     const getNames = (list) => {
         if (list.length === 0) return 'Chưa có nhân viên';
         return list.map(item => {
@@ -498,20 +602,34 @@ function updateRealtimeWorkingStaffWidget() {
 
     const breakdownEl = document.getElementById('rt-shift-breakdown');
     if (breakdownEl) {
-        breakdownEl.innerHTML = `
-            <div class="rt-shift-row ca1">
-                <span>Ca 1 (06:30 - 12:00): ${getNames(ca1List)}</span>
-                <span>${ca1List.length} NV</span>
-            </div>
-            <div class="rt-shift-row ca2">
-                <span>Ca 2 (12:00 - 17:30): ${getNames(ca2List)}</span>
-                <span>${ca2List.length} NV</span>
-            </div>
-            <div class="rt-shift-row ca3">
-                <span>Ca 3 (17:30 - 23:00): ${getNames(ca3List)}</span>
-                <span>${ca3List.length} NV</span>
-            </div>
-        `;
+        const templates = caLamList.map(normalizeShiftTemplate);
+        const renderedKeys = new Set();
+        const rows = templates.map(template => {
+            const key = `${template.tenCa}|${template.thoiGianBD}|${template.thoiGianKT}`;
+            renderedKeys.add(key);
+            const matchingShifts = dayShifts.filter(shift =>
+                shift.tenCa === template.tenCa
+                && shift.thoiGianBD === template.thoiGianBD
+                && shift.thoiGianKT === template.thoiGianKT);
+            return `<div class="rt-shift-row ${getShiftCssClass(template.tenCa)}">
+                <span>${template.tenCa} (${template.thoiGianBD} - ${template.thoiGianKT}): ${getNames(matchingShifts)}</span>
+                <span>${matchingShifts.length} NV</span>
+            </div>`;
+        });
+        const extraShifts = [...new Map(dayShifts
+            .map(shift => [`${shift.tenCa}|${shift.thoiGianBD}|${shift.thoiGianKT}`, shift])).values()]
+            .filter(shift => !renderedKeys.has(`${shift.tenCa}|${shift.thoiGianBD}|${shift.thoiGianKT}`));
+        extraShifts.forEach(template => {
+            const matchingShifts = dayShifts.filter(shift =>
+                shift.tenCa === template.tenCa
+                && shift.thoiGianBD === template.thoiGianBD
+                && shift.thoiGianKT === template.thoiGianKT);
+            rows.push(`<div class="rt-shift-row ${getShiftCssClass(template.tenCa)}">
+                <span>${template.tenCa} (${template.thoiGianBD} - ${template.thoiGianKT}): ${getNames(matchingShifts)}</span>
+                <span>${matchingShifts.length} NV</span>
+            </div>`);
+        });
+        breakdownEl.innerHTML = rows.join('');
     }
 }
 
@@ -550,10 +668,12 @@ function openAssignShiftModal(nvId, dayIdx) {
         daySelect.appendChild(opt);
     });
 
-    document.getElementById('shift-form-preset').value = 'Ca 1|06:30|12:00';
-    document.getElementById('shift-form-tenCa').value = 'Ca 1';
-    document.getElementById('shift-form-bd').value = '06:30';
-    document.getElementById('shift-form-kt').value = '12:00';
+    renderShiftTemplates();
+    const firstTemplate = caLamList[0] ? normalizeShiftTemplate(caLamList[0]) : null;
+    document.getElementById('shift-form-preset').value = firstTemplate ? String(firstTemplate.id) : '';
+    document.getElementById('shift-form-tenCa').value = firstTemplate ? firstTemplate.tenCa : '';
+    document.getElementById('shift-form-bd').value = firstTemplate ? firstTemplate.thoiGianBD : '';
+    document.getElementById('shift-form-kt').value = firstTemplate ? firstTemplate.thoiGianKT : '';
     document.getElementById('btn-delete-shift').style.display = 'none';
 
     document.getElementById('modal-overlay').style.display = 'flex';
@@ -586,21 +706,27 @@ function openEditShiftModal(shift) {
 }
 
 function applyShiftPreset() {
-    const val = document.getElementById('shift-form-preset').value;
-    const [tenCa, bd, kt] = val.split('|');
-    document.getElementById('shift-form-tenCa').value = tenCa;
-    document.getElementById('shift-form-bd').value = bd;
-    document.getElementById('shift-form-kt').value = kt;
+    const id = document.getElementById('shift-form-preset').value;
+    const template = caLamList.find(item => String(item.id) === id);
+    if (!template) return;
+    const shift = normalizeShiftTemplate(template);
+    document.getElementById('shift-form-tenCa').value = shift.tenCa;
+    document.getElementById('shift-form-bd').value = shift.thoiGianBD;
+    document.getElementById('shift-form-kt').value = shift.thoiGianKT;
 }
 
 async function saveShiftAssignment() {
     const nvId = Number(document.getElementById('shift-form-nv').value);
     const dayIdx = Number(document.getElementById('shift-form-day').value);
-    const tenCa = document.getElementById('shift-form-tenCa').value.trim() || 'Ca 1';
-    const bd = document.getElementById('shift-form-bd').value || '06:30';
-    const kt = document.getElementById('shift-form-kt').value || '12:00';
+    const tenCa = document.getElementById('shift-form-tenCa').value.trim();
+    const bd = document.getElementById('shift-form-bd').value;
+    const kt = document.getElementById('shift-form-kt').value;
+    if (!tenCa || !bd || !kt) {
+        alert("Vui lòng chọn ca mẫu hoặc nhập đầy đủ tên ca và thời gian.");
+        return;
+    }
 
-    await createOrUpdateShiftAssignment({
+    const saved = await createOrUpdateShiftAssignment({
         id: currentEditingAssignmentId,
         nhanVienId: nvId,
         dayIndex: dayIdx,
@@ -608,52 +734,50 @@ async function saveShiftAssignment() {
         thoiGianBD: bd,
         thoiGianKT: kt
     });
-    closeAllModals();
+    if (saved) closeAllModals();
 }
 
 async function createOrUpdateShiftAssignment(payload) {
     try {
-        const caDto = {
+        const body = {
+            nhanVienId: payload.nhanVienId,
+            ngayLam: toLocalDateString(getWeekDaysArray(currentWeekStart)[payload.dayIndex].dateObj),
             tenCa: payload.tenCa,
             thoiGianBD: payload.thoiGianBD,
-            thoiGianKT: payload.thoiGianKT,
-            ctCaList: [{ caLamId: 0, nhanVienId: payload.nhanVienId, tenCa: payload.tenCa, thoiGianBatDau: payload.thoiGianBD, thoiGianKetThuc: payload.thoiGianKT }]
+            thoiGianKT: payload.thoiGianKT
         };
-        const res = await fetch(API_CALAM_URL, {
-            method: 'POST',
+        const isUpdate = payload.id !== null && payload.id !== undefined;
+        const res = await fetch(isUpdate ? `${API_SCHEDULE_URL}/${payload.id}` : API_SCHEDULE_URL, {
+            method: isUpdate ? 'PUT' : 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(caDto)
+            body: JSON.stringify(body)
         });
-        if (res.ok) {
-            const savedCa = await res.json();
-            payload.caLamId = savedCa.id;
-        }
-    } catch (e) {}
-
-    if (payload.id) {
-        const idx = scheduleAssignments.findIndex(a => a.id === payload.id);
-        if (idx !== -1) scheduleAssignments[idx] = { ...scheduleAssignments[idx], ...payload };
-    } else {
-        payload.id = 'sh-' + Date.now() + '-' + Math.floor(Math.random() * 100);
-        scheduleAssignments.push(payload);
+        if (!res.ok) throw new Error(await res.text() || `HTTP ${res.status}`);
+        const saved = mapScheduleDto(await res.json());
+        const idx = scheduleAssignments.findIndex(a => String(a.id) === String(saved.id));
+        if (idx === -1) scheduleAssignments.push(saved);
+        else scheduleAssignments[idx] = saved;
+        renderCalendarMatrix();
+        updateRealtimeWorkingStaffWidget();
+        return true;
+    } catch (error) {
+        alert("Lỗi khi lưu lịch ca: " + error.message);
+        return false;
     }
-
-    saveScheduleToLocal();
-    renderCalendarMatrix();
-    updateRealtimeWorkingStaffWidget();
 }
 
 async function deleteShiftAssignment() {
     if (!currentEditingAssignmentId) return;
-    const target = scheduleAssignments.find(a => a.id === currentEditingAssignmentId);
-    if (target && target.caLamId) {
-        try { await fetch(`${API_CALAM_URL}/${target.caLamId}/phancong/${target.nhanVienId}`, { method: 'DELETE' }); } catch (e) {}
+    try {
+        const response = await fetch(`${API_SCHEDULE_URL}/${currentEditingAssignmentId}`, { method: 'DELETE' });
+        if (!response.ok) throw new Error(await response.text() || `HTTP ${response.status}`);
+        scheduleAssignments = scheduleAssignments.filter(a => String(a.id) !== String(currentEditingAssignmentId));
+        closeAllModals();
+        renderCalendarMatrix();
+        updateRealtimeWorkingStaffWidget();
+    } catch (error) {
+        alert("Lỗi khi xóa lịch ca: " + error.message);
     }
-    scheduleAssignments = scheduleAssignments.filter(a => a.id !== currentEditingAssignmentId);
-    saveScheduleToLocal();
-    closeAllModals();
-    renderCalendarMatrix();
-    updateRealtimeWorkingStaffWidget();
 }
 
 function openStaffSwapRequestModal(shift) {
@@ -667,7 +791,7 @@ function openStaffSwapRequestModal(shift) {
     document.getElementById('swap-view-time').innerText = `${shift.thoiGianBD} - ${shift.thoiGianKT}`;
     document.getElementById('swap-reason-input').value = '';
     const targetShift = document.getElementById('swap-target-ca');
-    const currentShiftValue = `${shift.tenCa}|${shift.thoiGianBD}|${shift.thoiGianKT}`;
+    const currentShiftValue = JSON.stringify([shift.tenCa, shift.thoiGianBD, shift.thoiGianKT]);
     targetShift.value = Array.from(targetShift.options).some(option => option.value === currentShiftValue)
         ? currentShiftValue
         : targetShift.options[0].value;
@@ -682,7 +806,15 @@ function submitStaffSwapRequest() {
     if (!reason) { alert("Vui lòng nhập lý do xin đổi ca để Quản lý xét duyệt!"); return; }
 
     const fromNv = staffList.find(n => Number(n.id) === Number(currentSwapSourceAssignment.nhanVienId));
-    const [targetShiftName, targetShiftStart, targetShiftEnd] = document.getElementById('swap-target-ca').value.split('|');
+    let targetShiftName;
+    let targetShiftStart;
+    let targetShiftEnd;
+    try {
+        [targetShiftName, targetShiftStart, targetShiftEnd] = JSON.parse(
+            document.getElementById('swap-target-ca').value);
+    } catch (error) {
+        [targetShiftName, targetShiftStart, targetShiftEnd] = ['OFF', '', ''];
+    }
     if (targetShiftName === currentSwapSourceAssignment.tenCa
         && targetShiftStart === currentSwapSourceAssignment.thoiGianBD
         && targetShiftEnd === currentSwapSourceAssignment.thoiGianKT) {
@@ -763,19 +895,29 @@ function renderSwapRequests() {
     });
 }
 
-function handleSwapDecision(reqId, isApproved) {
+async function handleSwapDecision(reqId, isApproved) {
     const req = swapRequests.find(r => r.id === reqId);
     if (!req) return;
     if (isApproved && req.assignmentId) {
-        const shift = scheduleAssignments.find(a => a.id === req.assignmentId);
+        const shift = scheduleAssignments.find(a => String(a.id) === String(req.assignmentId));
         if (shift && req.toShiftName === 'OFF') {
-            scheduleAssignments = scheduleAssignments.filter(a => a.id !== req.assignmentId);
+            try {
+                const response = await fetch(`${API_SCHEDULE_URL}/${shift.id}`, { method: 'DELETE' });
+                if (!response.ok) throw new Error(await response.text() || `HTTP ${response.status}`);
+                scheduleAssignments = scheduleAssignments.filter(a => String(a.id) !== String(shift.id));
+            } catch (error) {
+                alert("Không thể cập nhật lịch đổi ca: " + error.message);
+                return;
+            }
         } else if (shift) {
-            shift.tenCa = req.toShiftName;
-            shift.thoiGianBD = req.toShiftStart;
-            shift.thoiGianKT = req.toShiftEnd;
+            const saved = await createOrUpdateShiftAssignment({
+                ...shift,
+                tenCa: req.toShiftName,
+                thoiGianBD: req.toShiftStart,
+                thoiGianKT: req.toShiftEnd
+            });
+            if (!saved) return;
         }
-        saveScheduleToLocal();
         renderCalendarMatrix();
         updateRealtimeWorkingStaffWidget();
     }
@@ -971,9 +1113,115 @@ async function confirmDeleteStaff() {
     }
 }
 
-function autoScheduleShifts() { if (!isManagerMode) return; alert("Đã tự động sắp xếp lịch ca làm trong tuần!"); }
+async function autoScheduleShifts() {
+    if (!isManagerMode) return;
+
+    const activeStaff = staffList.filter(nv => nv.trangThaiLamViec === 'DANG_LAM_VIEC');
+    if (activeStaff.length === 0) {
+        alert("Không có nhân viên đang làm việc để xếp lịch.");
+        return;
+    }
+
+    const templates = caLamList.map(normalizeShiftTemplate);
+    if (templates.length === 0) {
+        alert("Chưa có khung ca nào trong database để xếp tự động.");
+        return;
+    }
+    const workedDays = new Map(activeStaff.map(nv => [Number(nv.id), new Set()]));
+    const assignedByDay = new Map();
+    scheduleAssignments.forEach(shift => {
+        const employeeId = Number(shift.nhanVienId);
+        if (!workedDays.has(employeeId)) return;
+        workedDays.get(employeeId).add(Number(shift.dayIndex));
+        if (!assignedByDay.has(Number(shift.dayIndex))) assignedByDay.set(Number(shift.dayIndex), new Set());
+        assignedByDay.get(Number(shift.dayIndex)).add(employeeId);
+    });
+
+    const newAssignments = [];
+    const shiftCounts = new Map(templates.map(template => [template.tenCa,
+        scheduleAssignments.filter(shift => shift.tenCa === template.tenCa).length]));
+
+    for (let dayIndex = 0; dayIndex < 7; dayIndex++) {
+        const assignedToday = assignedByDay.get(dayIndex) || new Set();
+        const candidates = activeStaff
+            .filter(nv => !assignedToday.has(Number(nv.id)) && workedDays.get(Number(nv.id)).size < 6)
+            .sort((a, b) => workedDays.get(Number(a.id)).size - workedDays.get(Number(b.id)).size
+                || Number(a.id) - Number(b.id));
+
+        for (const employee of candidates) {
+            const template = [...templates].sort((a, b) =>
+                shiftCounts.get(a.tenCa) - shiftCounts.get(b.tenCa)
+                || ((templates.indexOf(a) - dayIndex + templates.length) % templates.length)
+                    - ((templates.indexOf(b) - dayIndex + templates.length) % templates.length))[0];
+            newAssignments.push({
+                nhanVienId: Number(employee.id),
+                ngayLam: toLocalDateString(getWeekDaysArray(currentWeekStart)[dayIndex].dateObj),
+                tenCa: template.tenCa,
+                thoiGianBD: template.thoiGianBD,
+                thoiGianKT: template.thoiGianKT
+            });
+            workedDays.get(Number(employee.id)).add(dayIndex);
+            assignedToday.add(Number(employee.id));
+            shiftCounts.set(template.tenCa, shiftCounts.get(template.tenCa) + 1);
+        }
+        assignedByDay.set(dayIndex, assignedToday);
+    }
+
+    if (newAssignments.length === 0) {
+        alert("Không còn ô trống phù hợp để xếp lịch. Lịch hiện tại được giữ nguyên.");
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_SCHEDULE_URL}/bulk`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newAssignments)
+        });
+        if (!response.ok) throw new Error(await response.text() || `HTTP ${response.status}`);
+        await loadScheduleAssignments();
+        renderCalendarMatrix();
+        updateRealtimeWorkingStaffWidget();
+        alert(`Đã xếp thêm ${newAssignments.length} ca. Ca đã có được giữ nguyên; mỗi nhân viên được xếp tối đa 6 ngày và 1 ca/ngày.`);
+    } catch (error) {
+        alert("Không thể xếp lịch tự động: " + error.message);
+    }
+}
 function savePermissionsMatrix() { alert("Đã lưu ma trận phân quyền hệ thống thành công!"); }
-function exportScheduleCSV() { alert("Đã xuất thành công bảng công ca làm việc của tuần!"); }
+function exportScheduleCSV() {
+    const days = getWeekDaysArray(currentWeekStart);
+    const rows = [['Nhân viên', 'Ngày', 'Ca', 'Bắt đầu', 'Kết thúc', 'Giờ dự kiến']];
+    const sorted = [...scheduleAssignments].sort((a, b) =>
+        a.dayIndex - b.dayIndex || a.thoiGianBD.localeCompare(b.thoiGianBD));
+
+    sorted.forEach(shift => {
+        const employee = staffList.find(nv => Number(nv.id) === Number(shift.nhanVienId));
+        const [startHour, startMinute] = shift.thoiGianBD.split(':').map(Number);
+        const [endHour, endMinute] = shift.thoiGianKT.split(':').map(Number);
+        let minutes = endHour * 60 + endMinute - (startHour * 60 + startMinute);
+        if (minutes < 0) minutes += 24 * 60;
+        rows.push([
+            employee ? employee.tenNhanVien : `Nhân viên #${shift.nhanVienId}`,
+            toLocalDateString(days[shift.dayIndex].dateObj),
+            shift.tenCa,
+            shift.thoiGianBD,
+            shift.thoiGianKT,
+            (minutes / 60).toFixed(2)
+        ]);
+    });
+
+    const csv = '\uFEFF' + rows.map(row => row.map(value =>
+        `"${String(value).replaceAll('"', '""')}"`).join(',')).join('\r\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `bang-cong-ca-du-kien-${toLocalDateString(days[0].dateObj)}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
 
 function closeAllModals() {
     const overlay = document.getElementById('modal-overlay');

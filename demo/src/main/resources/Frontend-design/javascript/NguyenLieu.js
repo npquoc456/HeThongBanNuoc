@@ -61,6 +61,7 @@ async function loadnguyenlieufromapi(){
                 id: nl.id === null || nl.id === undefined ? "" : String(nl.id),
                 name: nl.tenNL || "", 
                 qty: nl.soLuong !== undefined ? nl.soLuong : 0, 
+                minimumQty: nl.soLuongToiThieu !== undefined ? Number(nl.soLuongToiThieu) : 0,
                 unit: nl.donVi || nl.donvi || nl.unit || '',
                 status: nl.trangThai || 'CON_HANG'
             };
@@ -99,8 +100,8 @@ function renderIngredients() {
     );
 
     const totalCount = ingredientsDB.length;
-    const safeCount = ingredientsDB.filter(i => i.status === 'CON_HANG' && i.qty > 5).length;
-    const warningCount = ingredientsDB.filter(i => i.status === 'SAP_HET' || i.status === 'CAN_NHAP' || i.qty <= 5).length;
+    const safeCount = ingredientsDB.filter(i => i.status === 'CON_HANG' && i.qty > i.minimumQty).length;
+    const warningCount = ingredientsDB.filter(i => i.status === 'SAP_HET' || i.status === 'CAN_NHAP' || i.qty <= i.minimumQty).length;
 
     const statTotal = document.getElementById('stat-total');
     const statSafe = document.getElementById('stat-safe');
@@ -131,7 +132,10 @@ function renderIngredients() {
         let statusClass = 'con-hang';
         let statusText = '● Còn Hàng';
         
-        if (item.status === 'SAP_HET' || item.qty <= 5) {
+        if (item.qty <= 0 || item.status === 'HET_HANG') {
+            statusClass = 'sap-het';
+            statusText = '● Hết Hàng';
+        } else if (item.status === 'SAP_HET' || item.qty <= item.minimumQty) {
             statusClass = 'sap-het';
             statusText = '● Sắp Hết';
         } else if (item.status === 'CAN_NHAP') {
@@ -141,7 +145,7 @@ function renderIngredients() {
 
         const absoluteIndex = startIdx + index + 1;
         const icon = getIngredientIcon(item.name);
-        const actionIconLeft = (item.status === 'SAP_HET' || item.status === 'CAN_NHAP' || item.qty <= 5) ? `<span title="Nhập hàng" style="width:20px; height:20px; display:inline-flex; align-items:center; cursor:pointer;">${cartIconSVG}</span>` : `<img src="ICONS/viewicon.png" alt="View" onclick="openViewNlModal('${item.id}')" title="Xem">`;
+        const actionIconLeft = (item.status === 'SAP_HET' || item.status === 'CAN_NHAP' || item.qty <= item.minimumQty) ? `<span title="Nhập hàng" style="width:20px; height:20px; display:inline-flex; align-items:center; cursor:pointer;">${cartIconSVG}</span>` : `<img src="ICONS/viewicon.png" alt="View" onclick="openViewNlModal('${item.id}')" title="Xem">`;
 
         container.innerHTML += `
             <div class="table-row">
@@ -150,7 +154,7 @@ function renderIngredients() {
                     <div class="item-icon-box">${icon}</div>
                     <div class="item-details">
                         <div class="item-name">${item.name}</div>
-                        <div class="item-sub">Nguyên liệu pha chế chính</div>
+                        <div class="item-sub">Cảnh báo ở mức ${item.minimumQty} ${item.unit}</div>
                     </div>
                 </div>
                 <span style="font-weight: bold; font-size: 15px;">${item.qty}</span>
@@ -239,11 +243,15 @@ let tempNlData = null;
 function updateStatusBadge() {
     const qtyInput = document.getElementById('form-qty').value;
     const qty = parseFloat(qtyInput);
+    const minimumQty = parseFloat(document.getElementById('form-min-qty').value);
     const badge = document.getElementById('form-status-badge');
     
     if (!isNaN(qty) && qty <= 0) {
         badge.textContent = 'HẾT HÀNG';
         badge.style.backgroundColor = '#B30000';
+    } else if (!isNaN(qty) && !isNaN(minimumQty) && qty <= minimumQty) {
+        badge.textContent = 'SẮP HẾT';
+        badge.style.backgroundColor = '#d97706';
     } else {
         badge.textContent = 'CÒN HÀNG';
         badge.style.backgroundColor = '#008A5A';
@@ -259,6 +267,7 @@ function openCreateNlModal() {
     document.getElementById('modal-form-title').innerText = "Thêm nguyên liệu";
     document.getElementById('form-name').value = '';
     document.getElementById('form-qty').value = '';
+    document.getElementById('form-min-qty').value = '0';
     document.getElementById('form-unit').value = 'Kg';
     
     updateStatusBadge();
@@ -276,6 +285,7 @@ function openEditNlModal(id) {
     document.getElementById('modal-form-title').innerText = "Sửa nguyên liệu";
     document.getElementById('form-name').value = item.name;
     document.getElementById('form-qty').value = item.qty;
+    document.getElementById('form-min-qty').value = item.minimumQty;
     
     const unitSelect = document.getElementById('form-unit');
     const dbUnit = (item.unit || '').trim().toLowerCase();
@@ -303,20 +313,22 @@ function openEditNlModal(id) {
 function submitNlForm() {
     const name = document.getElementById('form-name').value.trim();
     const qty = parseFloat(document.getElementById('form-qty').value);
+    const minimumQty = parseFloat(document.getElementById('form-min-qty').value);
     const unit = document.getElementById('form-unit').value;
 
-    if(!name || isNaN(qty)) { 
-        alert("Vui lòng nhập tên và số lượng nguyên liệu hợp lệ!"); 
+    if(!name || !Number.isFinite(qty) || qty < 0 || !Number.isFinite(minimumQty) || minimumQty < 0) {
+        alert("Vui lòng nhập tên, số lượng và ngưỡng tồn kho hợp lệ!");
         return; 
     }
 
     const statusEnum = (qty <= 0) ? "HET_HANG" : "CON_HANG";
-    const statusText = (qty <= 0) ? "Hết hàng" : "Còn hàng";
+    const statusText = (qty <= 0) ? "Hết hàng" : (qty <= minimumQty ? "Sắp hết" : "Còn hàng");
 
     tempNlData = {
         id: currentEditNlId || "Mới",
         name: name,
         qty: qty,
+        minimumQty: minimumQty,
         unit: unit,
         status: statusEnum
     };
@@ -329,6 +341,8 @@ function submitNlForm() {
     document.getElementById('confirm-status').innerText = statusText;
     if (qty <= 0) {
         statusBox.style.backgroundColor = '#B30000';
+    } else if (qty <= minimumQty) {
+        statusBox.style.backgroundColor = '#d97706';
     } else {
         statusBox.style.backgroundColor = '#008A5A';
     }
@@ -355,6 +369,7 @@ async function confirmAndSaveNl() {
        const dto = {
             tenNL: tempNlData.name,
             soLuong: tempNlData.qty,
+            soLuongToiThieu: tempNlData.minimumQty,
             donVi: tempNlData.unit,
             trangThai: tempNlData.status
         };
@@ -378,6 +393,7 @@ async function confirmAndSaveNl() {
         if(index !== -1) {
             ingredientsDB[index].name = tempNlData.name;
             ingredientsDB[index].qty = tempNlData.qty;
+            ingredientsDB[index].minimumQty = tempNlData.minimumQty;
             ingredientsDB[index].unit = tempNlData.unit;
             ingredientsDB[index].status = tempNlData.status;
         }
@@ -385,6 +401,7 @@ async function confirmAndSaveNl() {
         const dto = {
             tenNL: tempNlData.name,
             soLuong: tempNlData.qty,
+            soLuongToiThieu: tempNlData.minimumQty,
             donVi: tempNlData.unit,
             trangThai: tempNlData.status
         };
@@ -427,12 +444,16 @@ function openViewNlModal(id) {
     document.getElementById('confirm-name').innerText = item.name;
     document.getElementById('confirm-qty').innerText = `${item.qty} ${item.unit}`;
 
-    const statusText = item.status === 'CON_HANG' ? 'Còn hàng' : 'Hết hàng';
+    const statusText = item.qty <= 0 || item.status === 'HET_HANG'
+        ? 'Hết hàng'
+        : (item.qty <= item.minimumQty ? 'Sắp hết' : 'Còn hàng');
     const statusBox = document.getElementById('confirm-status-box');
     document.getElementById('confirm-status').innerText = statusText;
     
-    if (item.status === 'HET_HANG') {
+    if (item.qty <= 0 || item.status === 'HET_HANG') {
         statusBox.style.backgroundColor = '#B30000';
+    } else if (item.qty <= item.minimumQty) {
+        statusBox.style.backgroundColor = '#d97706';
     } else {
         statusBox.style.backgroundColor = '#008A5A';
     }

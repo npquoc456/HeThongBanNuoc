@@ -344,6 +344,108 @@
         .modal-box h2 { font-size: 24px; margin-bottom: 22px; }
 
         .form-container { margin-bottom: 25px; }
+        #modal-sp-form {
+            width: min(1120px, 95vw); max-height: 92vh; overflow-y: auto; text-align: left;
+            padding: 34px 38px 28px; border: 1px solid rgba(255,255,255,0.8);
+            border-radius: 26px; background: #fff; box-shadow: 0 28px 80px rgba(15, 23, 42, 0.24);
+            scrollbar-color: #cbd5d1 transparent; scrollbar-width: thin;
+        }
+        #modal-sp-form h2 {
+            color: #172b22; font-size: 25px; font-weight: 800; letter-spacing: -0.4px;
+            margin: 0 42px 22px 0; padding-bottom: 15px; border-bottom: 1px solid #edf1ee;
+        }
+        #modal-sp-form .modal-close-btn {
+            top: 30px; right: 30px; width: 34px; height: 34px; background: #fff1f0;
+            box-shadow: none; transition: background 0.18s ease, transform 0.18s ease;
+        }
+        #modal-sp-form .modal-close-btn::before,
+        #modal-sp-form .modal-close-btn::after {
+            content: ""; position: absolute; left: 10px; top: 16px; width: 14px; height: 2px;
+            border-radius: 2px; background: #c24136; transform: rotate(45deg);
+        }
+        #modal-sp-form .modal-close-btn::after { transform: rotate(-45deg); }
+        #modal-sp-form .modal-close-btn:hover { background: #ffe1de; transform: rotate(90deg); }
+        .sp-form-columns { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; align-items: stretch; }
+        .sp-form-section {
+            min-width: 0; padding: 22px 20px; border: 1px solid #e5ebe7; border-radius: 20px;
+            background: linear-gradient(145deg, #fbfdfc 0%, #f7faf8 100%);
+            box-shadow: 0 3px 10px rgba(22, 61, 42, 0.035);
+        }
+        .sp-form-section h3 {
+            margin: 0 0 17px; color: #173d2a; font-size: 17px; line-height: 1.35;
+            font-weight: 800; letter-spacing: -0.15px;
+        }
+        #modal-sp-form .form-container { margin: 0; }
+        #modal-sp-form .form-row {
+            justify-content: flex-start; gap: 12px; margin-bottom: 13px;
+            font-size: 13.5px; font-weight: 700;
+        }
+        #modal-sp-form .form-row:last-child { margin-bottom: 0; }
+        #modal-sp-form .form-row label {
+            flex: 0 0 126px; padding-left: 2px; color: #394b41; line-height: 1.35;
+        }
+        #modal-sp-form .form-row input[type="text"],
+        #modal-sp-form .form-row input[type="number"],
+        #modal-sp-form .form-row select {
+            flex: 1 1 auto; min-width: 0; height: 44px; padding: 0 14px;
+            border: 1px solid #dce4df; border-radius: 13px; background-color: #fff;
+            color: #26352d; font-size: 14px;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.025);
+            transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+        }
+        #modal-sp-form .form-row input::placeholder { color: #9aa7a0; }
+        #modal-sp-form .form-row input:focus,
+        #modal-sp-form .form-row select:focus {
+            border-color: #3b9b6b; outline: none; background: #fff;
+            box-shadow: 0 0 0 3px rgba(28, 138, 83, 0.12);
+        }
+        #modal-sp-form .image-picker-area { min-width: 0; gap: 9px; }
+        #modal-sp-form .btn-choose-file {
+            min-width: 0; min-height: 44px; padding: 8px 12px; border-radius: 13px;
+            border-color: #9fc8ae; background: #f2faf5; font-size: 13px;
+        }
+        #modal-sp-form .btn-choose-file:hover { border-color: #38835b; background: #e8f5ed; }
+        #modal-sp-form .file-name-display { max-width: 170px; }
+        #modal-sp-form .image-preview-box {
+            width: 44px; height: 44px; border-radius: 13px; border-color: #e0e8e3;
+            background: #fff; font-weight: 700;
+        }
+        .recipe-list { display: flex; flex-direction: column; gap: 10px; }
+        .recipe-row { display: grid; grid-template-columns: minmax(0, 1fr) 104px 42px 36px; gap: 8px; align-items: center; }
+        .recipe-row select, .recipe-row input {
+            min-width: 0; width: 100%; height: 42px; padding: 0 11px;
+            border: 1px solid #dce4df; border-radius: 12px; background: #fff;
+            color: #26352d; font-size: 13.5px; transition: border-color 0.18s ease, box-shadow 0.18s ease;
+        }
+        .recipe-row select:focus, .recipe-row input:focus {
+            outline: none; border-color: #3b9b6b; box-shadow: 0 0 0 3px rgba(28, 138, 83, 0.12);
+        }
+        .recipe-row input::placeholder { color: #9aa7a0; }
+        .recipe-unit { color: #50655a; font-size: 12px; font-weight: 700; }
+        .recipe-remove, .recipe-add { border: 0; cursor: pointer; transition: background 0.18s ease, transform 0.15s ease; }
+        .recipe-remove {
+            width: 36px; height: 38px; padding: 0; border-radius: 11px;
+            color: #b8413b; background: #fff0ef; font-size: 17px; font-weight: 700;
+        }
+        .recipe-remove:hover { background: #ffe0dd; transform: translateY(-1px); }
+        .recipe-add {
+            margin-top: 13px; padding: 11px 16px; border-radius: 12px; color: white;
+            background: #147345; font-size: 13.5px; font-weight: 800;
+            box-shadow: 0 4px 10px rgba(20, 115, 69, 0.16);
+        }
+        .recipe-add:hover { background: #0e6038; transform: translateY(-1px); }
+        .recipe-help { margin: 0 0 13px; color: #75847b; font-size: 12.5px; line-height: 1.55; }
+        #modal-sp-form #recipe-error { min-height: 18px; margin: 10px 0 0; color: #b42318; font-weight: 600; }
+        #modal-sp-form .btn-xacnhan-green {
+            margin-top: 19px; height: 46px; border-radius: 14px; background: #087b49;
+            box-shadow: 0 6px 15px rgba(8, 123, 73, 0.2); font-size: 14px; letter-spacing: 0.35px;
+            transition: background 0.18s ease, transform 0.15s ease, box-shadow 0.18s ease;
+        }
+        #modal-sp-form .btn-xacnhan-green:hover {
+            background: #06683d; transform: translateY(-1px); box-shadow: 0 8px 18px rgba(8, 123, 73, 0.24);
+        }
+        #modal-sp-form .btn-xacnhan-green:active { transform: translateY(0); }
+        @media (max-width: 900px) { .sp-form-columns { grid-template-columns: 1fr; } }
         .form-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; font-weight: bold; font-size: 15px; }
         .form-row label { flex: 1.1; text-align: left; padding-left: 10px; color: #374151; }
         .form-row input[type="text"], .form-row input[type="number"], .form-row select {
@@ -604,49 +706,61 @@
             <div id="modal-sp-form" class="modal-box">
                 <div class="modal-close-btn" onclick="closeAllModals()"></div>
                 <h2 id="modal-form-title">Thêm Sản Phẩm Mới</h2>
-                <div class="form-container">
-                    <div class="form-row">
-                        <label>Tên sản phẩm:</label>
-                        <input type="text" id="form-tenSP" placeholder="VD: Cà phê sữa Sài Gòn">
-                    </div>
-                    <div class="form-row">
-                        <label>Danh mục (Loại):</label>
-                        <select id="form-loaiSP">
-                            <option value="CA_PHE">Cà phê</option>
-                            <option value="TRA">Trà trái cây / Trà sữa</option>
-                            <option value="MATCHA">Matcha / Đá xay</option>
-                            <option value="BANH">Bánh ngọt & Khác</option>
-                        </select>
-                    </div>
-                    <div class="form-row">
-                        <label>Giá bán (VNĐ):</label>
-                        <input type="number" id="form-giaSP" placeholder="VD: 25000" min="0" step="1000">
-                    </div>
-                    <div class="form-row">
-                        <label>Mô tả / Công thức:</label>
-                        <input type="text" id="form-moTa" placeholder="VD: Sữa đặc Ngôi Sao Phương Nam | Đậm đà truyền thống">
-                    </div>
-                    <div class="form-row">
-                        <label>Chọn hình ảnh:</label>
-                        <div class="image-picker-area">
-                            <input type="file" id="form-hinhAnh-file" accept="image/*" style="display: none;" onchange="handleImageFileSelect(event)">
-                            <button type="button" class="btn-choose-file" onclick="document.getElementById('form-hinhAnh-file').click()">
-                                <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-                                <span class="file-name-display" id="form-hinhAnh-label">Tải ảnh từ máy...</span>
-                            </button>
-                            <div class="image-preview-box" id="form-preview-box" title="Ảnh xem trước">
-                                <span id="form-preview-placeholder">Ảnh</span>
-                                <img id="form-preview-img" src="" alt="Preview">
+                <div class="sp-form-columns">
+                    <section class="sp-form-section">
+                        <h3>Thông tin sản phẩm</h3>
+                        <div class="form-container">
+                            <div class="form-row">
+                                <label>Tên sản phẩm:</label>
+                                <input type="text" id="form-tenSP" placeholder="VD: Cà phê sữa Sài Gòn">
+                            </div>
+                            <div class="form-row">
+                                <label>Danh mục (Loại):</label>
+                                <select id="form-loaiSP">
+                                    <option value="CA_PHE">Cà phê</option>
+                                    <option value="TRA">Trà trái cây / Trà sữa</option>
+                                    <option value="MATCHA">Matcha / Đá xay</option>
+                                    <option value="BANH">Bánh ngọt & Khác</option>
+                                </select>
+                            </div>
+                            <div class="form-row">
+                                <label>Giá bán (VNĐ):</label>
+                                <input type="number" id="form-giaSP" placeholder="VD: 25000" min="0" step="1000">
+                            </div>
+                            <div class="form-row">
+                                <label>Mô tả:</label>
+                                <input type="text" id="form-moTa" placeholder="Mô tả sản phẩm">
+                            </div>
+                            <div class="form-row">
+                                <label>Chọn hình ảnh:</label>
+                                <div class="image-picker-area">
+                                    <input type="file" id="form-hinhAnh-file" accept="image/*" style="display: none;" onchange="handleImageFileSelect(event)">
+                                    <button type="button" class="btn-choose-file" onclick="document.getElementById('form-hinhAnh-file').click()">
+                                        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                                        <span class="file-name-display" id="form-hinhAnh-label">Tải ảnh từ máy...</span>
+                                    </button>
+                                    <div class="image-preview-box" id="form-preview-box" title="Ảnh xem trước">
+                                        <span id="form-preview-placeholder">Ảnh</span>
+                                        <img id="form-preview-img" src="" alt="Preview">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <label>Trạng thái POS:</label>
+                                <select id="form-trangThai">
+                                    <option value="DANG_BAN">● Đang bán</option>
+                                    <option value="TAM_HET_HANG">● Tạm hết hàng</option>
+                                </select>
                             </div>
                         </div>
-                    </div>
-                    <div class="form-row">
-                        <label>Trạng thái POS:</label>
-                        <select id="form-trangThai">
-                            <option value="DANG_BAN">● Đang bán</option>
-                            <option value="TAM_HET_HANG">● Tạm hết hàng</option>
-                        </select>
-                    </div>
+                    </section>
+                    <section class="sp-form-section">
+                        <h3>Định mức nguyên liệu cho 1 sản phẩm</h3>
+                        <p class="recipe-help">Nhập lượng nguyên liệu tiêu hao cho mỗi sản phẩm. Đơn vị được lấy theo kho nguyên liệu.</p>
+                        <div id="recipe-list" class="recipe-list"></div>
+                        <button type="button" class="recipe-add" onclick="addRecipeIngredientRow()">+ Thêm nguyên liệu</button>
+                        <div id="recipe-error" class="recipe-help" role="alert"></div>
+                    </section>
                 </div>
                 <button class="btn-xacnhan-green" onclick="submitSpForm()">XÁC NHẬN</button>
             </div>

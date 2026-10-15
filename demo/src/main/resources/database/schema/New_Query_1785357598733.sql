@@ -1,6 +1,16 @@
 
 -- Chọn database MayBanNuoc trên kết nối MySQL trước khi chạy script này.
 
+SET @add_so_luong_toi_thieu = IF(
+    (SELECT COUNT(*) FROM information_schema.COLUMNS
+     WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'nguyenlieu' AND COLUMN_NAME = 'so_luong_toi_thieu') = 0,
+    'ALTER TABLE nguyenlieu ADD COLUMN so_luong_toi_thieu DOUBLE NOT NULL DEFAULT 0',
+    'SELECT 1'
+);
+PREPARE stmt_add_so_luong_toi_thieu FROM @add_so_luong_toi_thieu;
+EXECUTE stmt_add_so_luong_toi_thieu;
+DEALLOCATE PREPARE stmt_add_so_luong_toi_thieu;
+
 SET @add_tien_khach_dua = IF(
     (SELECT COUNT(*) FROM information_schema.COLUMNS
      WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'hoadon' AND COLUMN_NAME = 'tien_khach_dua') = 0,
@@ -44,6 +54,9 @@ VALUES
 (1,'Ca sáng','07:00','11:00'),
 (2,'Ca chiều','11:00','17:00'),
 (3,'Ca tối','17:00','22:00');
+INSERT INTO calam(id,ten_ca,thoi_gian_bd,thoi_gian_kt)
+VALUES
+(4,'Ca đêm','22:00','7:00')
 
 INSERT INTO nhanvien
 (id,ten,email,phone,mat_khau,ngay_sinh,ngay_vao,ca_id,vai_tro,trang_thai)
@@ -148,15 +161,40 @@ VALUES
 (15, 'Nước đường (Syrup)', 20, 'chai', 'CON_HANG'),
 (16, 'Đá viên', 50, 'bao', 'CON_HANG');
 
-INSERT INTO ctnl
-VALUES
-(1,1,20),
-(1,2,30),
-(1,3,10),
-(2,1,25),
-(2,3,8),
-(3,4,15),
-(4,5,15);
+UPDATE nguyenlieu
+SET so_luong_toi_thieu = CASE id
+    WHEN 1 THEN 2
+    WHEN 2 THEN 5
+    WHEN 3 THEN 3
+    WHEN 4 THEN 2
+    WHEN 5 THEN 3
+    WHEN 6 THEN 2
+    WHEN 7 THEN 1
+    WHEN 8 THEN 3
+    WHEN 9 THEN 2
+    WHEN 10 THEN 0.5
+    WHEN 11 THEN 1
+    WHEN 12 THEN 5
+    WHEN 13 THEN 2
+    WHEN 14 THEN 3
+    WHEN 15 THEN 2
+    WHEN 16 THEN 5
+    ELSE so_luong_toi_thieu
+END
+WHERE id BETWEEN 1 AND 16 AND so_luong_toi_thieu = 0;
+
+INSERT INTO ctnl (sp_id, nl_id, so_luong_can) VALUES
+(1, 1, 0.018), (1, 2, 0.04), (1, 15, 0.02), (1, 16, 0.03),
+(2, 1, 0.018), (2, 15, 0.025), (2, 16, 0.03),
+(3, 1, 0.012), (3, 2, 0.035), (3, 3, 0.12), (3, 16, 0.03),
+(4, 4, 0.01), (4, 5, 0.05), (4, 6, 0.03), (4, 7, 0.01), (4, 15, 0.02), (4, 16, 0.03),
+(5, 3, 0.15), (5, 10, 0.008), (5, 2, 0.02), (5, 16, 0.03),
+(6, 4, 0.01), (6, 8, 0.05), (6, 9, 0.04), (6, 15, 0.02), (6, 16, 0.03),
+(7, 3, 0.15), (7, 10, 0.008), (7, 2, 0.02), (7, 16, 0.03),
+(8, 11, 0.15), (8, 3, 0.1), (8, 2, 0.02), (8, 16, 0.03),
+(9, 6, 0.25), (9, 15, 0.02), (9, 16, 0.02),
+(10, 3, 0.1), (10, 12, 0.03), (10, 13, 0.05), (10, 16, 0.03)
+ON DUPLICATE KEY UPDATE so_luong_can = so_luong_can;
 
 INSERT INTO hoadon
 (id,kh_id,nv_id,tong_hd,trang_thai,ngay_hd,phuong_thuc)

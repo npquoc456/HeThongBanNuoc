@@ -6,18 +6,25 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.ArrayList;
 import java.math.BigDecimal;
+import java.util.Map;
+import java.util.TreeMap;
 
 import com.example.demo.dto.HoaDonDTO;
 import com.example.demo.dto.CTHDDTO;
 import com.example.demo.entity.HoaDon;
 import com.example.demo.entity.CTHD;
 import com.example.demo.entity.CTHDid;
+import com.example.demo.entity.CTNL;
+import com.example.demo.entity.NguyenLieu;
 import com.example.demo.entity.TKTrungThanh;
 import com.example.demo.repository.HoaDonRepository;
 import com.example.demo.repository.NhanVienRepository;
 import com.example.demo.repository.TKTrungThanhRepository;
 import com.example.demo.repository.CTHDReponsitory; 
 import com.example.demo.repository.SanPhamRepository;
+import com.example.demo.repository.CTNLRepository;
+import com.example.demo.repository.NguyenLieuRepository;
+import com.example.demo.constant.TrangThaiHoaDon;
 
 @Service
 public class HoaDonService {
@@ -36,6 +43,12 @@ public class HoaDonService {
     
     @Autowired
     private SanPhamRepository sanPhamRepository;
+
+    @Autowired
+    private CTNLRepository ctnlRepository;
+
+    @Autowired
+    private NguyenLieuRepository nguyenLieuRepository;
 
     public List<HoaDonDTO> getAllHoaDon() {
         return hoaDonRepository.findAll().stream()
@@ -70,6 +83,10 @@ public class HoaDonService {
             }
         }
 
+        if (isPaid(savedHoaDon.getTrangThai())) {
+            deductIngredients(cthdReponsitory.findByHoaDon_Id(savedHoaDon.getId()));
+        }
+
         if (savedHoaDon.getTkTrungThanh() != null && dto.getCTHDs() != null) {
             int purchasedQuantity = dto.getCTHDs().stream()
                     .mapToInt(CTHDDTO::getSoLuong)
@@ -91,6 +108,12 @@ public class HoaDonService {
     public HoaDonDTO updateHoaDon(Integer id, HoaDonDTO dto) {
         HoaDon existingHoaDon = hoaDonRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn có id: " + id));
+        boolean isNewlyPaid = !isPaid(existingHoaDon.getTrangThai())
+                && dto.getTrangThai() != null
+                && isPaid(dto.getTrangThai());
+        boolean isUnpaidAfterPayment = isPaid(existingHoaDon.getTrangThai())
+                && dto.getTrangThai() != null
+                && !isPaid(dto.getTrangThai());
 
         HoaDon paymentToValidate = new HoaDon();
         paymentToValidate.setTongTien(dto.getTongTien() != null ? dto.getTongTien() : existingHoaDon.getTongTien());
@@ -117,13 +140,84 @@ public class HoaDonService {
             existingHoaDon.setTienThoi(dto.getTienThoi());
         }
 
+        if (isNewlyPaid || isUnpaidAfterPayment) {
+            adjustIngredients(cthdReponsitory.findByHoaDon_Id(existingHoaDon.getId()), isNewlyPaid);
+        }
         HoaDon updatedHoaDon = hoaDonRepository.save(existingHoaDon);
         return mapToDTO(updatedHoaDon);
     }
 
+    private boolean isPaid(TrangThaiHoaDon status) {
+        return status == TrangThaiHoaDon.DA_XAC_NHAN || status == TrangThaiHoaDon.DA_THANH_TOAN;
+    }
+
+    private void deductIngredients(List<CTHD> invoiceLines) {
+        adjustIngredients(invoiceLines, true);
+    }
+
+    private void adjustIngredients(List<CTHD> invoiceLines, boolean deduct) {
+        if (invoiceLines.isEmpty()) {
+            throw new IllegalArgumentException("Hóa đơn chưa có sản phẩm để tính nguyên liệu.");
+        }
+
+        Map<Integer, BigDecimal> requiredAmounts = new TreeMap<>();
+        for (CTHD invoiceLine : invoiceLines) {
+            if (invoiceLine.getSoLuong() == null || invoiceLine.getSoLuong() <= 0) {
+                throw new IllegalArgumentException("Số lượng sản phẩm trong hóa đơn không hợp lệ.");
+            }
+            List<CTNL> recipe = ctnlRepository.findBySanPham_Id(invoiceLine.getSanPham().getId());
+            if (recipe.isEmpty()) {
+                throw new IllegalArgumentException(
+                        "Sản phẩm " + invoiceLine.getSanPham().getTenSP() + " chưa có định mức nguyên liệu.");
+            }
+            for (CTNL ingredientLine : recipe) {
+                BigDecimal amount = BigDecimal.valueOf(ingredientLine.getSoLuong())
+                        .multiply(BigDecimal.valueOf(invoiceLine.getSoLuong()));
+                requiredAmounts.merge(
+                        ingredientLine.getNguyenLieu().getId(), amount, BigDecimal::add);
+            }
+        }
+        if (requiredAmounts.isEmpty()) return;
+
+        List<Integer> ingredientIds = List.copyOf(requiredAmounts.keySet());
+        List<NguyenLieu> lockedIngredients = nguyenLieuRepository.findAllByIdInForUpdate(ingredientIds);
+        if (lockedIngredients.size() != ingredientIds.size()) {
+            throw new IllegalArgumentException("Không tìm thấy đủ nguyên liệu theo công thức sản phẩm.");
+        }
+
+        for (NguyenLieu ingredient : lockedIngredients) {
+            BigDecimal stock = BigDecimal.valueOf(ingredient.getSoLuong() == null ? 0 : ingredient.getSoLuong());
+            BigDecimal required = requiredAmounts.get(ingredient.getId());
+            if (deduct && stock.compareTo(required) < 0) {
+                throw new IllegalArgumentException(
+                        "Không đủ tồn kho nguyên liệu " + ingredient.getTenNL()
+                                + ": cần " + required.stripTrailingZeros().toPlainString()
+                                + " " + ingredient.getDonVi()
+                                + ", còn " + stock.stripTrailingZeros().toPlainString()
+                                + " " + ingredient.getDonVi() + ".");
+            }
+        }
+
+        for (NguyenLieu ingredient : lockedIngredients) {
+            BigDecimal currentStock = BigDecimal.valueOf(ingredient.getSoLuong() == null ? 0 : ingredient.getSoLuong());
+            BigDecimal updatedStock = deduct
+                    ? currentStock.subtract(requiredAmounts.get(ingredient.getId()))
+                    : currentStock.add(requiredAmounts.get(ingredient.getId()));
+            ingredient.setSoLuong(updatedStock.doubleValue());
+            ingredient.setTrangThai(updatedStock.signum() <= 0
+                    ? com.example.demo.constant.TrangThaiVatLieu.HET_HANG
+                    : com.example.demo.constant.TrangThaiVatLieu.CON_HANG);
+        }
+        nguyenLieuRepository.saveAll(lockedIngredients);
+    }
+
+    @Transactional
     public void deleteHoaDon(Integer id) {
         HoaDon existingHoaDon = hoaDonRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn có id: " + id));
+        if (isPaid(existingHoaDon.getTrangThai())) {
+            adjustIngredients(cthdReponsitory.findByHoaDon_Id(existingHoaDon.getId()), false);
+        }
         hoaDonRepository.delete(existingHoaDon);
     }
 
