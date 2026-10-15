@@ -28,7 +28,6 @@
             position: relative;
         }
 
-
         .login-container {
             display: flex;
             background: white;
@@ -342,9 +341,12 @@ loginForm.addEventListener("submit", async function (e) {
            
             const userData = await response.json();
             
-            
+            // LƯU THÔNG TIN ĐĂNG NHẬP VÀO LOCALSTORAGE
             localStorage.setItem('POS_STAFF_ID', userData.id);
-            localStorage.setItem('POS_STAFF_NAME', userData.tenNhanVien);
+            localStorage.setItem('POS_STAFF_NAME', userData.tenNhanVien || userData.hoTen);
+            
+            // >>> BỔ SUNG DÒNG NÀY ĐỂ LƯU CHÍNH XÁC VAI TRÒ (ADMIN / NHANVIEN) <<<
+            localStorage.setItem('POS_STAFF_ROLE', userData.vaiTro);
 
             if (window.javaBackend) {
                 window.javaBackend.loadTrang("Dashboard.html"); 

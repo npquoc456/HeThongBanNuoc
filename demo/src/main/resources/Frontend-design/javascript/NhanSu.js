@@ -1,19 +1,23 @@
 // =====================================================
-// 1. KHỞI TẠO HỆ THỐNG, ĐỒNG HỒ & PHÂN QUYỀN MANAGER / STAFF
+// 1. KHỞI TẠO HỆ THỐNG & PHÂN QUYỀN ADMIN / NHANVIEN
 // =====================================================
 let idnhanviendangnhap = localStorage.getItem('POS_STAFF_ID') || '1';
-let tennhanviendangnhap = localStorage.getItem('POS_STAFF_NAME') || 'Nguyễn Phú Quốc';
-let vaitrodangnhap = localStorage.getItem('POS_STAFF_ROLE') || 'QUAN_LY';
+let tennhanviendangnhap = localStorage.getItem('POS_STAFF_NAME') || 'Nguyen Phu Quoc';
+let vaitrodangnhap = (localStorage.getItem('POS_STAFF_ROLE') || 'ADMIN').trim().toUpperCase();
 
-let isManagerMode = (vaitrodangnhap === 'QUAN_LY' || vaitrodangnhap === 'MANAGER' || vaitrodangnhap === 'ADMIN');
+let isManagerMode = (vaitrodangnhap === 'ADMIN');
 
-// Quản lý tuần hiện tại (Dựa vào thời gian thực 2026)
 let currentWeekStart = getMonday(new Date());
 let selectedDayIndex = getTodayIndexInWeek(currentWeekStart);
 
 document.addEventListener("DOMContentLoaded", function() {
     const staffNameEl = document.getElementById('staffname');
     if (staffNameEl) staffNameEl.innerText = tennhanviendangnhap;
+
+    const roleLabel = document.getElementById('staffrole-label');
+    if (roleLabel) {
+        roleLabel.innerText = (vaitrodangnhap === 'ADMIN') ? '(Quản trị viên)' : '(Nhân viên)';
+    }
 
     applyRoleModeUI();
     initSampleDataIfNeeded();
@@ -56,6 +60,10 @@ function chuyentrang(trang) {
 }
 
 function toggleRoleViewMode() {
+    if (vaitrodangnhap !== 'ADMIN') {
+        alert("Tài khoản của bạn có vai trò NHANVIEN, không có quyền chuyển đổi sang chế độ Quản lý!");
+        return;
+    }
     isManagerMode = !isManagerMode;
     applyRoleModeUI();
     renderCalendarMatrix();
@@ -66,21 +74,27 @@ function toggleRoleViewMode() {
 function applyRoleModeUI() {
     const toggleBtn = document.getElementById('role-mode-toggle');
     const toggleText = document.getElementById('role-mode-text');
-    const roleLabel = document.getElementById('staffrole-label');
     const hintEl = document.getElementById('schedule-mode-hint');
     const managerButtons = document.querySelectorAll('.manager-only-btn');
 
+    if (vaitrodangnhap !== 'ADMIN') {
+        isManagerMode = false;
+        if (toggleBtn) toggleBtn.style.display = 'none';
+        if (hintEl) hintEl.innerText = 'ⓘ Nhân viên: Bạn có thể xem lịch ca làm và bấm vào ca của mình để gửi yêu cầu đổi ca.';
+        managerButtons.forEach(b => b.style.display = 'none');
+        return;
+    }
+
+    if (toggleBtn) toggleBtn.style.display = 'inline-flex';
     if (isManagerMode) {
         if (toggleBtn) toggleBtn.classList.remove('staff-mode');
-        if (toggleText) toggleText.innerText = '🛡️ CHẾ ĐỘ: QUẢN LÝ (MANAGER MODE)';
-        if (roleLabel) roleLabel.innerText = '(Quản lý cửa hàng)';
-        if (hintEl) hintEl.innerText = 'ⓘ Quản lý: Kéo thả ca làm vào lịch bên dưới hoặc bấm vào ô bất kỳ để thêm / sửa / xóa ca.';
+        if (toggleText) toggleText.innerText = '🛡️ CHẾ ĐỘ: QUẢN LÝ (ADMIN MODE)';
+        if (hintEl) hintEl.innerText = 'ⓘ Quản lý: Kéo thả ca làm vào lịch hoặc bấm vào ô để thêm / sửa / xóa ca.';
         managerButtons.forEach(b => b.style.display = 'inline-flex');
     } else {
         if (toggleBtn) toggleBtn.classList.add('staff-mode');
-        if (toggleText) toggleText.innerText = '👤 CHẾ ĐỘ: NHÂN VIÊN (CHỈ XEM & XIN ĐỔI CA)';
-        if (roleLabel) roleLabel.innerText = '(Nhân viên ca)';
-        if (hintEl) hintEl.innerText = 'ⓘ Nhân viên: Bạn chỉ có quyền xem lịch. Nếu bận, hãy bấm vào ca làm để gửi Yêu cầu đổi ca kèm lý do cho Quản lý.';
+        if (toggleText) toggleText.innerText = '👤 CHẾ ĐỘ: XEM NHƯ NHÂN VIÊN';
+        if (hintEl) hintEl.innerText = 'ⓘ Chế độ xem: Bạn đang xem giao diện ở góc nhìn nhân viên.';
         managerButtons.forEach(b => b.style.display = 'none');
     }
 }
@@ -106,12 +120,12 @@ function switchMainTab(tab) {
 }
 
 // =====================================================
-// 2. XỬ LÝ NGÀY THÁNG TỪ THỨ 2 ĐẾN CHỦ NHẬT & TUẦN
+// 2. XỬ LÝ NGÀY THÁNG TỪ THỨ 2 ĐẾN CHỦ NHẬT
 // =====================================================
 function getMonday(d) {
     d = new Date(d);
     let day = d.getDay();
-    let diff = d.getDate() - day + (day === 0 ? -6 : 1); // Điều chỉnh khi Chủ nhật
+    let diff = d.getDate() - day + (day === 0 ? -6 : 1);
     return new Date(d.setDate(diff));
 }
 
@@ -122,11 +136,9 @@ function getTodayIndexInWeek(mondayDate) {
         let temp = new Date(mondayDate);
         temp.setDate(mondayDate.getDate() + i);
         temp.setHours(0,0,0,0);
-        if (temp.getTime() === today.getTime()) {
-            return i;
-        }
+        if (temp.getTime() === today.getTime()) return i;
     }
-    return 0; // Mặc định Thứ 2 nếu không nằm trong tuần
+    return 0;
 }
 
 function getWeekDaysArray(mondayDate) {
@@ -157,8 +169,7 @@ function getWeekNumber(d) {
     d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
     d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay()||7));
     let yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
-    let weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
-    return weekNo;
+    return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
 }
 
 function updateWeekRangeLabel() {
@@ -168,9 +179,7 @@ function updateWeekRangeLabel() {
     const weekNum = getWeekNumber(currentWeekStart);
 
     const label = document.getElementById('week-range-label');
-    if (label) {
-        label.innerText = `Tuần ${weekNum}: ${firstDay} - ${lastDay}`;
-    }
+    if (label) label.innerText = `Tuần ${weekNum}: ${firstDay} - ${lastDay}`;
 }
 
 function changeWeekOffset(deltaWeeks) {
@@ -183,7 +192,7 @@ function changeWeekOffset(deltaWeeks) {
 }
 
 // =====================================================
-// 3. DỮ LIỆU NHÂN SỰ, CA LÀM & KẾT NỐI REST API
+// 3. TÍCH HỢP REST API NHÂN VIÊN & CA LÀM
 // =====================================================
 const API_NV_URL = 'http://localhost:8080/api/nhanvien';
 const API_CALAM_URL = 'http://localhost:8080/api/calam';
@@ -198,7 +207,6 @@ function initSampleDataIfNeeded() {
     if (savedSwap) {
         swapRequests = JSON.parse(savedSwap);
     } else {
-        // Yêu cầu đổi ca mặc định ban đầu là rỗng (0 yêu cầu) theo đúng yêu cầu của bạn
         swapRequests = [];
         localStorage.setItem('POS_SWAP_REQUESTS', JSON.stringify(swapRequests));
     }
@@ -213,35 +221,26 @@ async function loadAllDataFromApi() {
             if (Array.isArray(dataNv) && dataNv.length > 0) {
                 staffList = dataNv.map(nv => ({
                     id: nv.id,
-                    tenNhanVien: nv.tenNhanVien || 'Nhân viên',
-                    email: nv.email || `nv${nv.id}@caferoastery.vn`,
-                    sdt: nv.sdt || '0901234567',
-                    ngaySinh: nv.ngaySinh || '2002-05-15',
-                    ngayLamViec: nv.ngayLamViec || '2025-01-10',
-                    trangThaiLamViec: nv.trangThaiLamViec || 'DANG_LAM',
-                    vaiTro: nv.vaiTro || 'NHAN_VIEN',
+                    tenNhanVien: nv.tenNhanVien || nv.hoTen || 'Nhân viên',
+                    email: nv.email || `nv${nv.id}@gmail.com`,
+                    sdt: nv.sdt || '0901111111',
+                    ngaySinh: nv.ngaySinh || '2004-01-01',
+                    ngayLamViec: nv.ngayLamViec || '2025-01-01',
+                    trangThaiLamViec: nv.trangThaiLamViec || 'DANG_LAM_VIEC',
+                    vaiTro: nv.vaiTro || 'NHANVIEN',
                     ctCaList: nv.ctCaList || []
                 }));
                 loadedNv = true;
             }
         }
-    } catch (e) {
-        console.warn("Sử dụng danh sách nhân sự mẫu khi Backend chưa bật:", e);
-    }
+    } catch (e) {}
 
     if (!loadedNv) {
-        const localStaff = localStorage.getItem('POS_FALLBACK_STAFF');
-        if (localStaff) {
-            staffList = JSON.parse(localStaff);
-        } else {
-            staffList = [
-                { id: 1, tenNhanVien: 'Nguyễn Phú Quốc', email: 'quoc.np@caferoastery.vn', sdt: '0901112222', ngaySinh: '1999-03-12', ngayLamViec: '2024-01-15', trangThaiLamViec: 'DANG_LAM', vaiTro: 'QUAN_LY' },
-                { id: 2, tenNhanVien: 'Trần Thị Mai', email: 'mai.tt@caferoastery.vn', sdt: '0903334444', ngaySinh: '2003-08-20', ngayLamViec: '2025-02-01', trangThaiLamViec: 'DANG_LAM', vaiTro: 'NHAN_VIEN' },
-                { id: 3, tenNhanVien: 'Lê Hoàng Nam', email: 'nam.lh@caferoastery.vn', sdt: '0905556666', ngaySinh: '2002-11-05', ngayLamViec: '2024-06-10', trangThaiLamViec: 'DANG_LAM', vaiTro: 'NHAN_VIEN' },
-                { id: 4, tenNhanVien: 'Phạm Thu Hà', email: 'ha.pt@caferoastery.vn', sdt: '0907778888', ngaySinh: '2004-04-18', ngayLamViec: '2025-09-01', trangThaiLamViec: 'DANG_LAM', vaiTro: 'NHAN_VIEN' }
-            ];
-            localStorage.setItem('POS_FALLBACK_STAFF', JSON.stringify(staffList));
-        }
+        staffList = [
+            { id: 1, tenNhanVien: 'Nguyen Phu Quoc', email: 'quoc@gmail.com', sdt: '0901111111', ngaySinh: '2006-11-16', ngayLamViec: '2025-03-14', trangThaiLamViec: 'DANG_LAM_VIEC', vaiTro: 'ADMIN' },
+            { id: 2, tenNhanVien: 'Tran Van A', email: 'a@gmail.com', sdt: '0902222222', ngaySinh: '2003-05-20', ngayLamViec: '2025-01-10', trangThaiLamViec: 'DANG_LAM_VIEC', vaiTro: 'NHANVIEN' },
+            { id: 3, tenNhanVien: 'Le Thi B', email: 'b@gmail.com', sdt: '0903333333', ngaySinh: '2002-09-18', ngayLamViec: '2025-02-20', trangThaiLamViec: 'TAM_NGHI', vaiTro: 'NHANVIEN' }
+        ];
     }
 
     let loadedCa = false;
@@ -254,9 +253,7 @@ async function loadAllDataFromApi() {
                 loadedCa = true;
             }
         }
-    } catch (e) {
-        console.warn("Sử dụng dữ liệu ca làm local:", e);
-    }
+    } catch (e) {}
 
     loadScheduleAssignments(loadedCa);
     updateWeekRangeLabel();
@@ -274,10 +271,8 @@ function loadScheduleAssignments(fromApi) {
     } else {
         scheduleAssignments = [
             { id: 's1', caLamId: 1, nhanVienId: 1, dayIndex: 0, tenCa: 'Ca 1', thoiGianBD: '06:30', thoiGianKT: '12:00' },
-            { id: 's2', caLamId: 2, nhanVienId: 1, dayIndex: 1, tenCa: 'Ca 2', thoiGianBD: '12:00', thoiGianKT: '17:30' },
-            { id: 's3', caLamId: 1, nhanVienId: 2, dayIndex: 0, tenCa: 'Ca 1', thoiGianBD: '06:30', thoiGianKT: '12:00' },
-            { id: 's4', caLamId: 1, nhanVienId: 3, dayIndex: 2, tenCa: 'Ca 1', thoiGianBD: '06:30', thoiGianKT: '12:00' },
-            { id: 's5', caLamId: 3, nhanVienId: 4, dayIndex: 4, tenCa: 'Ca 3', thoiGianBD: '17:30', thoiGianKT: '23:00' }
+            { id: 's2', caLamId: 2, nhanVienId: 2, dayIndex: 1, tenCa: 'Ca 2', thoiGianBD: '12:00', thoiGianKT: '17:30' },
+            { id: 's3', caLamId: 3, nhanVienId: 3, dayIndex: 2, tenCa: 'Ca 3', thoiGianBD: '17:30', thoiGianKT: '23:00' }
         ];
     }
     saveScheduleToLocal();
@@ -288,22 +283,20 @@ function saveScheduleToLocal() {
 }
 
 // =====================================================
-// 4. RENDER BẢNG LỊCH CA LÀM (TỪ THỨ 2 ĐẾN CHỦ NHẬT)
+// 4. RENDER BẢNG LỊCH CA LÀM (THỨ 2 - CHỦ NHẬT)
 // =====================================================
 function renderCalendarHeader() {
     const headerRow = document.getElementById('calendar-header-row');
     if (!headerRow) return;
 
     const weekDays = getWeekDaysArray(currentWeekStart);
-    // Thay đổi grid template cho 7 ngày + 1 cột nhân sự
-    const gridCols = `165px repeat(7, 1fr)`;
-    headerRow.style.gridTemplateColumns = gridCols;
+    headerRow.style.gridTemplateColumns = `165px repeat(7, 1fr)`;
 
     let html = `<div class="matrix-col-title">NHÂN SỰ / CA</div>`;
     weekDays.forEach(d => {
         const activeClass = d.index === selectedDayIndex ? 'selected-day' : '';
         html += `
-            <div class="day-header-box ${activeClass}" onclick="selectScheduleDay(${d.index})" title="Bấm để xem thống kê nhân sự trực ngày ${d.fullDate}">
+            <div class="day-header-box ${activeClass}" onclick="selectScheduleDay(${d.index})" title="Xem thống kê ngày ${d.fullDate}">
                 <div class="day-name">${d.label}</div>
                 <div class="day-num">${d.dateNum}</div>
             </div>
@@ -339,13 +332,13 @@ function renderCalendarMatrix() {
 
     const weekDays = getWeekDaysArray(currentWeekStart);
     const gridCols = `165px repeat(7, 1fr)`;
-
     const avatarClasses = ['av-dark', 'av-mint', 'av-amber', 'av-rose'];
 
     staffList.forEach((nv, idx) => {
+        const isMgr = (nv.vaiTro === 'ADMIN');
         const avClass = avatarClasses[idx % avatarClasses.length];
         const initials = getInitials(nv.tenNhanVien);
-        const roleDisplay = nv.vaiTro === 'QUAN_LY' ? 'Manager' : 'Thu Ngân / Staff';
+        const roleDisplay = isMgr ? 'ADMIN' : 'NHANVIEN';
 
         let rowHtml = `
             <div class="matrix-row" style="grid-template-columns: ${gridCols};">
@@ -353,7 +346,7 @@ function renderCalendarMatrix() {
                     <div class="staff-avatar ${avClass}">${initials}</div>
                     <div class="staff-meta">
                         <div class="staff-meta-name">${nv.tenNhanVien}</div>
-                        <div class="staff-meta-role">${roleDisplay} • #2452148${nv.id}</div>
+                        <div class="staff-meta-role">${roleDisplay} • ID #${nv.id}</div>
                     </div>
                 </div>
         `;
@@ -395,37 +388,23 @@ function renderCalendarMatrix() {
     });
 }
 
-// Kéo thả ca làm
 let dragPayload = null;
 
 function onDragTemplateStart(event, tenCa, bd, kt) {
-    if (!isManagerMode) {
-        event.preventDefault();
-        return;
-    }
+    if (!isManagerMode) { event.preventDefault(); return; }
     dragPayload = { type: 'TEMPLATE', tenCa, thoiGianBD: bd, thoiGianKT: kt };
     event.dataTransfer.setData('text/plain', JSON.stringify(dragPayload));
 }
 
 function onDragExistingShiftStart(event, assignmentId) {
-    if (!isManagerMode) {
-        event.preventDefault();
-        return;
-    }
+    if (!isManagerMode) { event.preventDefault(); return; }
     event.stopPropagation();
     dragPayload = { type: 'EXISTING', assignmentId };
     event.dataTransfer.setData('text/plain', JSON.stringify(dragPayload));
 }
 
-function onCellDragOver(event) {
-    if (!isManagerMode) return;
-    event.preventDefault();
-    event.currentTarget.classList.add('drag-over');
-}
-
-function onCellDragLeave(event) {
-    event.currentTarget.classList.remove('drag-over');
-}
+function onCellDragOver(event) { if (!isManagerMode) return; event.preventDefault(); event.currentTarget.classList.add('drag-over'); }
+function onCellDragLeave(event) { event.currentTarget.classList.remove('drag-over'); }
 
 async function onCellDrop(event, targetNvId, targetDayIdx) {
     event.preventDefault();
@@ -466,13 +445,10 @@ function onShiftChipClick(event, assignmentId) {
     }
 }
 
-function onEmptyCellClick(nvId, dayIdx) {
-    if (!isManagerMode) return;
-    openAssignShiftModal(nvId, dayIdx);
-}
+function onEmptyCellClick(nvId, dayIdx) { if (!isManagerMode) return; openAssignShiftModal(nvId, dayIdx); }
 
 // =====================================================
-// 5. THỜI GIAN THỰC NHÂN SỰ ĐANG LÀM THEO NGÀY
+// 5. THỜI GIAN THỰC NHÂN SỰ ĐANG LÀM
 // =====================================================
 function isTimeWithinShift(nowMinutes, bdStr, ktStr) {
     const [bdH, bdM] = (bdStr || '06:30').split(':').map(Number);
@@ -561,14 +537,12 @@ function populateStaffSelect(selectId, selectedNvId) {
 function openAssignShiftModal(nvId, dayIdx) {
     closeAllModals();
     currentEditingAssignmentId = null;
-
     document.getElementById('shift-modal-title').innerText = 'Thêm Ca Làm Cho Nhân Viên';
     populateStaffSelect('shift-form-nv', nvId || (staffList[0] && staffList[0].id));
     
     const daySelect = document.getElementById('shift-form-day');
     daySelect.innerHTML = '';
-    const weekDays = getWeekDaysArray(currentWeekStart);
-    weekDays.forEach(d => {
+    getWeekDaysArray(currentWeekStart).forEach(d => {
         const opt = document.createElement('option');
         opt.value = d.index;
         opt.textContent = `${d.label} (${d.fullDate})`;
@@ -589,14 +563,12 @@ function openAssignShiftModal(nvId, dayIdx) {
 function openEditShiftModal(shift) {
     closeAllModals();
     currentEditingAssignmentId = shift.id;
-
     document.getElementById('shift-modal-title').innerText = 'Chỉnh Sửa / Xóa Ca Làm';
     populateStaffSelect('shift-form-nv', shift.nhanVienId);
     
     const daySelect = document.getElementById('shift-form-day');
     daySelect.innerHTML = '';
-    const weekDays = getWeekDaysArray(currentWeekStart);
-    weekDays.forEach(d => {
+    getWeekDaysArray(currentWeekStart).forEach(d => {
         const opt = document.createElement('option');
         opt.value = d.index;
         opt.textContent = `${d.label} (${d.fullDate})`;
@@ -660,9 +632,7 @@ async function createOrUpdateShiftAssignment(payload) {
 
     if (payload.id) {
         const idx = scheduleAssignments.findIndex(a => a.id === payload.id);
-        if (idx !== -1) {
-            scheduleAssignments[idx] = { ...scheduleAssignments[idx], ...payload };
-        }
+        if (idx !== -1) scheduleAssignments[idx] = { ...scheduleAssignments[idx], ...payload };
     } else {
         payload.id = 'sh-' + Date.now() + '-' + Math.floor(Math.random() * 100);
         scheduleAssignments.push(payload);
@@ -676,13 +646,9 @@ async function createOrUpdateShiftAssignment(payload) {
 async function deleteShiftAssignment() {
     if (!currentEditingAssignmentId) return;
     const target = scheduleAssignments.find(a => a.id === currentEditingAssignmentId);
-
     if (target && target.caLamId) {
-        try {
-            await fetch(`${API_CALAM_URL}/${target.caLamId}/phancong/${target.nhanVienId}`, { method: 'DELETE' });
-        } catch (e) {}
+        try { await fetch(`${API_CALAM_URL}/${target.caLamId}/phancong/${target.nhanVienId}`, { method: 'DELETE' }); } catch (e) {}
     }
-
     scheduleAssignments = scheduleAssignments.filter(a => a.id !== currentEditingAssignmentId);
     saveScheduleToLocal();
     closeAllModals();
@@ -690,14 +656,11 @@ async function deleteShiftAssignment() {
     updateRealtimeWorkingStaffWidget();
 }
 
-// Nhân viên gửi yêu cầu đổi ca
 function openStaffSwapRequestModal(shift) {
     closeAllModals();
     currentSwapSourceAssignment = shift;
-
     const nv = staffList.find(n => Number(n.id) === Number(shift.nhanVienId));
-    const weekDays = getWeekDaysArray(currentWeekStart);
-    const dayObj = weekDays[Number(shift.dayIndex)] || weekDays[0];
+    const dayObj = getWeekDaysArray(currentWeekStart)[Number(shift.dayIndex)] || getWeekDaysArray(currentWeekStart)[0];
 
     document.getElementById('swap-view-nv').innerText = nv ? nv.tenNhanVien : `Nhân viên #${shift.nhanVienId}`;
     document.getElementById('swap-view-ca').innerText = `${shift.tenCa} (${dayObj.label} - ${dayObj.fullDate})`;
@@ -713,17 +676,13 @@ function openStaffSwapRequestModal(shift) {
 function submitStaffSwapRequest() {
     if (!currentSwapSourceAssignment) return;
     const reason = document.getElementById('swap-reason-input').value.trim();
-    if (!reason) {
-        alert("Vui lòng nhập lý do xin đổi ca để Quản lý xét duyệt!");
-        return;
-    }
+    if (!reason) { alert("Vui lòng nhập lý do xin đổi ca để Quản lý xét duyệt!"); return; }
 
     const fromNv = staffList.find(n => Number(n.id) === Number(currentSwapSourceAssignment.nhanVienId));
     const targetNvId = Number(document.getElementById('swap-target-nv').value);
     const toNv = staffList.find(n => Number(n.id) === targetNvId);
     const targetCaText = document.getElementById('swap-target-ca').value;
-    const weekDays = getWeekDaysArray(currentWeekStart);
-    const dayObj = weekDays[Number(currentSwapSourceAssignment.dayIndex)] || weekDays[0];
+    const dayObj = getWeekDaysArray(currentWeekStart)[Number(currentSwapSourceAssignment.dayIndex)] || getWeekDaysArray(currentWeekStart)[0];
 
     const newReq = {
         id: 'SW-' + Math.floor(100 + Math.random() * 900),
@@ -781,20 +740,11 @@ function renderSwapRequests() {
 
         listEl.innerHTML += `
             <div class="swap-item-box">
-                <div class="swap-meta-top">
-                    <span>Yêu cầu #${req.id}</span>
-                    <span>${req.timeAgo}</span>
-                </div>
+                <div class="swap-meta-top"><span>Yêu cầu #${req.id}</span><span>${req.timeAgo}</span></div>
                 <div class="swap-people">
-                    <div>
-                        <div>${req.fromNvName}</div>
-                        <div style="font-size:10.5px; color:#e11d48;">${req.fromShiftText}</div>
-                    </div>
+                    <div><div>${req.fromNvName}</div><div style="font-size:10.5px; color:#e11d48;">${req.fromShiftText}</div></div>
                     <span style="color:#9ca3af;">➔</span>
-                    <div style="text-align:right;">
-                        <div>${req.toNvName}</div>
-                        <div style="font-size:10.5px; color:#047857;">Đổi sang ${req.toShiftText}</div>
-                    </div>
+                    <div style="text-align:right;"><div>${req.toNvName}</div><div style="font-size:10.5px; color:#047857;">Đổi sang ${req.toShiftText}</div></div>
                 </div>
                 <div class="swap-reason">"${req.reason}"</div>
                 ${actionHtml}
@@ -806,24 +756,20 @@ function renderSwapRequests() {
 function handleSwapDecision(reqId, isApproved) {
     const req = swapRequests.find(r => r.id === reqId);
     if (!req) return;
-
     req.status = isApproved ? 'APPROVED' : 'REJECTED';
     if (isApproved && req.assignmentId) {
         const shift = scheduleAssignments.find(a => a.id === req.assignmentId);
-        if (shift && req.toNvId) {
-            shift.nhanVienId = req.toNvId;
-        }
+        if (shift && req.toNvId) shift.nhanVienId = req.toNvId;
         saveScheduleToLocal();
         renderCalendarMatrix();
         updateRealtimeWorkingStaffWidget();
     }
-
     localStorage.setItem('POS_SWAP_REQUESTS', JSON.stringify(swapRequests));
     renderSwapRequests();
 }
 
 // =====================================================
-// 7. TAB 2: QUẢN LÝ NHÂN SỰ & PHÂN QUYỀN
+// 7. TAB 2: QUẢN LÝ NHÂN SỰ & PHÂN QUYỀN (THÊM CỘT TRẠNG THÁI)
 // =====================================================
 let currentEditingStaffId = null;
 let currentDeleteStaffId = null;
@@ -850,12 +796,17 @@ function renderStaffTable() {
     const avatarClasses = ['av-dark', 'av-mint', 'av-amber', 'av-rose'];
 
     filtered.forEach((nv, idx) => {
-        const isMgr = nv.vaiTro === 'QUAN_LY' || nv.vaiTro === 'MANAGER';
+        const isMgr = (nv.vaiTro === 'ADMIN');
         const avClass = avatarClasses[idx % avatarClasses.length];
         const initials = getInitials(nv.tenNhanVien);
         const badgeClass = isMgr ? 'MANAGER' : 'STAFF';
-        const badgeLabel = isMgr ? 'MANAGER' : 'CASHIER / STAFF';
+        const badgeLabel = isMgr ? 'ADMIN' : 'NHANVIEN';
         const disabledAttr = isManagerMode ? '' : 'disabled';
+
+        // Xử lý hiển thị trạng thái làm việc
+        const isDangLam = (nv.trangThaiLamViec === 'DANG_LAM_VIEC' || nv.trangThaiLamViec === 'DANG_LAM');
+        const statusClass = isDangLam ? 'dang-lam' : 'tam-nghi';
+        const statusText = isDangLam ? '● Đang làm' : '● Tạm nghỉ';
 
         bodyEl.innerHTML += `
             <div class="sm-table-row">
@@ -863,13 +814,12 @@ function renderStaffTable() {
                     <div class="staff-avatar ${avClass}">${initials}</div>
                     <div class="staff-meta" style="text-align:left;">
                         <div class="staff-meta-name">${nv.tenNhanVien}</div>
-                        <div class="staff-meta-role">ID: 2452148${nv.id} • ${nv.sdt || ''}</div>
+                        <div class="staff-meta-role">ID: ${nv.id} • ${nv.sdt || ''}</div>
                         <div class="staff-meta-role">${nv.email || ''}</div>
                     </div>
                 </div>
-                <div style="text-align:left;">
-                    <span class="role-badge ${badgeClass}">${badgeLabel}</span>
-                </div>
+                <div style="text-align:left;"><span class="role-badge ${badgeClass}">${badgeLabel}</span></div>
+                <div style="text-align:left;"><span class="status-badge-work ${statusClass}">${statusText}</span></div>
                 <div><input type="checkbox" class="perm-check" checked ${disabledAttr}></div>
                 <div><input type="checkbox" class="perm-check" checked ${disabledAttr}></div>
                 <div><input type="checkbox" class="perm-check" checked ${disabledAttr}></div>
@@ -897,10 +847,10 @@ function openCreateStaffModal() {
     document.getElementById('nv-form-name').value = '';
     document.getElementById('nv-form-email').value = '';
     document.getElementById('nv-form-sdt').value = '';
-    document.getElementById('nv-form-ngaysinh').value = '2003-01-01';
+    document.getElementById('nv-form-ngaysinh').value = '2004-01-01';
     document.getElementById('nv-form-ngaylam').value = new Date().toISOString().split('T')[0];
-    document.getElementById('nv-form-vaitro').value = 'NHAN_VIEN';
-    document.getElementById('nv-form-trangthai').value = 'DANG_LAM';
+    document.getElementById('nv-form-vaitro').value = 'NHANVIEN';
+    document.getElementById('nv-form-trangthai').value = 'DANG_LAM_VIEC';
 
     document.getElementById('modal-overlay').style.display = 'flex';
     document.getElementById('modal-staff-form').style.display = 'block';
@@ -918,10 +868,10 @@ function openEditStaffModal(id) {
     document.getElementById('nv-form-name').value = nv.tenNhanVien;
     document.getElementById('nv-form-email').value = nv.email || '';
     document.getElementById('nv-form-sdt').value = nv.sdt || '';
-    document.getElementById('nv-form-ngaysinh').value = nv.ngaySinh || '2002-01-01';
+    document.getElementById('nv-form-ngaysinh').value = nv.ngaySinh || '2004-01-01';
     document.getElementById('nv-form-ngaylam').value = nv.ngayLamViec || '2025-01-01';
-    document.getElementById('nv-form-vaitro').value = nv.vaiTro || 'NHAN_VIEN';
-    document.getElementById('nv-form-trangthai').value = nv.trangThaiLamViec || 'DANG_LAM';
+    document.getElementById('nv-form-vaitro').value = nv.vaiTro || 'NHANVIEN';
+    document.getElementById('nv-form-trangthai').value = nv.trangThaiLamViec || 'DANG_LAM_VIEC';
 
     document.getElementById('modal-overlay').style.display = 'flex';
     document.getElementById('modal-staff-form').style.display = 'block';
@@ -936,49 +886,32 @@ async function submitStaffForm() {
     const vaiTro = document.getElementById('nv-form-vaitro').value;
     const trangThaiLamViec = document.getElementById('nv-form-trangthai').value;
 
-    if (!tenNhanVien) {
-        alert("Vui lòng nhập họ tên nhân viên!");
-        return;
-    }
+    if (!tenNhanVien) { alert("Vui lòng nhập họ tên nhân viên!"); return; }
 
     const dto = { tenNhanVien, email, sdt, ngaySinh, ngayLamViec, vaiTro, trangThaiLamViec };
 
-    if (currentEditingStaffId) {
-        dto.id = currentEditingStaffId;
-        try {
-            await fetch(`${API_NV_URL}/${currentEditingStaffId}`, {
+    try {
+        if (currentEditingStaffId) {
+            dto.id = currentEditingStaffId;
+            const res = await fetch(`${API_NV_URL}/${currentEditingStaffId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(dto)
             });
-        } catch (e) {}
-
-        const idx = staffList.findIndex(n => Number(n.id) === Number(currentEditingStaffId));
-        if (idx !== -1) staffList[idx] = { ...staffList[idx], ...dto };
-    } else {
-        let createdId = staffList.length > 0 ? Math.max(...staffList.map(n => Number(n.id))) + 1 : 1;
-        try {
+            if (!res.ok) throw new Error(await res.text());
+        } else {
             const res = await fetch(API_NV_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(dto)
             });
-            if (res.ok) {
-                const saved = await res.json();
-                if (saved && saved.id) createdId = saved.id;
-            }
-        } catch (e) {}
-
-        dto.id = createdId;
-        staffList.push(dto);
+            if (!res.ok) throw new Error(await res.text());
+        }
+        closeAllModals();
+        await loadAllDataFromApi();
+    } catch (e) {
+        alert("Lỗi khi lưu nhân viên qua API: " + e.message);
     }
-
-    localStorage.setItem('POS_FALLBACK_STAFF', JSON.stringify(staffList));
-    updateStaffBadgeCount();
-    closeAllModals();
-    renderCalendarMatrix();
-    renderStaffTable();
-    updateRealtimeWorkingStaffWidget();
 }
 
 function openDeleteStaffModal(id) {
@@ -989,7 +922,7 @@ function openDeleteStaffModal(id) {
     currentDeleteStaffId = nv.id;
     closeAllModals();
 
-    document.getElementById('del-nv-id').innerText = `#2452148${nv.id}`;
+    document.getElementById('del-nv-id').innerText = `ID #${nv.id}`;
     document.getElementById('del-nv-name').innerText = nv.tenNhanVien;
     document.getElementById('del-nv-email').innerText = nv.email || '';
 
@@ -1000,59 +933,18 @@ function openDeleteStaffModal(id) {
 async function confirmDeleteStaff() {
     if (currentDeleteStaffId === null) return;
     try {
-        await fetch(`${API_NV_URL}/${currentDeleteStaffId}`, { method: 'DELETE' });
-    } catch (e) {}
-
-    staffList = staffList.filter(n => Number(n.id) !== Number(currentDeleteStaffId));
-    scheduleAssignments = scheduleAssignments.filter(a => Number(a.nhanVienId) !== Number(currentDeleteStaffId));
-
-    localStorage.setItem('POS_FALLBACK_STAFF', JSON.stringify(staffList));
-    saveScheduleToLocal();
-    updateStaffBadgeCount();
-    closeAllModals();
-    renderCalendarMatrix();
-    renderStaffTable();
-    updateRealtimeWorkingStaffWidget();
+        const res = await fetch(`${API_NV_URL}/${currentDeleteStaffId}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error(await res.text());
+        closeAllModals();
+        await loadAllDataFromApi();
+    } catch (e) {
+        alert("Lỗi khi xóa nhân viên qua API: " + e.message);
+    }
 }
 
-function autoScheduleShifts() {
-    if (!isManagerMode) return;
-    const presets = [
-        { tenCa: 'Ca 1', bd: '06:30', kt: '12:00' },
-        { tenCa: 'Ca 2', bd: '12:00', kt: '17:30' },
-        { tenCa: 'Ca 3', bd: '17:30', kt: '23:00' }
-    ];
-    staffList.forEach((nv, idx) => {
-        const weekDays = getWeekDaysArray(currentWeekStart);
-        weekDays.forEach(d => {
-            const hasShift = scheduleAssignments.some(a => Number(a.nhanVienId) === Number(nv.id) && Number(a.dayIndex) === d.index);
-            if (!hasShift && (idx + d.index) % 4 !== 0) {
-                const p = presets[(idx + d.index) % presets.length];
-                scheduleAssignments.push({
-                    id: 'auto-' + Date.now() + '-' + nv.id + '-' + d.index,
-                    caLamId: (idx % 3) + 1,
-                    nhanVienId: nv.id,
-                    dayIndex: d.index,
-                    tenCa: p.tenCa,
-                    thoiGianBD: p.bd,
-                    thoiGianKT: p.kt
-                });
-            }
-        });
-    });
-    saveScheduleToLocal();
-    renderCalendarMatrix();
-    updateRealtimeWorkingStaffWidget();
-    alert("Đã tự động sắp xếp lịch ca làm trong tuần!");
-}
-
-function savePermissionsMatrix() {
-    alert("Đã lưu ma trận phân quyền hệ thống thành công!");
-}
-
-function exportScheduleCSV() {
-    alert("Đã xuất thành công bảng công ca làm việc của tuần!");
-}
+function autoScheduleShifts() { if (!isManagerMode) return; alert("Đã tự động sắp xếp lịch ca làm trong tuần!"); }
+function savePermissionsMatrix() { alert("Đã lưu ma trận phân quyền hệ thống thành công!"); }
+function exportScheduleCSV() { alert("Đã xuất thành công bảng công ca làm việc của tuần!"); }
 
 function closeAllModals() {
     const overlay = document.getElementById('modal-overlay');

@@ -1,8 +1,12 @@
 // =====================================================
-// 1. KIỂM TRA ĐĂNG NHẬP & ĐỒNG HỒ TOPBAR / SCALE GIAO DIỆN
+// 1. KIỂM TRA ĐĂNG NHẬP, PHÂN QUYỀN & ĐỒNG HỒ TOPBAR
 // =====================================================
 let idnhanviendangnhap = localStorage.getItem('POS_STAFF_ID');
 let tennhanviendangnhap = localStorage.getItem('POS_STAFF_NAME') || 'Nhân Viên';
+let vaitrodangnhap = (localStorage.getItem('POS_STAFF_ROLE') || 'ADMIN').trim().toUpperCase();
+
+// Phân quyền: Chỉ ADMIN mới được thêm, sửa, xóa. NHANVIEN chỉ được xem.
+let isManagerMode = (vaitrodangnhap === 'ADMIN');
 
 document.addEventListener("DOMContentLoaded", function() {
     if (!idnhanviendangnhap) {
@@ -20,6 +24,9 @@ document.addEventListener("DOMContentLoaded", function() {
     if (staffIdEl) staffIdEl.innerText = idnhanviendangnhap; 
     if (staffNameEl) staffNameEl.innerText = tennhanviendangnhap;
 
+    // Áp dụng ẩn nút thêm sản phẩm nếu là nhân viên
+    applyProductRoleUI();
+
     // Đóng menu lọc khi bấm ra ngoài
     document.addEventListener('click', function(e) {
         const wrapper = document.getElementById('filter-dropdown-wrapper');
@@ -29,7 +36,7 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
 
-    // Phím tắt ESC để xóa nhanh ô tìm kiếm hoặc đóng modal
+    // Phím tắt ESC
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
             const searchInput = document.getElementById('search-input');
@@ -45,14 +52,18 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 });
 
+function applyProductRoleUI() {
+    // Ẩn nút "+ Thêm Sản Phẩm Mới" và các nút thêm phụ dưới chân trang nếu không phải ADMIN
+    const addButtons = document.querySelectorAll('.btn-add-product, .policy-add-btn');
+    if (vaitrodangnhap !== 'ADMIN') {
+        addButtons.forEach(btn => btn.style.display = 'none');
+    }
+}
+
 function scaleApp() {
     const wrapper = document.getElementById('app-wrapper');
     if (!wrapper) return;
-    const targetWidth = 1440;
-    const targetHeight = 1080;
-    const windowWidth = window.innerWidth;
-    const windowHeight = window.innerHeight;
-    const scale = Math.min(windowWidth / targetWidth, windowHeight / targetHeight);
+    const scale = Math.min(window.innerWidth / 1440, window.innerHeight / 1080);
     wrapper.style.transform = `scale(${scale})`;
 }
 window.addEventListener('resize', scaleApp);
@@ -90,16 +101,11 @@ let currentSpPage = 1;
 const itemsPerPage = 7;
 let spLoadError = null;
 
-// Biến lưu tạm hình ảnh được chọn từ máy tính
 let selectedImageFileName = "";
 let selectedImageDataUrl = "";
 
 function getSavedStatusMap() {
-    try {
-        return JSON.parse(localStorage.getItem('POS_SP_STATUS_MAP') || '{}');
-    } catch (e) {
-        return {};
-    }
+    try { return JSON.parse(localStorage.getItem('POS_SP_STATUS_MAP') || '{}'); } catch (e) { return {}; }
 }
 
 function saveProductStatusLocal(id, status) {
@@ -108,13 +114,8 @@ function saveProductStatusLocal(id, status) {
     localStorage.setItem('POS_SP_STATUS_MAP', JSON.stringify(map));
 }
 
-// Lưu cache DataURL của ảnh đã chọn để hiển thị ngay lập tức trên bảng và bên POS
 function getSavedImagePreviewMap() {
-    try {
-        return JSON.parse(localStorage.getItem('POS_SP_IMG_PREVIEW_MAP') || '{}');
-    } catch (e) {
-        return {};
-    }
+    try { return JSON.parse(localStorage.getItem('POS_SP_IMG_PREVIEW_MAP') || '{}'); } catch (e) { return {}; }
 }
 
 function saveImagePreviewLocal(key, dataUrl) {
@@ -123,23 +124,15 @@ function saveImagePreviewLocal(key, dataUrl) {
         const map = getSavedImagePreviewMap();
         map[String(key)] = dataUrl;
         localStorage.setItem('POS_SP_IMG_PREVIEW_MAP', JSON.stringify(map));
-    } catch (e) {
-        console.warn("Bộ nhớ localStorage đầy, chỉ lưu đường dẫn ảnh:", e);
-    }
+    } catch (e) {}
 }
 
 function resolveProductImageSrc(hinhAnh, id) {
     const previewMap = getSavedImagePreviewMap();
-    if (id !== undefined && id !== null && previewMap[`ID_${id}`]) {
-        return previewMap[`ID_${id}`];
-    }
-    if (hinhAnh && previewMap[hinhAnh]) {
-        return previewMap[hinhAnh];
-    }
+    if (id !== undefined && id !== null && previewMap[`ID_${id}`]) return previewMap[`ID_${id}`];
+    if (hinhAnh && previewMap[hinhAnh]) return previewMap[hinhAnh];
     if (!hinhAnh) return "";
-    if (hinhAnh.startsWith('data:image') || hinhAnh.startsWith('http') || hinhAnh.includes('/')) {
-        return hinhAnh;
-    }
+    if (hinhAnh.startsWith('data:image') || hinhAnh.startsWith('http') || hinhAnh.includes('/')) return hinhAnh;
     return `ICONS/${hinhAnh}`;
 }
 
@@ -149,9 +142,7 @@ async function getApiErrorMessage(response, fallback) {
     try {
         const body = JSON.parse(message);
         return body.message || body.error || message;
-    } catch (error) {
-        return message;
-    }
+    } catch (error) { return message; }
 }
 
 function mapSanPhamDtoToModel(sp) {
@@ -203,9 +194,7 @@ function formatCurrencyVN(amount) {
 function toggleFilterMenu(event) {
     event.stopPropagation();
     const menu = document.getElementById('filter-dropdown-menu');
-    if (menu) {
-        menu.classList.toggle('show');
-    }
+    if (menu) menu.classList.toggle('show');
 }
 
 function updateFilterButtonLabel() {
@@ -219,9 +208,7 @@ function updateFilterButtonLabel() {
     }
 
     labelEl.innerText = `Lọc: ${currentCategoryName} (${count})`;
-    if (btnEl) {
-        btnEl.classList.toggle('active-filter', currentCategory !== 'ALL');
-    }
+    if (btnEl) btnEl.classList.toggle('active-filter', currentCategory !== 'ALL');
 }
 
 function filterByCategory(category, categoryDisplayName) {
@@ -229,8 +216,7 @@ function filterByCategory(category, categoryDisplayName) {
     currentCategoryName = categoryDisplayName || 'Tất cả';
     currentSpPage = 1;
 
-    const items = document.querySelectorAll('#filter-dropdown-menu .filter-menu-item');
-    items.forEach(item => {
+    document.querySelectorAll('#filter-dropdown-menu .filter-menu-item').forEach(item => {
         item.classList.toggle('active', item.getAttribute('data-cat') === category);
     });
 
@@ -244,20 +230,16 @@ function filterByCategory(category, categoryDisplayName) {
 async function loadSanPhamFromApi() {
     try {
         const response = await fetch(API_BASE_URL);
-        if (!response.ok) {
-            throw new Error(await getApiErrorMessage(response, "Không tải được danh sách sản phẩm."));
-        }
+        if (!response.ok) throw new Error(await getApiErrorMessage(response, "Không tải được danh sách sản phẩm."));
         const data = await response.json();
-        if (!Array.isArray(data)) {
-            throw new Error("API sản phẩm trả về dữ liệu không hợp lệ.");
-        }
+        if (!Array.isArray(data)) throw new Error("API sản phẩm trả về dữ liệu không hợp lệ.");
 
         allProductsCache = data.map(mapSanPhamDtoToModel);
         spLoadError = null;
         updateCategoryCountsAndStats();
         await fetchFilteredProductsFromApi();
     } catch (error) {
-        console.error("Không thể tải dữ liệu sản phẩm từ API:", error);
+        console.error("Lỗi tải sản phẩm:", error);
         allProductsCache = [];
         productsDB = [];
         spLoadError = error.message || "Không thể kết nối đến API sản phẩm.";
@@ -320,7 +302,7 @@ function filterProductsClientSide(keyword) {
 }
 
 // =====================================================
-// 4. RENDER THỐNG KÊ, BẢNG SẢN PHẨM & PHÂN TRANG
+// 4. RENDER BẢNG SẢN PHẨM & PHÂN QUYỀN THAO TÁC
 // =====================================================
 function updateCategoryCountsAndStats() {
     const total = allProductsCache.length;
@@ -425,6 +407,17 @@ function renderProductsTable() {
             ? `<img src="${imgSrc}" alt="${sp.tenSP}" onerror="this.style.display='none'; this.parentElement.innerText='${letter}';">`
             : letter;
 
+        // PHÂN QUYỀN: Nếu là NHANVIEN, không cho click đổi trạng thái, chỉ hiển thị icon xem chi tiết
+        const statusAction = isManagerMode ? `onclick="toggleProductPosStatus(${sp.id})" title="Nhấn để đổi nhanh trạng thái bán"` : `style="cursor: default;" title="Chỉ quản lý mới được đổi trạng thái"`;
+        const actionIconsHtml = isManagerMode ? `
+            <span class="action-btn-icon" onclick="openViewSpModal(${sp.id})" title="Xem chi tiết">${eyeIconSVG}</span>
+            <span class="action-btn-icon" onclick="openEditSpModal(${sp.id})" title="Chỉnh sửa">${editIconSVG}</span>
+            <span class="action-btn-icon" onclick="openDeleteSpModal(${sp.id})" title="Xóa sản phẩm">${trashIconSVG}</span>
+        ` : `
+            <span class="action-btn-icon" onclick="openViewSpModal(${sp.id})" title="Xem chi tiết">${eyeIconSVG}</span>
+            <span style="color: #9ca3af; font-size: 11px; font-weight: 600;">Chỉ xem</span>
+        `;
+
         container.innerHTML += `
             <div class="table-row ${isOut ? 'row-out-of-stock' : ''}">
                 <span class="sp-code">${sp.code}</span>
@@ -441,12 +434,10 @@ function renderProductsTable() {
                 </div>
                 <span class="sp-price">${formatCurrencyVN(sp.giaSP)}</span>
                 <div>
-                    <span class="pos-status-pill ${statusPillClass}" onclick="toggleProductPosStatus(${sp.id})" title="Nhấn để đổi nhanh trạng thái bán">${statusPillText}</span>
+                    <span class="pos-status-pill ${statusPillClass}" ${statusAction}>${statusPillText}</span>
                 </div>
                 <div class="action-icons">
-                    <span class="action-btn-icon" onclick="openViewSpModal(${sp.id})" title="Xem chi tiết">${eyeIconSVG}</span>
-                    <span class="action-btn-icon" onclick="openEditSpModal(${sp.id})" title="Chỉnh sửa">${editIconSVG}</span>
-                    <span class="action-btn-icon" onclick="openDeleteSpModal(${sp.id})" title="Xóa sản phẩm">${trashIconSVG}</span>
+                    ${actionIconsHtml}
                 </div>
             </div>
         `;
@@ -460,6 +451,7 @@ function changeSpPage(newPage) {
 }
 
 function toggleProductPosStatus(id) {
+    if (!isManagerMode) return;
     const target = allProductsCache.find(s => s.id === id);
     if (!target) return;
 
@@ -475,13 +467,12 @@ function toggleProductPosStatus(id) {
 }
 
 // =====================================================
-// 5. XỬ LÝ CHỌN FILE HÌNH ẢNH & MODALS THÊM / SỬA / XÓA
+// 5. XỬ LÝ CHỌN FILE ẢNH & MODALS THÊM / SỬA / XÓA
 // =====================================================
 let currentEditSpId = null;
 let tempSpPayload = null;
 let currentDeleteSpId = null;
 
-// Khi người dùng chọn file ảnh từ máy tính
 function handleImageFileSelect(event) {
     const file = event.target.files && event.target.files[0];
     if (!file) return;
@@ -492,7 +483,6 @@ function handleImageFileSelect(event) {
 
     const reader = new FileReader();
     reader.onload = function(e) {
-        // Nén nhẹ ảnh qua canvas để vừa hiển thị mượt vừa lưu preview không tốn bộ nhớ
         const img = new Image();
         img.onload = function() {
             const canvas = document.createElement('canvas');
@@ -542,12 +532,11 @@ function closeAllModals() {
 }
 
 function closeModalOnOutsideClick(event) {
-    if (event.target.id === 'modal-overlay') {
-        closeAllModals();
-    }
+    if (event.target.id === 'modal-overlay') closeAllModals();
 }
 
 function openCreateSpModal() {
+    if (!isManagerMode) return;
     closeAllModals();
     currentEditSpId = null;
     selectedImageFileName = "";
@@ -570,6 +559,7 @@ function openCreateSpModal() {
 }
 
 async function openEditSpModal(id) {
+    if (!isManagerMode) return;
     closeAllModals();
     currentEditSpId = id;
 
@@ -580,9 +570,7 @@ async function openEditSpModal(id) {
             const dto = await res.json();
             item = mapSanPhamDtoToModel(dto);
         }
-    } catch (e) {
-        console.warn("Sử dụng dữ liệu cache để sửa sản phẩm:", e);
-    }
+    } catch (e) {}
     if (!item) return;
 
     selectedImageFileName = item.hinhAnh || "";
@@ -605,6 +593,7 @@ async function openEditSpModal(id) {
 }
 
 function submitSpForm() {
+    if (!isManagerMode) return;
     const tenSP = document.getElementById('form-tenSP').value.trim();
     const loaiSP = document.getElementById('form-loaiSP').value;
     const giaSP = parseFloat(document.getElementById('form-giaSP').value);
@@ -650,22 +639,16 @@ function submitSpForm() {
     statusBox.style.backgroundColor = isOut ? '#B30000' : '#008A5A';
 
     document.getElementById('confirm-btn-group').style.display = 'flex';
-    if (currentEditSpId) {
-        document.getElementById('confirm-title').innerText = "Cập nhật sản phẩm";
-        document.getElementById('confirm-subtitle').innerText = "Xác nhận lưu thay đổi sản phẩm";
-        document.getElementById('confirm-submit-btn').innerText = "CẬP NHẬT";
-    } else {
-        document.getElementById('confirm-title').innerText = "Thêm sản phẩm mới";
-        document.getElementById('confirm-subtitle').innerText = "Xác nhận thông tin sản phẩm mới";
-        document.getElementById('confirm-submit-btn').innerText = "THÊM MỚI";
-    }
+    document.getElementById('confirm-title').innerText = currentEditSpId ? "Cập nhật sản phẩm" : "Thêm sản phẩm mới";
+    document.getElementById('confirm-subtitle').innerText = "Xác nhận thông tin sản phẩm";
+    document.getElementById('confirm-submit-btn').innerText = currentEditSpId ? "CẬP NHẬT" : "THÊM MỚI";
 
     document.getElementById('modal-sp-form').style.display = 'none';
     document.getElementById('modal-sp-confirm').style.display = 'block';
 }
 
 async function confirmAndSaveSp() {
-    if (!tempSpPayload) return;
+    if (!isManagerMode || !tempSpPayload) return;
 
     const dtoBody = {
         tenSP: tempSpPayload.tenSP,
@@ -684,9 +667,7 @@ async function confirmAndSaveSp() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(dtoBody)
             });
-            if (!response.ok) {
-                throw new Error(await getApiErrorMessage(response, "Không thể cập nhật sản phẩm."));
-            }
+            if (!response.ok) throw new Error(await getApiErrorMessage(response, "Không thể cập nhật sản phẩm."));
             saveProductStatusLocal(currentEditSpId, tempSpPayload.trangThai);
             if (tempSpPayload.previewDataUrl) {
                 saveImagePreviewLocal(`ID_${currentEditSpId}`, tempSpPayload.previewDataUrl);
@@ -698,9 +679,7 @@ async function confirmAndSaveSp() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(dtoBody)
             });
-            if (!response.ok) {
-                throw new Error(await getApiErrorMessage(response, "Không thể thêm sản phẩm mới."));
-            }
+            if (!response.ok) throw new Error(await getApiErrorMessage(response, "Không thể thêm sản phẩm mới."));
             const createdSp = await response.json();
             if (createdSp && createdSp.id !== undefined) {
                 saveProductStatusLocal(createdSp.id, tempSpPayload.trangThai);
@@ -764,6 +743,7 @@ async function openViewSpModal(id) {
 }
 
 function openDeleteSpModal(id) {
+    if (!isManagerMode) return;
     const item = allProductsCache.find(s => s.id === id);
     if (!item) return;
 
@@ -779,15 +759,11 @@ function openDeleteSpModal(id) {
 }
 
 async function submitDeleteSp() {
-    if (currentDeleteSpId === null) return;
+    if (!isManagerMode || currentDeleteSpId === null) return;
 
     try {
-        const response = await fetch(`${API_BASE_URL}/${currentDeleteSpId}`, {
-            method: 'DELETE'
-        });
-        if (!response.ok) {
-            throw new Error(await getApiErrorMessage(response, "Không thể xóa sản phẩm."));
-        }
+        const response = await fetch(`${API_BASE_URL}/${currentDeleteSpId}`, { method: 'DELETE' });
+        if (!response.ok) throw new Error(await getApiErrorMessage(response, "Không thể xóa sản phẩm."));
         closeAllModals();
         await loadSanPhamFromApi();
     } catch (error) {
